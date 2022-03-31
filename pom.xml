@@ -13,6 +13,8 @@
     </modules>
 
     <properties>
+        <sonar.projectKey>paradise-bc_palm-beach_AX_gTwlgOrZM6FhJpeZ1</sonar.projectKey>
+        <sonar.qualitygate.wait>true</sonar.qualitygate.wait>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
