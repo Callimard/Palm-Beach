@@ -1,0 +1,65 @@
+default:
+  image: maven:3.8.4-openjdk-17
+
+stages:
+  - build
+  - test
+  - scan
+  - deploy-artifact
+
+variables:
+  MAVEN_CLI_OPTS: "-s .m2/settings.xml"
+  MAVEN_DEBUG: "-e -X"
+  GIT_DEPTH: 0
+  GIT_CLONE_PATH: $CI_BUILDS_DIR/Si-MA
+  SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"  # Defines the location of the analysis task cache
+
+compile-job:
+  stage: build
+  artifacts:
+    paths:
+      - "target"
+  script:
+    - mvn $MAVEN_CLI_OPTS clean compile
+  when: always
+  only:
+    - pushes
+    - merge_requests
+
+test-job:
+  stage: test
+  needs: [ "compile-job" ]
+  artifacts:
+    paths:
+      - "target"
+  script:
+    - mvn $MAVEN_CLI_OPTS clean test
+  when: on_success
+  only:
+    - pushes
+    - merge_requests
+
+sonarqube-scan-job:
+  stage: scan
+  needs: [ "compile-job", "test-job" ]
+  artifacts:
+    paths:
+      - "target"
+  script:
+    - mvn $MAVEN_CLI_OPTS clean install sonar:sonar
+  allow_failure: true
+  when: on_success
+  only:
+    - merge_requests
+
+deploy-artifact-job:
+  stage: deploy-artifact
+  needs: [ "compile-job", "test-job", "sonarqube-scan-job" ]
+  artifacts:
+    paths:
+      - "target/*.jar"
+  script:
+    - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy
+  when: on_success
+  only:
+    - master
