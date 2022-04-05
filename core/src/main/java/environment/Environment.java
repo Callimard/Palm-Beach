@@ -1,6 +1,6 @@
 package environment;
 
-import common.BasicContext;
+import common.SimpleContext;
 import common.Context;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public abstract class Environment {
 
     protected Environment(String name, Context context) {
         this.name = Optional.of(name).get();
-        this.context = context != null ? context : new BasicContext();
+        this.context = context != null ? context : new SimpleContext();
     }
 
 }

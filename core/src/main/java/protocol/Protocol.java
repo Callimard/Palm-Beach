@@ -1,7 +1,7 @@
 package protocol;
 
 import agent.SimpleAgent;
-import common.BasicContext;
+import common.SimpleContext;
 import common.Context;
 import lombok.*;
 import protocol.event.EventCatcher;
@@ -45,7 +45,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
     // Constructors.
 
     /**
-     * Constructs a {@link Protocol} with a specified {@link SimpleAgent} and an empty {@link Context} with the default class {@link BasicContext}.
+     * Constructs a {@link Protocol} with a specified {@link SimpleAgent} and an empty {@link Context} with the default class {@link SimpleContext}.
      *
      * @param agent the agent
      *
@@ -57,7 +57,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
 
     /**
      * Constructs a {@link Protocol} with a specified {@link SimpleAgent} and a specified initial {@link Context}. If the {@code Context} is null,
-     * create an empty {@code Context} with the default class {@link BasicContext}.
+     * create an empty {@code Context} with the default class {@link SimpleContext}.
      *
      * @param agent   the agent
      * @param context the context
@@ -66,7 +66,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      */
     protected Protocol(@NonNull SimpleAgent agent, Context context) {
         this.agent = agent;
-        this.context = context != null ? context : new BasicContext();
+        this.context = context != null ? context : new SimpleContext();
         this.manipulator = defaultProtocolManipulator();
         if (manipulator == null)
             throw new NullDefaultProtocolManipulatorException("The default ProtocolManipulator of the Protocol class " + this.getClass() + " is " +
@@ -78,7 +78,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
 
     /**
      * Try to create an instance of the specified {@link Protocol} class with the specified {@link SimpleAgent}. Create an empty initial context for
-     * the {@code Protocol}. The class use for the context is {@link BasicContext}.
+     * the {@code Protocol}. The class use for the context is {@link SimpleContext}.
      *
      * @param protocolClass the {@code Protocol} class
      * @param agent         the agent with which the {@code Protocol} will be instantiated

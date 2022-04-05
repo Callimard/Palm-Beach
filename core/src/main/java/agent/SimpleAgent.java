@@ -2,7 +2,7 @@ package agent;
 
 import agent.exception.*;
 import behavior.Behavior;
-import common.BasicContext;
+import common.SimpleContext;
 import common.Context;
 import environment.Environment;
 import lombok.AllArgsConstructor;
@@ -54,7 +54,7 @@ public class SimpleAgent implements EventCatcher {
 
     /**
      * Construct a {@link SimpleAgent} with a unique {@link AgentIdentifier} and an {@link Environment}. The {@code SimpleAgent} context is not
-     * specified that it means the initial context is empty and the default class use for the {@code SimpleAgent} will be {@link BasicContext}.
+     * specified that it means the initial context is empty and the default class use for the {@code SimpleAgent} will be {@link SimpleContext}.
      *
      * @param identifier  the unique identifier of the {@code SimpleAgent}
      * @param environment the environment where the {@code SimpleAgent} evolves
@@ -66,7 +66,7 @@ public class SimpleAgent implements EventCatcher {
     /**
      * Constructs a {@link SimpleAgent} with a unique {@link AgentIdentifier}, an {@link Environment} and a {@link Context}. The context parameter is
      * here to allow the {@code SimpleAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is
-     * null, the default class use is {@link BasicContext}.
+     * null, the default class use is {@link SimpleContext}.
      *
      * @param identifier  the unique identifier of the {@code SimpleAgent}
      * @param environment the environment where the {@code SimpleAgent} evolves
@@ -77,7 +77,7 @@ public class SimpleAgent implements EventCatcher {
     public SimpleAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment, Context context) {
         this.identifier = identifier;
         this.environment = environment;
-        this.context = context != null ? context : new BasicContext();
+        this.context = context != null ? context : new SimpleContext();
 
         this.protocols = new ConcurrentHashMap<>();
         this.behaviors = new ConcurrentHashMap<>();

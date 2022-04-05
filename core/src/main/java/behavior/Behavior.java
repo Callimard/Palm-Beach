@@ -1,7 +1,7 @@
 package behavior;
 
 import agent.SimpleAgent;
-import common.BasicContext;
+import common.SimpleContext;
 import common.Context;
 import lombok.Getter;
 import lombok.NonNull;
@@ -51,7 +51,7 @@ public abstract class Behavior {
     /**
      * Constructs a {@link Behavior} with a specified {@link SimpleAgent} which can play the {@code Behavior}.
      * <p>
-     * The {@code Behavior} is initiate with an empty {@link Context}. The default {@code Context} class used is {@link BasicContext}.
+     * The {@code Behavior} is initiate with an empty {@link Context}. The default {@code Context} class used is {@link SimpleContext}.
      *
      * @param agent the agent which can play the behavior
      */
@@ -68,7 +68,7 @@ public abstract class Behavior {
     protected Behavior(@NonNull SimpleAgent agent, Context context) {
         this.agent = Optional.of(agent).get();
         this.played = false;
-        this.context = context != null ? context : new BasicContext();
+        this.context = context != null ? context : new SimpleContext();
     }
 
     // Methods.
