@@ -1,9 +1,9 @@
 package agent.exception;
 
-import agent.BasicAgent;
+import agent.SimpleAgent;
 
 public class AgentCannotBeKilledException extends AgentException {
-    public AgentCannotBeKilledException(BasicAgent basicAgent) {
-        super("Agent cannot be killed. Agent state equals = " + basicAgent.getState());
+    public AgentCannotBeKilledException(SimpleAgent simpleAgent) {
+        super("Agent cannot be killed. Agent state equals = " + simpleAgent.getState());
     }
 }

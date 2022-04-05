@@ -11,20 +11,25 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import protocol.Protocol;
+import protocol.event.Event;
+import protocol.event.EventCatcher;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An {@code Agent} of the simulation. An {@code Agent} can be the abstraction of a machine, a processus or even a thread.
  * <p>
- * An {@code BasicAgent} always evolves in one {@link Environment} and use several {@link Protocol}s. An agent can add several {@link Behavior}s and
+ * An {@code SimpleAgent} always evolves in one {@link Environment} and use several {@link Protocol}s. An agent can add several {@link Behavior}s and
  * during the simulation, the {@code Agent} can dynamically start and stop to play the different {@code Behavior} that it has.
  */
 @ToString
 @Slf4j
-public class BasicAgent {
+public class SimpleAgent implements EventCatcher {
 
     // Variables.
 
@@ -48,28 +53,28 @@ public class BasicAgent {
     // Constructors.
 
     /**
-     * Construct a {@link BasicAgent} with a unique {@link AgentIdentifier} and an {@link Environment}. The {@code BasicAgent} context is not
-     * specified that it means the initial context is empty and the default class use for the {@code BasicAgent} will be {@link BasicContext}.
+     * Construct a {@link SimpleAgent} with a unique {@link AgentIdentifier} and an {@link Environment}. The {@code SimpleAgent} context is not
+     * specified that it means the initial context is empty and the default class use for the {@code SimpleAgent} will be {@link BasicContext}.
      *
-     * @param identifier  the unique identifier of the {@code BasicAgent}
-     * @param environment the environment where the {@code BasicAgent} evolves
+     * @param identifier  the unique identifier of the {@code SimpleAgent}
+     * @param environment the environment where the {@code SimpleAgent} evolves
      */
-    public BasicAgent(AgentIdentifier identifier, Environment environment) {
+    public SimpleAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment) {
         this(identifier, environment, null);
     }
 
     /**
-     * Constructs a {@link BasicAgent} with a unique {@link AgentIdentifier}, an {@link Environment} and a {@link Context}. The context parameter is
-     * here to allow the {@code BasicAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is
+     * Constructs a {@link SimpleAgent} with a unique {@link AgentIdentifier}, an {@link Environment} and a {@link Context}. The context parameter is
+     * here to allow the {@code SimpleAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is
      * null, the default class use is {@link BasicContext}.
      *
-     * @param identifier  the unique identifier of the {@code BasicAgent}
-     * @param environment the environment where the {@code BasicAgent} evolves
-     * @param context     the context of the {@code BasicAgent}
+     * @param identifier  the unique identifier of the {@code SimpleAgent}
+     * @param environment the environment where the {@code SimpleAgent} evolves
+     * @param context     the context of the {@code SimpleAgent}
      *
      * @throws NullPointerException if specified identifier or environment is/are null.
      */
-    public BasicAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment, Context context) {
+    public SimpleAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment, Context context) {
         this.identifier = identifier;
         this.environment = environment;
         this.context = context != null ? context : new BasicContext();
@@ -98,13 +103,13 @@ public class BasicAgent {
     }
 
     /**
-     * Start the {@link BasicAgent}. This method start the {@code BasicAgent} only if it is either in the state {@link AgentState#CREATED} either in
+     * Start the {@link SimpleAgent}. This method start the {@code SimpleAgent} only if it is either in the state {@link AgentState#CREATED} either in
      * the state {@link AgentState#STOPPED}, else throws an exception.
      *
-     * @throws AgentCannotBeStartedException if the {@code BasicAgent} is not in a correct state
+     * @throws AgentCannotBeStartedException if the {@code SimpleAgent} is not in a correct state
      * @see AgentState
      */
-    public synchronized void start() {
+    public final synchronized void start() {
         if (canBeStarted()) {
             setStarted();
             onStart();
@@ -132,17 +137,17 @@ public class BasicAgent {
     }
 
     /**
-     * @return true if the current state of the {@link BasicAgent} is {@link AgentState#STARTED}
+     * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#STARTED}
      */
     public synchronized boolean isStarted() {
         return state.equals(AgentState.STARTED);
     }
 
     /**
-     * Stop the {@link BasicAgent}. This method stop the {@code BasicAgent} only if it is in the state {@link AgentState#STARTED}, else throws an
+     * Stop the {@link SimpleAgent}. This method stop the {@code SimpleAgent} only if it is in the state {@link AgentState#STARTED}, else throws an
      * exception.
      */
-    public synchronized void stop() {
+    public final synchronized void stop() {
         if (canBeStopped()) {
             setStopped();
             onStop();
@@ -170,19 +175,19 @@ public class BasicAgent {
     }
 
     /**
-     * @return true if the current state of the {@link BasicAgent} is {@link AgentState#STOPPED}
+     * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#STOPPED}
      */
     public synchronized boolean isStopped() {
         return state.equals(AgentState.STOPPED);
     }
 
     /**
-     * Kill the {@link BasicAgent}. This method kill the {@code BasicAgent} only if the {@code BasicAgent} is not already in the state {@link
+     * Kill the {@link SimpleAgent}. This method kill the {@code SimpleAgent} only if the {@code SimpleAgent} is not already in the state {@link
      * AgentState#KILLED}.
      *
-     * <strong>If a {@code BasicAgent} is killed, it cannot be started or stopped anymore.</strong>
+     * <strong>If a {@code SimpleAgent} is killed, it cannot be started or stopped anymore.</strong>
      */
-    public synchronized void kill() {
+    public final synchronized void kill() {
         if (canBeKilled()) {
             setKilled();
             onKill();
@@ -210,7 +215,7 @@ public class BasicAgent {
     }
 
     /**
-     * @return true if the current state of the {@link BasicAgent} is {@link AgentState#KILLED}
+     * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#KILLED}
      */
     public synchronized boolean isKilled() {
         return state.equals(AgentState.KILLED);
@@ -221,7 +226,7 @@ public class BasicAgent {
      * <p>
      * A {@code Protocol} must have at least a constructor which as this specified form:
      * <pre>
-     *     Protocol(BasicAgent, Context) {
+     *     Protocol(SimpleAgent, Context) {
      *       super(...);
      *       ...
      *     }
@@ -245,11 +250,11 @@ public class BasicAgent {
     }
 
     /**
-     * Verify if the {@link BasicAgent} has already added a {@link Protocol} for the specified class or not.
+     * Verify if the {@link SimpleAgent} has already added a {@link Protocol} for the specified class or not.
      *
      * @param protocolClass the protocol class to verify
      *
-     * @return true if the {@code BasicAgent} has already a {@code Protocol} for this {@code Protocol} class, else false.
+     * @return true if the {@code SimpleAgent} has already a {@code Protocol} for this {@code Protocol} class, else false.
      */
     public boolean hasProtocol(Class<? extends Protocol> protocolClass) {
         return protocols.containsKey(protocolClass);
@@ -258,7 +263,7 @@ public class BasicAgent {
     /**
      * @param protocolClass the protocol class
      *
-     * @return the instance of the {@link Protocol} if the {@link BasicAgent} has added a {@code Protocol} for the specified class, else null.
+     * @return the instance of the {@link Protocol} if the {@link SimpleAgent} has added a {@code Protocol} for the specified class, else null.
      *
      * @see #hasProtocol(Class)
      */
@@ -297,22 +302,73 @@ public class BasicAgent {
         behaviors.get(behaviorClass).stopPlay();
     }
 
+    /**
+     * Process the {@link Event} only if the {@link SimpleAgent} is in the {@link AgentState#STARTED} state. Search each {@link Protocol} which can
+     * process the {@code Event} with the method {@link EventCatcher#canProcessEvent(Event)}. All {@code Protocols} added in the {@code SimpleAgent}
+     * which can process the {@code Event} will process the {@code Event}.
+     *
+     * @param event the event
+     *
+     * @throws AgentNotStartedException if the {@code SimpleAgent} is not in the {@link AgentState#STARTED} state.
+     */
+    @Override
+    public final synchronized void processEvent(Event<?> event) {
+        if (isStarted()) {
+            boolean eventHasBeenProcessed = searchProtocolForEvent(event);
+            if (!eventHasBeenProcessed)
+                throw new AgentCannotProcessEventException(this, event);
+        } else
+            throw new AgentNotStartedException(this);
+    }
+
+    /**
+     * Browses all added {@link Protocol} in the {@link SimpleAgent} and call the method {@link EventCatcher#processEvent(Event)} of each {@code
+     * Protocol} which can be process the {@code Event} (which returns true with the call of the method {@link EventCatcher#canProcessEvent(Event)}).
+     *
+     * @param event the event to process
+     */
+    private boolean searchProtocolForEvent(Event<?> event) {
+        boolean hasBeenProcessed = false;
+        for (Protocol p : protocols.values()) {
+            if (p.canProcessEvent(event)) {
+                p.processEvent(event);
+                hasBeenProcessed = true;
+            }
+        }
+
+        return hasBeenProcessed;
+    }
+
+    /**
+     * @param event the event
+     *
+     * @return true if it exists at least one {@link Protocol} which can process the {@link Event}, else false.
+     */
+    @Override
+    public boolean canProcessEvent(Event<?> event) {
+        for (Protocol p : protocols.values())
+            if (p.canProcessEvent(event))
+                return true;
+
+        return false;
+    }
+
     // Inner classes.
 
     /**
-     * Represent the state of a {@link BasicAgent}.
+     * Represent the state of a {@link SimpleAgent}.
      * <p>
-     * After the construction, a {@code BasicAgent} is first {@link AgentState#CREATED}. After a call of the method {@link #start()}, the state pass
+     * After the construction, a {@code SimpleAgent} is first {@link AgentState#CREATED}. After a call of the method {@link #start()}, the state pass
      * to {@link AgentState#STOPPED}.
      * <p>
-     * From any state, with the method {@link #kill()}, the {@code BasicAgent} pass to {@link AgentState#KILLED}.
+     * From any state, with the method {@link #kill()}, the {@code SimpleAgent} pass to {@link AgentState#KILLED}.
      */
     public enum AgentState {
         CREATED, STARTED, STOPPED, KILLED
     }
 
     /**
-     * A class to uniquely identify a {@link BasicAgent}. This is a sort of primary key of {@code BasicAgent}.
+     * A class to uniquely identify a {@link SimpleAgent}. This is a sort of primary key of {@code SimpleAgent}.
      * <p>
      * This class is abstract to force subclasses to implement {@link Object#hashCode()} and {@link Object#equals(Object)}.
      * <p>
@@ -330,7 +386,7 @@ public class BasicAgent {
     }
 
     /**
-     * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code BasicAgent} with its name and its unique id.
+     * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code SimpleAgent} with its name and its unique id.
      */
     @ToString
     @Getter
@@ -364,8 +420,8 @@ public class BasicAgent {
         }
 
         /**
-         * Generate the next unique id for a {@link BasicAgent}. If this methos is always used to generate {@code BasicAgent} identifier unique id, it
-         * is guaranty that each {@code BasicAgent} will have different id.
+         * Generate the next unique id for a {@link SimpleAgent}. If this methos is always used to generate {@code SimpleAgent} identifier unique id, it
+         * is guaranty that each {@code SimpleAgent} will have different id.
          *
          * @return the next generated unique id.
          */
@@ -375,22 +431,22 @@ public class BasicAgent {
     }
 
     /**
-     * Call back interface to be notified when the {@link BasicAgent} change its state.
+     * Call back interface to be notified when the {@link SimpleAgent} change its state.
      */
     public interface AgentObserver {
 
         /**
-         * Call back method used when the {@link BasicAgent} is started with the method {@link BasicAgent#start()}.
+         * Call back method used when the {@link SimpleAgent} is started with the method {@link SimpleAgent#start()}.
          */
         void agentStarted();
 
         /**
-         * Call back method used when the {@link BasicAgent} is stopped with the method {@link BasicAgent#stop()}.
+         * Call back method used when the {@link SimpleAgent} is stopped with the method {@link SimpleAgent#stop()}.
          */
         void agentStopped();
 
         /**
-         * Call back method used when the {@link BasicAgent} is killed with the method {@link BasicAgent#kill()}.
+         * Call back method used when the {@link SimpleAgent} is killed with the method {@link SimpleAgent#kill()}.
          */
         void agentKilled();
 

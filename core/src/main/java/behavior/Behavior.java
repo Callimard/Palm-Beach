@@ -1,6 +1,6 @@
 package behavior;
 
-import agent.BasicAgent;
+import agent.SimpleAgent;
 import common.BasicContext;
 import common.Context;
 import lombok.Getter;
@@ -13,8 +13,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
 
 /**
- * A {@code Behavior} represents a part of the arbitrary conduct of a {@link BasicAgent}. When a {@link BasicAgent} start to play a {@code Behavior },
- * maybe some {@link Protocol} use by the {@code BasicAgent} will changes and follow "another" {@link Protocol}. For example, it is possible to define
+ * A {@code Behavior} represents a part of the arbitrary conduct of a {@link SimpleAgent}. When a {@link SimpleAgent} start to play a {@code Behavior },
+ * maybe some {@link Protocol} use by the {@code SimpleAgent} will changes and follow "another" {@link Protocol}. For example, it is possible to define
  * two behavior for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine agent.
  * <p>
  * This class can also allow the simulation of several arbitrary behavior in {@code Protocol} that allow this type of behavior. For example, in
@@ -23,7 +23,7 @@ import java.util.Optional;
  *
  * <strong>Implementation instructions:</strong> a subclass of {@code Behavior} must add a constructor like this:
  * <pre>
- *     Behavior(BasicAgent) {
+ *     Behavior(SimpleAgent) {
  *        super(...);
  *        ...
  *     }
@@ -36,7 +36,7 @@ public abstract class Behavior {
     // Variables.
 
     @Getter
-    private final BasicAgent agent;
+    private final SimpleAgent agent;
 
     @Getter
     private final Context context;
@@ -48,13 +48,13 @@ public abstract class Behavior {
     // Constructors.
 
     /**
-     * Constructs a {@link Behavior} with a specified {@link BasicAgent} which can play the {@code Behavior}.
+     * Constructs a {@link Behavior} with a specified {@link SimpleAgent} which can play the {@code Behavior}.
      * <p>
      * The {@code Behavior} is initiate with an empty {@link Context}. The default {@code Context} class used is {@link BasicContext}.
      *
      * @param agent the agent which can play the behavior
      */
-    protected Behavior(BasicAgent agent) {
+    protected Behavior(SimpleAgent agent) {
         this(agent, null);
     }
 
@@ -64,7 +64,7 @@ public abstract class Behavior {
      *
      * @throws NullPointerException if the specified agent is null
      */
-    protected Behavior(BasicAgent agent, Context context) {
+    protected Behavior(SimpleAgent agent, Context context) {
         this.agent = Optional.of(agent).get();
         this.played = false;
         this.context = context != null ? context : new BasicContext();
@@ -73,7 +73,7 @@ public abstract class Behavior {
     // Methods.
 
     /**
-     * Try to create an instance of the specified {@link Behavior} class with the specified {@link BasicAgent}.
+     * Try to create an instance of the specified {@link Behavior} class with the specified {@link SimpleAgent}.
      *
      * @param behaviorClass the {@code Behavior} class
      * @param agent         the agent with which the {@code Behavior} will be instantiated
@@ -85,9 +85,9 @@ public abstract class Behavior {
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
      */
-    public static Behavior instantiateBehavior(Class<? extends Behavior> behaviorClass, BasicAgent agent)
+    public static Behavior instantiateBehavior(Class<? extends Behavior> behaviorClass, SimpleAgent agent)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Constructor<? extends Behavior> behaviorConstructor = behaviorClass.getConstructor(BasicAgent.class);
+        Constructor<? extends Behavior> behaviorConstructor = behaviorClass.getConstructor(SimpleAgent.class);
         return behaviorConstructor.newInstance(agent);
     }
 

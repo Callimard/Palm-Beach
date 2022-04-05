@@ -1,9 +1,9 @@
 package agent.exception;
 
-import agent.BasicAgent;
+import agent.SimpleAgent;
 
 public class AgentCannotBeStoppedException extends AgentException {
-    public AgentCannotBeStoppedException(BasicAgent basicAgent) {
-        super("Agent cannot be stopped. Agent state equals = " + basicAgent.getState());
+    public AgentCannotBeStoppedException(SimpleAgent simpleAgent) {
+        super("Agent cannot be stopped. Agent state equals = " + simpleAgent.getState());
     }
 }

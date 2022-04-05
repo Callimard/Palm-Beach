@@ -57,6 +57,13 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>5.8.2</version>
+            <scope>test</scope>
+        </dependency>
+
         <!-- https://mvnrepository.com/artifact/org.assertj/assertj-core -->
         <dependency>
             <groupId>org.assertj</groupId>
@@ -112,7 +119,6 @@
             <artifactId>jcabi-log</artifactId>
             <version>0.20.1</version>
         </dependency>
-
 
     </dependencies>
 

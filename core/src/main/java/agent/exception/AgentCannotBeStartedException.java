@@ -1,9 +1,9 @@
 package agent.exception;
 
-import agent.BasicAgent;
+import agent.SimpleAgent;
 
 public class AgentCannotBeStartedException extends AgentException {
-    public AgentCannotBeStartedException(BasicAgent basicAgent) {
-        super("Agent cannot be started. Agent state = " + basicAgent.getState());
+    public AgentCannotBeStartedException(SimpleAgent simpleAgent) {
+        super("Agent cannot be started. Agent state = " + simpleAgent.getState());
     }
 }
