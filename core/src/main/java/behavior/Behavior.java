@@ -4,6 +4,7 @@ import agent.SimpleAgent;
 import common.BasicContext;
 import common.Context;
 import lombok.Getter;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import protocol.Protocol;
@@ -54,7 +55,7 @@ public abstract class Behavior {
      *
      * @param agent the agent which can play the behavior
      */
-    protected Behavior(SimpleAgent agent) {
+    protected Behavior(@NonNull SimpleAgent agent) {
         this(agent, null);
     }
 
@@ -64,7 +65,7 @@ public abstract class Behavior {
      *
      * @throws NullPointerException if the specified agent is null
      */
-    protected Behavior(SimpleAgent agent, Context context) {
+    protected Behavior(@NonNull SimpleAgent agent, Context context) {
         this.agent = Optional.of(agent).get();
         this.played = false;
         this.context = context != null ? context : new BasicContext();

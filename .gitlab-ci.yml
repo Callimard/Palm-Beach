@@ -47,7 +47,7 @@ sonarqube-scan-job:
       - "target"
   script:
     - mvn $MAVEN_CLI_OPTS clean install sonar:sonar
-  allow_failure: true
+  allow_failure: false
   when: on_success
   only:
     - merge_requests

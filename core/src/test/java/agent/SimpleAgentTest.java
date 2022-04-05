@@ -2,6 +2,7 @@ package agent;
 
 import agent.exception.*;
 import behavior.Behavior;
+import behavior.BehaviorTest;
 import common.Context;
 import environment.Environment;
 import org.junit.jupiter.api.DisplayName;
@@ -59,7 +60,8 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Equals returns false with not SimpleAgentIdentifier class")
             void differentTypeWithEquals() {
-                SimpleAgent.SimpleAgentIdentifier identifier = new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
+                SimpleAgent.SimpleAgentIdentifier identifier =
+                        new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
                 Object other = new Object();
 
                 boolean res = identifier.equals(other);
@@ -70,7 +72,8 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Equals returns true with same instance")
             void sameInstance() {
-                SimpleAgent.SimpleAgentIdentifier identifier = new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
+                SimpleAgent.SimpleAgentIdentifier identifier =
+                        new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
 
                 boolean res = identifier.equals(identifier);
                 assertThat(res).isTrue();
@@ -448,9 +451,9 @@ public class SimpleAgentTest {
         void nonCorrectBehaviorClasses(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(NoCorrectConstructorBehavior.class));
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(WrongConstructorVisibilityBehavior.class));
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(ThrowExceptionConstructorBehavior.class));
+            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.NoCorrectConstructorBehavior.class));
+            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.WrongConstructorVisibilityBehavior.class));
+            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.ThrowExceptionConstructorBehavior.class));
         }
 
         @Test
@@ -458,11 +461,11 @@ public class SimpleAgentTest {
         void withCorrectBehaviorClass(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
-            assertThat(simpleAgent.hasBehavior(CorrectConstructorBehavior.class)).isFalse();
-            assertThat(simpleAgent.getBehavior(CorrectConstructorBehavior.class)).isNull();
-            assertDoesNotThrow(() -> simpleAgent.addBehavior(CorrectConstructorBehavior.class));
-            assertThat(simpleAgent.hasBehavior(CorrectConstructorBehavior.class)).isTrue();
-            assertThat(simpleAgent.getBehavior(CorrectConstructorBehavior.class)).isNotNull();
+            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isFalse();
+            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNull();
+            assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
+            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
+            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull();
         }
 
         @Test
@@ -470,61 +473,13 @@ public class SimpleAgentTest {
                 "behavior")
         void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
-            simpleAgent.addBehavior(CorrectConstructorBehavior.class);
+            simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
-            Behavior behavior = simpleAgent.getBehavior(CorrectConstructorBehavior.class);
+            Behavior behavior = simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
-            assertDoesNotThrow(() -> simpleAgent.addBehavior(CorrectConstructorBehavior.class));
-            assertThat(simpleAgent.hasBehavior(CorrectConstructorBehavior.class)).isTrue();
-            assertThat(simpleAgent.getBehavior(CorrectConstructorBehavior.class)).isNotNull().isSameAs(behavior);
-        }
-
-        // Inner class
-
-        public static abstract class BasicBehavior extends Behavior {
-
-            protected BasicBehavior(SimpleAgent agent) {
-                super(agent);
-            }
-
-            @Override
-            protected void beginToBePlayed() {
-                // Nothing
-            }
-
-            @Override
-            protected void stopToBePlayed() {
-                // Nothing
-            }
-        }
-
-        public static class CorrectConstructorBehavior extends BasicBehavior {
-
-            public CorrectConstructorBehavior(SimpleAgent agent) {
-                super(agent);
-            }
-        }
-
-        public static class NoCorrectConstructorBehavior extends BasicBehavior {
-
-            public NoCorrectConstructorBehavior(SimpleAgent agent, @SuppressWarnings("unused") String toMuchArgs) {
-                super(agent);
-            }
-        }
-
-        public static class WrongConstructorVisibilityBehavior extends BasicBehavior {
-
-            protected WrongConstructorVisibilityBehavior(SimpleAgent agent) {
-                super(agent);
-            }
-        }
-
-        public static class ThrowExceptionConstructorBehavior extends BasicBehavior {
-
-            public ThrowExceptionConstructorBehavior(SimpleAgent agent) {
-                super(agent);
-                throw new RuntimeException();
-            }
+            assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
+            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
+            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull().isSameAs(behavior);
         }
     }
 
@@ -538,16 +493,16 @@ public class SimpleAgentTest {
         void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
-            assertThrows(NullPointerException.class, () -> simpleAgent.playBehavior(AddBehavior.CorrectConstructorBehavior.class));
+            assertThrows(NullPointerException.class, () -> simpleAgent.playBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
 
         @Test
         @DisplayName("playBehavior() does not throws exception if the Behavior has been previously added in the SimpleAgent")
         void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
-            simpleAgent.addBehavior(AddBehavior.CorrectConstructorBehavior.class);
+            simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
-            assertDoesNotThrow(() -> simpleAgent.playBehavior(AddBehavior.CorrectConstructorBehavior.class));
+            assertDoesNotThrow(() -> simpleAgent.playBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
     }
 
@@ -561,16 +516,16 @@ public class SimpleAgentTest {
         void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
-            assertThrows(NullPointerException.class, () -> simpleAgent.stopPlayBehavior(AddBehavior.CorrectConstructorBehavior.class));
+            assertThrows(NullPointerException.class, () -> simpleAgent.stopPlayBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
 
         @Test
         @DisplayName("stopPlayBehavior() does not throws exception if the Behavior has been previously added in the SimpleAgent")
         void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
-            simpleAgent.addBehavior(AddBehavior.CorrectConstructorBehavior.class);
+            simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
-            assertDoesNotThrow(() -> simpleAgent.stopPlayBehavior(AddBehavior.CorrectConstructorBehavior.class));
+            assertDoesNotThrow(() -> simpleAgent.stopPlayBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
     }
 
