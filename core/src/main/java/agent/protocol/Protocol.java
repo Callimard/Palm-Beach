@@ -118,7 +118,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
     /**
      * Represents a manipulator which can control a {@link Protocol}. A {@code Protocol} get have a part of its code that can be change. Therefore,
      * the {@code Protocol} can define an Interface that several {@code ProtocolManipulator} can implement with different implementation. In that way,
-     * when a {@code Protocol} change its manipulator, the implementation will also change and depends on the new {@code ProtocolManipulator.
+     * when a {@code Protocol} change its manipulator, the implementation will also change and depends on the new {@code ProtocolManipulator}.
      * <p>
      * This feature can be use by {@link agent.behavior.Behavior}. Indeed, when a {@code Behavior} is started to be played, the {@code Behavior} can for
      * example change {@code ProtocolManipulator} of several {@code Protocols}.

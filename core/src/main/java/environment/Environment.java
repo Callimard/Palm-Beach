@@ -6,6 +6,7 @@ import com.google.common.collect.Sets;
 import common.Context;
 import common.SimpleContext;
 import environment.physical.PhysicalNetwork;
+import event.Event;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
@@ -20,6 +21,9 @@ import java.util.Set;
  * In {@code Environment}, it is not directly {@link SimpleAgent} which are manipulated but {@link agent.SimpleAgent.AgentIdentifier}. The instance of
  * {@code SimpleAgent} is manage by the Simulation. In that way it is more simple to manipulate agent because {@link
  * agent.SimpleAgent.AgentIdentifier} is immutable. To simplify, in the documentation of {@code Environment}, agent means {@code AgentIdentifier}.
+ * <p>
+ * An {@code Environment} can also have {@link PhysicalNetwork} which simulate physical connection between agent in the {@code Environment}. A {@code
+ * PhysicalNetwork} also simulate {@link Event} sending between agents.
  */
 @ToString
 @Slf4j
@@ -42,10 +46,28 @@ public abstract class Environment {
 
     // Constructors.
 
+    /**
+     * Constructs an {@link Environment} with the specified name (must be not null) and an empty context. The classe used to create a {@link Context}
+     * is the {@link SimpleContext} class.
+     *
+     * @param name the environment name
+     *
+     * @throws NullPointerException if the name is null
+     */
     protected Environment(@NonNull String name) {
         this(name, null);
     }
 
+    /**
+     * Constructs an {@link Environment} with the specified name (must be not null) and the specified context. If the specified context is null, a
+     * default context class is used to create an empty {@link Context}. In that case, the context class implementation used is {@link
+     * SimpleContext}.
+     *
+     * @param name    the environment name
+     * @param context the context
+     *
+     * @throws NullPointerException if name is null
+     */
     protected Environment(@NonNull String name, Context context) {
         this.name = name;
         this.context = context != null ? context : new SimpleContext();
