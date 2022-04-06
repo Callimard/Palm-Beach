@@ -1,4 +1,4 @@
-package protocol.event;
+package event;
 
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

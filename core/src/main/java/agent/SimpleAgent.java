@@ -1,25 +1,26 @@
 package agent;
 
+import agent.behavior.Behavior;
 import agent.exception.*;
-import behavior.Behavior;
-import common.SimpleContext;
+import com.google.common.collect.Maps;
 import common.Context;
+import common.SimpleContext;
 import environment.Environment;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import protocol.Protocol;
-import protocol.event.Event;
-import protocol.event.EventCatcher;
+import agent.protocol.Protocol;
+import event.Event;
+import event.EventCatcher;
 
+import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Vector;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An {@code Agent} of the simulation. An {@code Agent} can be the abstraction of a machine, a processus or even a thread.
@@ -79,8 +80,8 @@ public class SimpleAgent implements EventCatcher {
         this.environment = environment;
         this.context = context != null ? context : new SimpleContext();
 
-        this.protocols = new ConcurrentHashMap<>();
-        this.behaviors = new ConcurrentHashMap<>();
+        this.protocols = Maps.newConcurrentMap();
+        this.behaviors = Maps.newConcurrentMap();
 
         this.state = AgentState.CREATED;
 
@@ -232,7 +233,7 @@ public class SimpleAgent implements EventCatcher {
      *     }
      * </pre>
      *
-     * @param protocolClass the protocol class
+     * @param protocolClass the agent.protocol class
      */
     public void addProtocol(Class<? extends Protocol> protocolClass) {
         try {
@@ -242,7 +243,7 @@ public class SimpleAgent implements EventCatcher {
                 addObserver(protocol);
                 log.info("Protocol " + protocolClass.getSimpleName() + " added to the Agent " + identifier);
             } else
-                // Already added protocol
+                // Already added agent.protocol
                 log.info(identifier + " try to add an already added Protocol " + protocolClass);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new FailToAddProtocolException(protocolClass, e);
@@ -252,7 +253,7 @@ public class SimpleAgent implements EventCatcher {
     /**
      * Verify if the {@link SimpleAgent} has already added a {@link Protocol} for the specified class or not.
      *
-     * @param protocolClass the protocol class to verify
+     * @param protocolClass the agent.protocol class to verify
      *
      * @return true if the {@code SimpleAgent} has already a {@code Protocol} for this {@code Protocol} class, else false.
      */
@@ -261,7 +262,7 @@ public class SimpleAgent implements EventCatcher {
     }
 
     /**
-     * @param protocolClass the protocol class
+     * @param protocolClass the agent.protocol class
      *
      * @return the instance of the {@link Protocol} if the {@link SimpleAgent} has added a {@code Protocol} for the specified class, else null.
      *
@@ -375,14 +376,13 @@ public class SimpleAgent implements EventCatcher {
      * A subclass which implements {@code AgentIdentifier} must verify this assertion: for all two agents <i>a0</i> and <i>a1</i> in the simulation,
      * {@code a0.getIdentifier() != a1.getIdentifier()} is always true.
      */
-    public abstract static class AgentIdentifier {
+    public abstract static class AgentIdentifier implements Serializable {
 
         @Override
         public abstract int hashCode();
 
         @Override
         public abstract boolean equals(Object obj);
-
     }
 
     /**
@@ -420,8 +420,8 @@ public class SimpleAgent implements EventCatcher {
         }
 
         /**
-         * Generate the next unique id for a {@link SimpleAgent}. If this methos is always used to generate {@code SimpleAgent} identifier unique id, it
-         * is guaranty that each {@code SimpleAgent} will have different id.
+         * Generate the next unique id for a {@link SimpleAgent}. If this methos is always used to generate {@code SimpleAgent} identifier unique id,
+         * it is guaranty that each {@code SimpleAgent} will have different id.
          *
          * @return the next generated unique id.
          */

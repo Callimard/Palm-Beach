@@ -1,8 +1,9 @@
 package agent;
 
+import agent.behavior.Behavior;
+import agent.behavior.BehaviorTest;
 import agent.exception.*;
-import behavior.Behavior;
-import behavior.BehaviorTest;
+import agent.protocol.ProtocolTest;
 import common.Context;
 import environment.Environment;
 import org.junit.jupiter.api.DisplayName;
@@ -10,10 +11,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import protocol.Protocol;
-import protocol.ProtocolTest;
-import protocol.event.Event;
-import tools.junit.PalmBeachTest;
+import agent.protocol.Protocol;
+import event.Event;
+import junit.PalmBeachTest;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -415,7 +415,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("addProtocol() with correct Protocol class does not throw exception and add the protocol")
+        @DisplayName("addProtocol() with correct Protocol class does not throw exception and add the agent.protocol")
         void withCorrectProtocolClass(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
@@ -427,7 +427,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("addProtocol() with correct Protocol does not throw exception for already added protocol and keep the previous instance of " +
+        @DisplayName("addProtocol() with correct Protocol does not throw exception for already added agent.protocol and keep the previous instance of " +
                 "protocol")
         void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
@@ -469,7 +469,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("addBehavior() with correct Behavior does not throw exception for already added behavior and keep the previous instance of " +
+        @DisplayName("addBehavior() with correct Behavior does not throw exception for already added agent.behavior and keep the previous instance of " +
                 "behavior")
         void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
@@ -572,7 +572,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("processEvent() throws AgentCannotProcessEventException if the agent has no protocol which can process the Event")
+        @DisplayName("processEvent() throws AgentCannotProcessEventException if the agent has no agent.protocol which can process the Event")
         void noProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
             simpleAgent.start();
@@ -581,7 +581,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("processEvent() does not throw exception if there is at least one protocol which can process the event and the protocol " +
+        @DisplayName("processEvent() does not throw exception if there is at least one agent.protocol which can process the event and the agent.protocol " +
                 "process the event")
         void withProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
@@ -600,7 +600,7 @@ public class SimpleAgentTest {
     class CanProcessEvent {
 
         @Test
-        @DisplayName("canProcessEvent() returns false if the agent does not have protocol")
+        @DisplayName("canProcessEvent() returns false if the agent does not have agent.protocol")
         void agentWithoutProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
 
@@ -608,7 +608,7 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("canProcessEvent() returns true if at least one protocol can process the event")
+        @DisplayName("canProcessEvent() returns true if at least one agent.protocol can process the event")
         void agentWithOneProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
             simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);

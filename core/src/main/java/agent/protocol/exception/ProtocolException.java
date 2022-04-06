@@ -1,4 +1,4 @@
-package protocol.exception;
+package agent.protocol.exception;
 
 public class ProtocolException extends RuntimeException {
 

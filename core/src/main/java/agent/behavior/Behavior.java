@@ -1,4 +1,4 @@
-package behavior;
+package agent.behavior;
 
 import agent.SimpleAgent;
 import common.SimpleContext;
@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import protocol.Protocol;
+import agent.protocol.Protocol;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -16,9 +16,9 @@ import java.util.Optional;
 /**
  * A {@code Behavior} represents a part of the arbitrary conduct of a {@link SimpleAgent}. When a {@link SimpleAgent} start to play a {@code Behavior },
  * maybe some {@link Protocol} use by the {@code SimpleAgent} will changes and follow "another" {@link Protocol}. For example, it is possible to define
- * two behavior for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine agent.
+ * two agent.behavior for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine agent.
  * <p>
- * This class can also allow the simulation of several arbitrary behavior in {@code Protocol} that allow this type of behavior. For example, in
+ * This class can also allow the simulation of several arbitrary agent.behavior in {@code Protocol} that allow this type of agent.behavior. For example, in
  * Bitcoin blockchain, the transaction selection is totally arbitrary. Therefore, it is possible to define several strategies to know which is the
  * more efficient for a certain goal.
  *
@@ -53,15 +53,15 @@ public abstract class Behavior {
      * <p>
      * The {@code Behavior} is initiate with an empty {@link Context}. The default {@code Context} class used is {@link SimpleContext}.
      *
-     * @param agent the agent which can play the behavior
+     * @param agent the agent which can play the agent.behavior
      */
     protected Behavior(@NonNull SimpleAgent agent) {
         this(agent, null);
     }
 
     /**
-     * @param agent   the agent which can play the behavior
-     * @param context the behavior initial context
+     * @param agent   the agent which can play the agent.behavior
+     * @param context the agent.behavior initial context
      *
      * @throws NullPointerException if the specified agent is null
      */

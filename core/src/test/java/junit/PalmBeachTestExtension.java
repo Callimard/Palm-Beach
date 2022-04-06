@@ -1,4 +1,4 @@
-package tools.junit;
+package junit;
 
 import agent.SimpleAgentTest;
 import org.apache.log4j.PropertyConfigurator;

@@ -1,11 +1,11 @@
-package protocol;
+package agent.protocol;
 
 import agent.SimpleAgent;
 import common.SimpleContext;
 import common.Context;
 import lombok.*;
-import protocol.event.EventCatcher;
-import protocol.exception.NullDefaultProtocolManipulatorException;
+import event.EventCatcher;
+import agent.protocol.exception.NullDefaultProtocolManipulatorException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -120,10 +120,10 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      * the {@code Protocol} can define an Interface that several {@code ProtocolManipulator} can implement with different implementation. In that way,
      * when a {@code Protocol} change its manipulator, the implementation will also change and depends on the new {@code ProtocolManipulator.
      * <p>
-     * This feature can be use by {@link behavior.Behavior}. Indeed, when a {@code Behavior} is started to be played, the {@code Behavior} can for
+     * This feature can be use by {@link agent.behavior.Behavior}. Indeed, when a {@code Behavior} is started to be played, the {@code Behavior} can for
      * example change {@code ProtocolManipulator} of several {@code Protocols}.
      *
-     * <strong>WARNING! A {@code ProtocolManipulator} is destined to ONE instance of a {@code Protocol}. The manipulated protocol instance is always
+     * <strong>WARNING! A {@code ProtocolManipulator} is destined to ONE instance of a {@code Protocol}. The manipulated agent.protocol instance is always
      * the same and cannot change.</strong>
      */
     @Getter

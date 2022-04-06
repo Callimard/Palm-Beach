@@ -1,9 +1,9 @@
 package agent.exception;
 
-import protocol.Protocol;
+import agent.protocol.Protocol;
 
 public class FailToAddProtocolException extends AgentException {
     public FailToAddProtocolException(Class<? extends Protocol> protocolClass, Throwable throwable) {
-        super("Fail to add protocol " + protocolClass, throwable);
+        super("Fail to add agent.protocol " + protocolClass, throwable);
     }
 }

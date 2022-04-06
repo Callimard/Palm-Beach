@@ -1,4 +1,4 @@
-package protocol.event;
+package event;
 
 /**
  * Interface use by class which want treat {@link Event}

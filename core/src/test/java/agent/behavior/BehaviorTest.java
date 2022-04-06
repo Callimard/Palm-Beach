@@ -1,6 +1,7 @@
-package behavior;
+package agent.behavior;
 
 import agent.SimpleAgent;
+import agent.behavior.Behavior;
 import common.Context;
 import lombok.NonNull;
 import org.junit.jupiter.api.DisplayName;
@@ -8,7 +9,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import tools.junit.PalmBeachTest;
+import junit.PalmBeachTest;
 
 import java.util.concurrent.atomic.AtomicReference;
 

@@ -1,7 +1,7 @@
 package agent.exception;
 
 import agent.SimpleAgent;
-import protocol.event.Event;
+import event.Event;
 
 public class AgentCannotProcessEventException extends AgentException {
     public AgentCannotProcessEventException(SimpleAgent agent, Event<?> event) {
