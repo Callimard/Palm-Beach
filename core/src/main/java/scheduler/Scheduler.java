@@ -154,6 +154,14 @@ public interface Scheduler {
     void await(@NonNull Condition condition, long timeout) throws ForcedWakeUpException;
 
     /**
+     * @return a {@link Condition} that which can be used by {@code Scheduler} await methods. Never returns null.
+     *
+     * @see #await(Condition)
+     * @see #await(Condition, long)
+     */
+    Condition generateCondition();
+
+    /**
      * @return the current time of the {@link Scheduler}.
      */
     long getCurrentTime();
