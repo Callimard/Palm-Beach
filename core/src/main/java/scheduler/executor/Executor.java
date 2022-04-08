@@ -1,8 +1,10 @@
 package scheduler.executor;
 
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
 import scheduler.Executable;
-import scheduler.executor.exception.RejectedExecutionException;
-import scheduler.executor.exception.ShutdownExecutorException;
+import scheduler.exception.NoExecutorThreadConditionException;
+import scheduler.executor.exception.*;
 
 import java.util.List;
 
@@ -23,7 +25,7 @@ public interface Executor {
      *
      * @throws RejectedExecutionException if the {@code Executor} is shutdown
      */
-    void execute(Executable executable);
+    void execute(@NonNull Executable executable);
 
     /**
      * Shutdown the {@link Executor}. Finish executing all given {@link Executable} but does not accept any more other {@code Executable} to execute.
@@ -60,8 +62,10 @@ public interface Executor {
      * @param timeout the timeout before wakeup
      *
      * @return true if the {@code Executor} is terminated after the wait, else false.
+     *
+     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    boolean awaitTermination(long timeout);
+    boolean awaitTermination(long timeout) throws InterruptedException;
 
     /**
      * @return true if the {@link Executor} is not shutdown and have no {@link Executable}s to execute.
@@ -73,9 +77,10 @@ public interface Executor {
      *
      * @return true if the {@code Executor} is quiescence after the wait, else false.
      *
-     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while waiting.
+     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while calling the method or is shutdown while waiting
+     * @throws InterruptedException      if the thread is interrupted while waiting
      */
-    boolean awaitQuiescence();
+    boolean awaitQuiescence() throws InterruptedException, ShutdownExecutorException;
 
     /**
      * Wait until either the {@link Executor} becomes quiescence, either the timeout has been reached. Unlock if the {@code Executor} is shutdown
@@ -83,7 +88,103 @@ public interface Executor {
      *
      * @return true if the {@code Executor} is quiescence after the wait, else false.
      *
-     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while waiting.
+     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while calling the method or is shutdown while waiting
+     * @throws InterruptedException      if the thread is interrupted while waiting
      */
-    boolean awaitQuiescence(long timeout);
+    boolean awaitQuiescence(long timeout) throws InterruptedException, ShutdownExecutorException;
+
+    /**
+     * Returns the current {@link ExecutorThread} which is executing the current {@link Executable}. Only {@code Executable} which are executed in an
+     * {@link Executor} can called this method. If this method is called out of the execution context of an {@code Executor} (not in a thread created
+     * by an {@code Executor}), this method will throw an {@link NotInExecutorContextException}.
+     *
+     * @return the instance of the current {@code ExecutorThread}, never returns null.
+     *
+     * @throws NotInExecutorContextException if the method is called out of the {@code Executor} context.
+     */
+    ExecutorThread getCurrentExecutorThread();
+
+    /**
+     * @return a new instance of {@link Condition} that {@link Executor} can use. Never returns null.
+     */
+    Condition generateCondition();
+
+    // Inner class.
+
+    /**
+     * An {@link Executor} guaranties that threads which execute {@link Executable} inherit this {@code ExecutorThread} class.
+     */
+    abstract class ExecutorThread extends Thread {
+
+        protected ExecutorThread() {
+            super();
+        }
+
+        @Override
+        public abstract void run();
+
+        /**
+         * Stop the thread execution and wait the call of {@link #wakeUp()} to resume its execution.
+         * <p>
+         * If an {@link ExecutorThread} is stopped, then there is a free place for another {@code ExecutorThread} and the {@link Executor} will manage
+         * the execution of a new {@link ExecutorThread}.
+         *
+         * @throws InterruptedException if the waiting thread is interrupted while waiting
+         */
+        public abstract void await() throws InterruptedException;
+
+        /**
+         * Wake up the thread and notify the {@link Executor} that this current thread can resume its execution. The {@code Executor} then will manage
+         * when the execution of the {@code ExecutorThread} will be resumed to keep the {@code Executor} properties and consistency correct. For
+         * example, if the {@code Executor} is multi thread and the max thread is 4. If already 4 {@code ExecutorThread} are executing while another
+         * {@code ExecutorThread} wake up, then the {@code Executor} will not directly resume the execution of the wake-up {@code ExecutorThread} but
+         * until the end of the execution of 1 {@code ExecutorThread}.
+         *
+         * @throws NotWaitingThreadException if the {@code ExecutorThread} was not awaiting.
+         */
+        public abstract void wakeUp();
+    }
+
+    /**
+     * {@code Condition} which allow {@link Executable} to wait on it and be wake up after.
+     * <p>
+     * It is advices {@code Condition} to use only one times a {@code Condition} and generate a {@code Condition} at each time you need to wait. This
+     * will avoid concurrency problem.
+     */
+    @NoArgsConstructor
+    class Condition {
+
+        // Variables.
+
+        private Executor.ExecutorThread executorThread;
+
+        // Methods.
+
+        /**
+         * Prepare the {@link Condition} by giving to him the {@link Executor.ExecutorThread} in which the {@link Executable} will wait and will be
+         * make up.
+         *
+         * @param executorThread the executor thread of the {@code Condition}
+         *
+         * @throws AlreadyPreparedConditionException if the {@code Condition} has already been prepared
+         */
+        public void prepare(Executor.ExecutorThread executorThread) {
+            if (executorThread != null)
+                this.executorThread = executorThread;
+            else
+                throw new AlreadyPreparedConditionException();
+        }
+
+        /**
+         * Wakes up and resumes the execution of the {@link Executable} which are waiting on the current {@link Condition}. When a {@link Condition}
+         * has been wake up, it must be again prepared before recall at new times this method.
+         */
+        public void wakeup() {
+            if (executorThread != null) {
+                executorThread.wakeUp();
+                executorThread = null;
+            } else
+                throw new NoExecutorThreadConditionException("Condition call wake up whereas its executor thread is null.");
+        }
+    }
 }

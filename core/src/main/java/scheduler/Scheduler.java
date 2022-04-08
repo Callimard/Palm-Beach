@@ -4,6 +4,9 @@ import lombok.NonNull;
 import scheduler.exception.CannotKillSchedulerException;
 import scheduler.exception.CannotStartSchedulerException;
 import scheduler.exception.ForcedWakeUpException;
+import scheduler.exception.ImpossibleSchedulingException;
+import scheduler.executor.Executor;
+import scheduler.executor.exception.NotInExecutorContextException;
 
 /**
  * Schedules {@link Executable}s. It is the heart of the Simulation, it manages which {@code Executable} must be executed and when.
@@ -46,7 +49,7 @@ public interface Scheduler {
      *
      * @return true if the observer has been added, else false.
      */
-    boolean addSchedulerObserver(SchedulerObserver observer);
+    boolean addSchedulerObserver(@NonNull SchedulerObserver observer);
 
     /**
      * Schedules the specified {@link Executable} to be executed at the specified time. The specified time must be greater or equal to {@link #NOW}.
@@ -54,8 +57,9 @@ public interface Scheduler {
      * @param executable the executable to schedule
      * @param time       the time when the executable must be executed
      *
-     * @throws NullPointerException     if specified executable is null
-     * @throws IllegalArgumentException if time is less than {@link #NOW}
+     * @throws NullPointerException          if specified executable is null
+     * @throws IllegalArgumentException      if time is less than {@link #NOW}
+     * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     void scheduleAtTime(@NonNull Executable executable, long time);
 
@@ -77,9 +81,10 @@ public interface Scheduler {
      * @param nbRepetitions     the number of repetition (only use in {@link ScheduleMode#REPEATEDLY})
      * @param executionTimeStep the time step between executions (only use in {@link ScheduleMode#REPEATEDLY} or {@link ScheduleMode#INFINITELY})
      *
-     * @throws NullPointerException     if specified executable or scheduleMode is null
-     * @throws IllegalArgumentException if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1 in {@link
-     *                                  ScheduleMode#REPEATEDLY} or {@link ScheduleMode#INFINITELY}
+     * @throws NullPointerException          if specified executable or scheduleMode is null
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1 in
+     *                                       {@link ScheduleMode#REPEATEDLY} or {@link ScheduleMode#INFINITELY}
+     * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      * @see #scheduleOnce(Executable, long)
      * @see #scheduleRepeatedly(Executable, long, long, long)
      * @see #scheduleInfinitely(Executable, long, long)
@@ -109,8 +114,9 @@ public interface Scheduler {
      * @param nbRepetitions     the number of repetition
      * @param executionTimeStep the time step between executions
      *
-     * @throws NullPointerException     if executable is null
-     * @throws IllegalArgumentException if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1
+     * @throws NullPointerException          if executable is null
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1
+     * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     default void scheduleRepeatedly(@NonNull Executable executable, long waitingTime, long nbRepetitions, long executionTimeStep) {
         scheduleExecutable(executable, waitingTime, ScheduleMode.REPEATEDLY, nbRepetitions, executionTimeStep);
@@ -124,42 +130,45 @@ public interface Scheduler {
      * @param waitingTime       the time to wait from the current time of the scheduler before the executable begin to be executed
      * @param executionTimeStep the time step between executions
      *
-     * @throws NullPointerException     if executable is null
-     * @throws IllegalArgumentException if waitingTime is less than {@link #NOW} or if executionTimeStep is less than 1
+     * @throws NullPointerException          if executable is null
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if executionTimeStep is less than 1
+     * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     default void scheduleInfinitely(@NonNull Executable executable, long waitingTime, long executionTimeStep) {
         scheduleExecutable(executable, waitingTime, ScheduleMode.INFINITELY, -1, executionTimeStep);
     }
 
     /**
-     * Make wait the execution of the current {@link Executable} on the specified {@link Condition}. The execution will be resumed when the method
-     * {@link Condition#wakeup()} is called.
+     * Make wait the execution of the current {@link Executable} on the specified {@link Executor.Condition}. The execution will be resumed when the
+     * method {@link Executor.Condition#wakeup()} is called.
      *
      * @param condition the wake-up condition
      *
-     * @throws ForcedWakeUpException if it is not the {@code Condition} which wakes up the {@code Executable}.
+     * @throws ForcedWakeUpException         if it is not the {@code Condition} which wakes up the {@code Executable}.
+     * @throws NotInExecutorContextException if the method is called out of the {@code Executor} context.
      */
-    void await(@NonNull Condition condition) throws ForcedWakeUpException;
+    void await(@NonNull Executor.Condition condition) throws ForcedWakeUpException;
 
     /**
-     * Make wait the execution of the current {@link Executable} on the specified {@link Condition}. The execution will be resumed when the method
-     * {@link Condition#wakeup()} is called or if the timeout has been reached.
+     * Make wait the execution of the current {@link Executable} on the specified {@link Executor.Condition}. The execution will be resumed when the
+     * method {@link Executor.Condition#wakeup()} is called or if the timeout has been reached.
      *
      * @param condition the condition of {@code Executable} wake-up
      * @param timeout   the timeout when the {@code Executable} must at most wake-up
      *
-     * @throws ForcedWakeUpException    if it is not the {@code Condition} which wakes up the {@code Executable}
-     * @throws IllegalArgumentException if the timeout is less than 1
+     * @throws ForcedWakeUpException         if it is not the {@code Condition} which wakes up the {@code Executable}
+     * @throws IllegalArgumentException      if the timeout is less than 1
+     * @throws NotInExecutorContextException if the method is called out of the {@code Executor} context.
      */
-    void await(@NonNull Condition condition, long timeout) throws ForcedWakeUpException;
+    void await(@NonNull Executor.Condition condition, long timeout) throws ForcedWakeUpException;
 
     /**
-     * @return a {@link Condition} that which can be used by {@code Scheduler} await methods. Never returns null.
+     * @return a {@link Executor.Condition} that which can be used by {@code Scheduler} await methods. Never returns null.
      *
-     * @see #await(Condition)
-     * @see #await(Condition, long)
+     * @see #await(Executor.Condition)
+     * @see #await(Executor.Condition, long)
      */
-    Condition generateCondition();
+    Executor.Condition generateCondition();
 
     /**
      * @return the current time of the {@link Scheduler}.
@@ -175,7 +184,7 @@ public interface Scheduler {
      * @return true if the {@link Scheduler} reach the time of the simulation duration or has been killed, else false.
      */
     default boolean isEnded() {
-        return getCurrentTime() >= getMaxDuration() || isKilled();
+        return getCurrentTime() > getMaxDuration() || isKilled();
     }
 
     // Inner classes.
@@ -192,18 +201,6 @@ public interface Scheduler {
      */
     enum TimeMode {
         REAL_TIME, DISCRETE_TIME
-    }
-
-    /**
-     * Condition on {@link Executable} can wait to wake up.
-     */
-    interface Condition {
-
-        /**
-         * Wakes up and resumes the execution of the {@link Executable} which are waiting on the current {@link Condition}.
-         */
-        void wakeup();
-
     }
 
     /**
