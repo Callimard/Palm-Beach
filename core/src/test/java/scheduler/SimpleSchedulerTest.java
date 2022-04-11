@@ -11,6 +11,8 @@ import org.mockito.Mock;
 import scheduler.exception.CannotKillSchedulerException;
 import scheduler.exception.CannotStartSchedulerException;
 import scheduler.exception.ForcedWakeUpException;
+import scheduler.exception.ImpossibleSchedulingException;
+import scheduler.executor.Executable;
 import scheduler.executor.Executor;
 import scheduler.executor.exception.NotInExecutorContextException;
 
@@ -191,6 +193,15 @@ public class SimpleSchedulerTest {
             assertThrows(IllegalArgumentException.class, () -> scheduler.scheduleAtTime(executable, time));
         }
 
+        @Test
+        @DisplayName("scheduleAtTime() throws ImpossibleSchedulingException if is killed")
+        void killedScheduler(@Mock Executor executor, @Mock Executable executable) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            scheduler.start(); // Directly killed
+
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleAtTime(executable, Scheduler.NOW));
+        }
+
         @ParameterizedTest
         @ValueSource(ints = {1, 1456, 4, 6546})
         @DisplayName("scheduleAtTime() does not throws exception with correct parameters")
@@ -261,6 +272,20 @@ public class SimpleSchedulerTest {
             assertDoesNotThrow(() -> scheduler.scheduleExecutable(executable, 1, Scheduler.ScheduleMode.REPEATEDLY, 1, 1));
             assertDoesNotThrow(() -> scheduler.scheduleExecutable(executable, 1, Scheduler.ScheduleMode.INFINITELY, 1, 1));
         }
+
+        @Test
+        @DisplayName("scheduleExecutable() throws ImpossibleSchedulingException if is killed")
+        void killedScheduler(@Mock Executor executor, @Mock Executable executable) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            scheduler.start(); // Directly killed
+
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+                                                                                                 Scheduler.ScheduleMode.ONCE, 1, 1));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+                                                                                                 Scheduler.ScheduleMode.REPEATEDLY, 1, 1));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+                                                                                                 Scheduler.ScheduleMode.INFINITELY, 1, 1));
+        }
     }
 
     @Nested
@@ -293,6 +318,15 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
 
             assertDoesNotThrow(() -> scheduler.scheduleOnce(executable, waitingTime));
+        }
+
+        @Test
+        @DisplayName("scheduleOnce() throws ImpossibleSchedulingException if is killed")
+        void killedScheduler(@Mock Executor executor, @Mock Executable executable) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            scheduler.start(); // Directly killed
+
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleOnce(executable, Scheduler.NOW));
         }
     }
 
@@ -338,11 +372,20 @@ public class SimpleSchedulerTest {
         }
 
         @Test
-        @DisplayName("scheduleOnce() does not throw exception with correct parameters")
+        @DisplayName("scheduleRepeatedly() does not throw exception with correct parameters")
         void withCorrectParameters(@Mock Executor executor, @Mock Executable executable) {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
 
             assertDoesNotThrow(() -> scheduler.scheduleRepeatedly(executable, 1, 1, 1));
+        }
+
+        @Test
+        @DisplayName("scheduleRepeatedly() throws ImpossibleSchedulingException if is killed")
+        void killedScheduler(@Mock Executor executor, @Mock Executable executable) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            scheduler.start(); // Directly killed
+
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleRepeatedly(executable, Scheduler.NOW, 1, 1));
         }
     }
 
@@ -385,6 +428,15 @@ public class SimpleSchedulerTest {
 
             assertDoesNotThrow(() -> scheduler.scheduleInfinitely(executable, 1, 1));
         }
+
+        @Test
+        @DisplayName("scheduleInfinitely() throws ImpossibleSchedulingException if is killed")
+        void killedScheduler(@Mock Executor executor, @Mock Executable executable) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            scheduler.start(); // Directly killed
+
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleInfinitely(executable, Scheduler.NOW, 1));
+        }
     }
 
     @Nested
@@ -421,7 +473,7 @@ public class SimpleSchedulerTest {
             void outOfExecutorContext(@Mock Executor executor, @Mock Executor.Condition condition) {
                 Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
 
-                when(executor.getCurrentExecutorThread()).thenThrow(new NotInExecutorContextException(""));
+                when(executor.getCurrentExecutorThread()).thenThrow(new NotInExecutorContextException());
 
                 assertThrows(NotInExecutorContextException.class, () -> scheduler.await(condition));
             }
@@ -478,7 +530,7 @@ public class SimpleSchedulerTest {
             void outOfExecutorContext(@Mock Executor executor, @Mock Executor.Condition condition) {
                 Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
 
-                when(executor.getCurrentExecutorThread()).thenThrow(new NotInExecutorContextException(""));
+                when(executor.getCurrentExecutorThread()).thenThrow(new NotInExecutorContextException());
 
                 assertThrows(NotInExecutorContextException.class, () -> scheduler.await(condition, 1L));
             }

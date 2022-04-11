@@ -43,7 +43,7 @@ public abstract class Behavior {
     private final Context context;
 
     @Getter
-    private volatile boolean played;
+    private boolean played;
 
 
     // Constructors.

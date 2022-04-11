@@ -5,6 +5,7 @@ import scheduler.exception.CannotKillSchedulerException;
 import scheduler.exception.CannotStartSchedulerException;
 import scheduler.exception.ForcedWakeUpException;
 import scheduler.exception.ImpossibleSchedulingException;
+import scheduler.executor.Executable;
 import scheduler.executor.Executor;
 import scheduler.executor.exception.NotInExecutorContextException;
 
@@ -152,11 +153,16 @@ public interface Scheduler {
     /**
      * Make wait the execution of the current {@link Executable} on the specified {@link Executor.Condition}. The execution will be resumed when the
      * method {@link Executor.Condition#wakeup()} is called or if the timeout has been reached.
+     * <p>
+     * While the {@code Executable} is waiting, it is possible that outside "force" decide to wake up the {@link Executor.ExecutorThread} which is
+     * executing the current {@code Executable}. In that case an {@link ForcedWakeUpException} will be thrown, in that case, the execution of the
+     * {@code Executable} must be stopped.
      *
      * @param condition the condition of {@code Executable} wake-up
      * @param timeout   the timeout when the {@code Executable} must at most wake-up
      *
-     * @throws ForcedWakeUpException         if it is not the {@code Condition} which wakes up the {@code Executable}
+     * @throws ForcedWakeUpException         if it is not the {@code Condition} which wakes up the {@code Executable}. The {@code Executable} must
+     *                                       imperatively stop its execution in that case
      * @throws IllegalArgumentException      if the timeout is less than 1
      * @throws NotInExecutorContextException if the method is called out of the {@code Executor} context.
      */
@@ -194,13 +200,6 @@ public interface Scheduler {
      */
     enum ScheduleMode {
         ONCE, REPEATEDLY, INFINITELY
-    }
-
-    /**
-     * Time mode of the simulation.
-     */
-    enum TimeMode {
-        REAL_TIME, DISCRETE_TIME
     }
 
     /**

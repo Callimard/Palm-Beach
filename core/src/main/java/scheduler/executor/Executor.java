@@ -2,15 +2,17 @@ package scheduler.executor;
 
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
-import scheduler.Executable;
-import scheduler.exception.NoExecutorThreadConditionException;
-import scheduler.executor.exception.*;
+import scheduler.exception.NotPreparedConditionException;
+import scheduler.executor.exception.AlreadyPreparedConditionException;
+import scheduler.executor.exception.NotInExecutorContextException;
+import scheduler.executor.exception.RejectedExecutionException;
 
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 
 /**
- * Interface for pool of thread which can execute {@link Executable}. The inspiration is the interface {@link java.util.concurrent.ExecutorService,
- * however this last one is to general and {@code Executor} is only here to execute {@code Executables}.
+ * Interface for pool of thread which can execute {@link Executable}. The inspiration is the interface {@link ExecutorService}, however this last one
+ * is to general and {@code Executor} is only here to execute {@code Executables}.
  */
 public interface Executor {
 
@@ -28,26 +30,19 @@ public interface Executor {
     void execute(@NonNull Executable executable);
 
     /**
-     * Shutdown the {@link Executor}. Finish executing all given {@link Executable} but does not accept any more other {@code Executable} to execute.
+     * Shutdown the {@link Executor} and returns all {@link Executable} which were waiting to be executing but was not in execution. Try to interrupt
+     * {@link ExecutorThread} in execution but not sure that it stop them. In worst case, {@code ExecutorThreads} which are executing will finish
+     * their execution.
      * <p>
-     * When all remaining {@code Executables} has been executable. The methods {@link #isTerminated()} returns true and all threads waiting on the
-     * method {@link #awaitTermination(long)} are notified.
-     */
-    void shutdown();
-
-    /**
-     * Shutdown the {@link Executor} and returns all {@link Executable} which were waiting to be executing but was not in execution. Finish executing
-     * all {@code Executables} in execution.
-     * <p>
-     * When all remaining {@code Executables} has been executable. The methods {@link #isTerminated()} returns true and all threads waiting on the
-     * method {@link #awaitTermination(long)} are notified.
+     * When all {@code ExecutorThread} has been finish their execution. The methods {@link #isTerminated()} returns true and all threads waiting on
+     * the method {@link #awaitTermination(long)} are notified.
      *
      * @return the list of non executed {@code Executable}, never returns null.
      */
-    List<Executable> shutdownNow();
+    List<Executable> shutdown();
 
     /**
-     * @return true if methods {@link #shutdown()} or {@link #shutdownNow()} has been called at least one times.
+     * @return true if methods {@link #shutdown()} has been called at least one times.
      */
     boolean isShutdown();
 
@@ -77,10 +72,9 @@ public interface Executor {
      *
      * @return true if the {@code Executor} is quiescence after the wait, else false.
      *
-     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while calling the method or is shutdown while waiting
-     * @throws InterruptedException      if the thread is interrupted while waiting
+     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    boolean awaitQuiescence() throws InterruptedException, ShutdownExecutorException;
+    boolean awaitQuiescence() throws InterruptedException;
 
     /**
      * Wait until either the {@link Executor} becomes quiescence, either the timeout has been reached. Unlock if the {@code Executor} is shutdown
@@ -88,10 +82,9 @@ public interface Executor {
      *
      * @return true if the {@code Executor} is quiescence after the wait, else false.
      *
-     * @throws ShutdownExecutorException if the {@code Executor} is shutdown while calling the method or is shutdown while waiting
-     * @throws InterruptedException      if the thread is interrupted while waiting
+     * @throws InterruptedException if the thread is interrupted while waiting
      */
-    boolean awaitQuiescence(long timeout) throws InterruptedException, ShutdownExecutorException;
+    boolean awaitQuiescence(long timeout) throws InterruptedException;
 
     /**
      * Returns the current {@link ExecutorThread} which is executing the current {@link Executable}. Only {@code Executable} which are executed in an
@@ -139,10 +132,10 @@ public interface Executor {
          * example, if the {@code Executor} is multi thread and the max thread is 4. If already 4 {@code ExecutorThread} are executing while another
          * {@code ExecutorThread} wake up, then the {@code Executor} will not directly resume the execution of the wake-up {@code ExecutorThread} but
          * until the end of the execution of 1 {@code ExecutorThread}.
-         *
-         * @throws NotWaitingThreadException if the {@code ExecutorThread} was not awaiting.
          */
         public abstract void wakeUp();
+
+        public abstract void kill();
     }
 
     /**
@@ -169,7 +162,7 @@ public interface Executor {
          * @throws AlreadyPreparedConditionException if the {@code Condition} has already been prepared
          */
         public void prepare(Executor.ExecutorThread executorThread) {
-            if (executorThread != null)
+            if (this.executorThread == null)
                 this.executorThread = executorThread;
             else
                 throw new AlreadyPreparedConditionException();
@@ -184,7 +177,7 @@ public interface Executor {
                 executorThread.wakeUp();
                 executorThread = null;
             } else
-                throw new NoExecutorThreadConditionException("Condition call wake up whereas its executor thread is null.");
+                throw new NotPreparedConditionException("Condition call wake up whereas its ExecutorThread is null.");
         }
     }
 }

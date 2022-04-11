@@ -1,4 +1,6 @@
-package scheduler;
+package scheduler.executor;
+
+import scheduler.Scheduler;
 
 /**
  * Executable which can be scheduled and executed by a {@link Scheduler}.
@@ -9,7 +11,7 @@ public interface Executable {
     /**
      * The execution method called when the {@link Executable} has been scheduled and must be executed.
      */
-    void execute();
+    void execute() throws Exception;
 
     /**
      * Returns a non-null value if the current {@link Executable} is using the lock of the monitor.

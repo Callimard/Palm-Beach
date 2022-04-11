@@ -10,8 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import scheduler.exception.CannotKillSchedulerException;
 import scheduler.exception.CannotStartSchedulerException;
 import scheduler.exception.ForcedWakeUpException;
+import scheduler.exception.ImpossibleSchedulingException;
+import scheduler.executor.Executable;
 import scheduler.executor.Executor;
-import scheduler.executor.exception.ShutdownExecutorException;
 
 import java.util.Deque;
 import java.util.Map;
@@ -107,7 +108,7 @@ public class SimpleScheduler implements Scheduler {
             state = SchedulerState.KILLED;
             log.info("Scheduler KILLED");
             stepWatcher.kill();
-            executor.shutdownNow();
+            executor.shutdown();
             executables.clear();
             notifySchedulerKilled();
         } else
@@ -130,7 +131,8 @@ public class SimpleScheduler implements Scheduler {
 
         if (!isKilled())
             executables.computeIfAbsent(time, k -> new ConcurrentLinkedDeque<>()).offer(executable);
-
+        else
+            throw new ImpossibleSchedulingException("Scheduler not in correct state to schedule Executable, state = " + state);
     }
 
     @Override
@@ -231,7 +233,7 @@ public class SimpleScheduler implements Scheduler {
 
         // Variables.
 
-        private volatile boolean killed = false;
+        private boolean killed = false;
         private final SimpleScheduler scheduler;
 
         // Constructors.
@@ -251,7 +253,7 @@ public class SimpleScheduler implements Scheduler {
                 try {
                     if (!executor.awaitQuiescence())
                         continue;
-                } catch (ShutdownExecutorException | InterruptedException e) {
+                } catch (InterruptedException e) {
                     interrupt();
                     killed = true;
                 }
@@ -270,8 +272,8 @@ public class SimpleScheduler implements Scheduler {
     }
 
     /**
-     * Used to wake up {@link Executable} which is waiting with the method {@link #await(Executor.Condition, long)}. This {@code Executable} is schedule to be
-     * executed at the specified timeout specified during the call of the wait and call {@link Executor.Condition#wakeup()}.
+     * Used to wake up {@link Executable} which is waiting with the method {@link #await(Executor.Condition, long)}. This {@code Executable} is
+     * schedule to be executed at the specified timeout specified during the call of the wait and call {@link Executor.Condition#wakeup()}.
      */
     protected static record WakeupExecutable(@NonNull Executor.Condition condition) implements Executable {
 
@@ -295,7 +297,7 @@ public class SimpleScheduler implements Scheduler {
         private final Executable executable;
 
         @Override
-        public void execute() {
+        public void execute() throws Exception {
             executable.execute();
             scheduleNextExecution();
         }
