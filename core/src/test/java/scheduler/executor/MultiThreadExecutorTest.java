@@ -19,8 +19,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -361,16 +360,22 @@ public class MultiThreadExecutorTest {
     }
 
     private void awaitExecutorQuiescence(Executor executor) throws InterruptedException {
+        int counter = 0;
         while (!executor.isQuiescence()) {
-            executor.awaitQuiescence();
+            executor.awaitQuiescence(1000);
+            counter++;
+            if (counter >= 3)
+                fail("To mush time to wait quiescence");
         }
     }
 
     private void awaitExecutorTermination(Executor executor) throws InterruptedException {
+        int counter = 0;
         while (!executor.isTerminated()) {
             executor.awaitTermination(DEFAULT_TERMINATION_WAITING_TIMEOUT);
-
-            log.info("Executor state after waiting termination -> {}", executor);
+            counter++;
+            if (counter >= 3)
+                fail("To mush time to wait quiescence");
         }
     }
 
