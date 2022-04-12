@@ -42,6 +42,8 @@ integration-test-job:
   when: on_success
   only:
     - merge_requests
+    - develop
+    - master
 
 sonarqube-scan-job:
   stage: scan
