@@ -310,6 +310,7 @@ public class MultiThreadExecutor implements Executor {
                 }
             } catch (InterruptedException e) {
                 log.info("Executable INTERRUPTED while waiting");
+                increaseActiveThreads();
                 interrupt();
                 throw e;
             } finally {
