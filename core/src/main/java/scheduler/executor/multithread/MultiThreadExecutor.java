@@ -306,6 +306,7 @@ public class MultiThreadExecutor implements Executor {
             try {
                 synchronized (getLockMonitor()) {
                     getLockMonitor().wait();
+                    log.debug("Executor thread wake up");
                 }
             } catch (InterruptedException e) {
                 log.info("Executable INTERRUPTED while waiting");

@@ -364,7 +364,7 @@ public class MultiThreadExecutorTest {
         while (!executor.isQuiescence()) {
             executor.awaitQuiescence(1000);
             counter++;
-            if (counter >= 3)
+            if (counter >= 15)
                 fail("To mush time to wait quiescence");
         }
     }
@@ -374,7 +374,7 @@ public class MultiThreadExecutorTest {
         while (!executor.isTerminated()) {
             executor.awaitTermination(DEFAULT_TERMINATION_WAITING_TIMEOUT);
             counter++;
-            if (counter >= 3)
+            if (counter >= 15)
                 fail("To mush time to wait quiescence");
         }
     }
