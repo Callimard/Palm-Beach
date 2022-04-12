@@ -117,7 +117,8 @@ public interface Executor {
         public abstract void run();
 
         /**
-         * Stop the thread execution and wait the call of {@link #wakeUp()} to resume its execution.
+         * Stop the thread execution and wait the call of {@link #wakeUp()} to resume its execution. It is to the user to ensure that the condition to
+         * wait has been synchronised and avoid the infinite wait.
          * <p>
          * If an {@link ExecutorThread} is stopped, then there is a free place for another {@code ExecutorThread} and the {@link Executor} will manage
          * the execution of a new {@link ExecutorThread}.

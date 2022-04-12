@@ -2,18 +2,18 @@ package agent;
 
 import agent.behavior.Behavior;
 import agent.exception.*;
+import agent.protocol.Protocol;
 import com.google.common.collect.Maps;
 import common.Context;
 import common.SimpleContext;
 import environment.Environment;
+import event.Event;
+import event.EventCatcher;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import agent.protocol.Protocol;
-import event.Event;
-import event.EventCatcher;
 
 import java.io.Serializable;
 import java.lang.reflect.InvocationTargetException;
@@ -315,11 +315,23 @@ public class SimpleAgent implements EventCatcher {
     @Override
     public final synchronized void processEvent(Event<?> event) {
         if (isStarted()) {
-            boolean eventHasBeenProcessed = searchProtocolForEvent(event);
-            if (!eventHasBeenProcessed)
-                throw new AgentCannotProcessEventException(this, event);
+            inProcessEvent(event);
         } else
             throw new AgentNotStartedException(this);
+    }
+
+    /**
+     * Call in the method {@link #processEvent(Event)} only if the {@link SimpleAgent} is started. Because {@link #processEvent(Event)} is final. 
+     * In is this method that you can override to update the implementation of {@link #processEvent(Event)}
+     *
+     * @param event the event to process
+     *              
+     * @see #processEvent(Event)
+     */
+    protected void inProcessEvent(Event<?> event) {
+        boolean eventHasBeenProcessed = searchProtocolForEvent(event);
+        if (!eventHasBeenProcessed)
+            throw new AgentCannotProcessEventException(this, event);
     }
 
     /**

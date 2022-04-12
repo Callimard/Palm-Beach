@@ -19,6 +19,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static common.validation.Validate.min;
 
@@ -31,7 +32,7 @@ public class SimpleScheduler implements Scheduler {
     private long currentTime = 0L;
     private final long maxDuration;
 
-    private SchedulerState state;
+    private final AtomicReference<SchedulerState> state;
 
     @NonNull
     private final Executor executor;
@@ -51,7 +52,7 @@ public class SimpleScheduler implements Scheduler {
         min(maxDuration, 1, "MaxDuration Scheduler must be greater than 0, current = " + maxDuration);
         this.maxDuration = maxDuration;
         this.executor = executor;
-        this.state = SchedulerState.CREATED;
+        this.state = new AtomicReference<>(SchedulerState.CREATED);
         this.executables = Maps.newConcurrentMap();
         this.observers = Sets.newConcurrentHashSet();
         this.stepWatcher = new StepWatcher();
@@ -62,10 +63,9 @@ public class SimpleScheduler implements Scheduler {
     // Methods.
 
     @Override
-    public synchronized void start() {
-        if (state.equals(SchedulerState.CREATED)) {
+    public void start() {
+        if (state.compareAndSet(SchedulerState.CREATED, SchedulerState.STARTED)) {
             // Instructions order important
-            state = SchedulerState.STARTED;
             log.info("Scheduler STARTED");
             executeNextStep();
             stepWatcher.start();
@@ -74,7 +74,7 @@ public class SimpleScheduler implements Scheduler {
             throw new CannotStartSchedulerException("Scheduler is not in the correct state to be started. Current state " + state);
     }
 
-    private synchronized void executeNextStep() {
+    private void executeNextStep() {
         TreeSet<Long> sortedScheduledTimes = Sets.newTreeSet(executables.keySet());
         if (sortedScheduledTimes.isEmpty()) {
             endByNoExecutable();
@@ -97,15 +97,14 @@ public class SimpleScheduler implements Scheduler {
     }
 
     @Override
-    public synchronized boolean isRunning() {
-        return state.equals(SchedulerState.STARTED);
+    public boolean isRunning() {
+        return state.get().equals(SchedulerState.STARTED);
     }
 
     @Override
-    public synchronized void kill() {
-        if (isRunning()) {
+    public void kill() {
+        if (state.compareAndSet(SchedulerState.STARTED, SchedulerState.KILLED)) {
             // Instructions order important
-            state = SchedulerState.KILLED;
             log.info("Scheduler KILLED");
             stepWatcher.kill();
             executor.shutdown();
@@ -116,8 +115,8 @@ public class SimpleScheduler implements Scheduler {
     }
 
     @Override
-    public synchronized boolean isKilled() {
-        return state.equals(SchedulerState.KILLED);
+    public boolean isKilled() {
+        return state.get().equals(SchedulerState.KILLED);
     }
 
     @Override
