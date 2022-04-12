@@ -16,9 +16,6 @@ variables:
 
 compile-job:
   stage: build
-  artifacts:
-    paths:
-      - "target"
   script:
     - mvn $MAVEN_CLI_OPTS clean compile
   when: always
@@ -29,9 +26,6 @@ compile-job:
 test-job:
   stage: test
   needs: [ "compile-job" ]
-  artifacts:
-    paths:
-      - "target"
   script:
     - mvn $MAVEN_CLI_OPTS clean test
   when: on_success
@@ -42,15 +36,14 @@ test-job:
 sonarqube-scan-job:
   stage: scan
   needs: [ "compile-job", "test-job" ]
-  artifacts:
-    paths:
-      - "target"
   script:
     - mvn $MAVEN_CLI_OPTS clean install sonar:sonar
   allow_failure: false
   when: on_success
   only:
     - merge_requests
+    - develop
+    - master
 
 deploy-artifact-job:
   stage: deploy-artifact
