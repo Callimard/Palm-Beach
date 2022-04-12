@@ -1,13 +1,13 @@
 package environment.physical;
 
 import agent.SimpleAgent;
+import agent.protocol.Protocol;
 import event.Event;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import agent.protocol.Protocol;
 
 /**
  * Simulate a {@code PhysicalNetwork}. A {@code PhysicalNetwork} represents physical connection between several {@link SimpleAgent}. Via the {@code
@@ -39,7 +39,8 @@ public abstract class PhysicalNetwork {
      * @param target the target agent
      * @param event  the event to send
      */
-    public void send(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Event<?> event) {
+    public final synchronized void send(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
+                                        @NonNull Event<?> event) {
         if (hasPhysicalConnection(source, target))
             physicallySend(source, target, preparePhysicalEvent(event));
         else

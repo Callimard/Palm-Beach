@@ -44,7 +44,6 @@ public class MultiThreadExecutor implements Executor {
     @Getter
     private final int maxRunningThreads;
 
-    @ToString.Exclude
     private final Queue<Executable> toExecute;
 
     @ToString.Exclude
@@ -203,9 +202,9 @@ public class MultiThreadExecutor implements Executor {
 
         private Executable currentExecutable;
 
-        private boolean waiting = false;
+        private final AtomicBoolean waiting = new AtomicBoolean(false);
 
-        private boolean alreadyWakeUp = false;
+        private final AtomicBoolean awake = new AtomicBoolean(false);
 
         private final AtomicBoolean killed = new AtomicBoolean(false);
 
@@ -305,8 +304,9 @@ public class MultiThreadExecutor implements Executor {
 
             try {
                 synchronized (getLockMonitor()) {
+                    log.debug("ExecutorThread wait");
                     getLockMonitor().wait();
-                    log.debug("Executor thread wake up");
+                    log.debug("ExecutorThread wake up");
                 }
             } catch (InterruptedException e) {
                 log.info("Executable INTERRUPTED while waiting");
@@ -320,25 +320,15 @@ public class MultiThreadExecutor implements Executor {
         }
 
         private void prepareWaiting() {
-            try {
-                lock.lock();
-                lastRun = true;
-                waiting = true;
-                decreaseActiveThreads();
-            } finally {
-                lock.unlock();
-            }
+            lastRun = true;
+            waiting.set(true);
+            decreaseActiveThreads();
             createNewExecutorThread();
         }
 
         private void afterWaiting() {
-            try {
-                lock.lock();
-                waiting = false;
-                alreadyWakeUp = false;
-            } finally {
-                lock.unlock();
-            }
+            waiting.set(false);
+            awake.set(false);
         }
 
         private void createNewExecutorThread() {
@@ -353,13 +343,10 @@ public class MultiThreadExecutor implements Executor {
 
         @Override
         public void wakeUp() {
-            lock.lock();
-            if (waiting && !alreadyWakeUp) {
-                alreadyWakeUp = true;
+            if (waiting.get() && awake.compareAndSet(false, true)) {
                 increaseActiveThreads();
-                lock.unlock();
-
                 synchronized (getLockMonitor()) {
+                    log.debug("WakeUp ExecutorThread");
                     getLockMonitor().notifyAll();
                 }
             }

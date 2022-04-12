@@ -109,6 +109,8 @@ public abstract class Environment {
      * Add the specified {@link PhysicalNetwork} to the {@link Environment}. In {@code Environment}, {@code PhysicalNetwork} are mapped by their name
      * . Therefore, if several {@code PhysicalNetwork} has the same name, the last {@code PhysicalNetwork} added will be taken in account and erase
      * previous added {@code PhysicalNetwork}. You may watch that each {@code PhysicalNetwork} has a unique name.
+     * <p>
+     * <strong>This method is not thread safe.</strong>
      *
      * @param physicalNetwork the physical network to add
      */

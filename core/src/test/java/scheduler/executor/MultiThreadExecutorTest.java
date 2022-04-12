@@ -16,6 +16,7 @@ import scheduler.executor.multithread.MultiThreadExecutor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -34,8 +35,8 @@ public class MultiThreadExecutorTest {
 
     private static final int NUMBER_CORRECT_EXECUTABLE = 50;
     private static final int NUMBER_FAILED_EXECUTABLE = 50;
-    private static final int NUMBER_WAITING_EXECUTABLE = 100;
-    private static final int NUMBER_NOTIFIER_EXECUTABLE = 150;
+    private static final int NUMBER_WAITING_EXECUTABLE = 10;
+    private static final int NUMBER_NOTIFIER_EXECUTABLE = 5;
 
     private static final long DEFAULT_TERMINATION_WAITING_TIMEOUT = 50L;
 
@@ -253,7 +254,7 @@ public class MultiThreadExecutorTest {
     private List<WaitingExecutable> generateWaitingExecutables(Executor executor) {
         List<WaitingExecutable> waitingExecutables = new ArrayList<>();
         for (int i = 0; i < NUMBER_WAITING_EXECUTABLE; i++) {
-            waitingExecutables.add(new WaitingExecutable(executor));
+            waitingExecutables.add(new WaitingExecutable(executor, null));
         }
         return waitingExecutables;
     }
@@ -261,7 +262,7 @@ public class MultiThreadExecutorTest {
     private List<WaitingExecutable> generateWaitingExecutables(Executor executor, List<NotifierExecutable> notifierExecutables) {
         List<WaitingExecutable> waitingExecutables = new ArrayList<>();
         for (NotifierExecutable notifierExecutable : notifierExecutables) {
-            waitingExecutables.add(new WaitingExecutable(executor, notifierExecutable.getCondition()));
+            waitingExecutables.add(new WaitingExecutable(executor, notifierExecutable));
         }
         return waitingExecutables;
     }
@@ -269,7 +270,7 @@ public class MultiThreadExecutorTest {
     private List<NotifierExecutable> generateNotifierExecutables(Executor executor) {
         List<NotifierExecutable> notifierExecutables = new ArrayList<>();
         for (int i = 0; i < NUMBER_NOTIFIER_EXECUTABLE; i++) {
-            notifierExecutables.add(new NotifierExecutable(executor.generateCondition()));
+            notifierExecutables.add(new NotifierExecutable(executor.generateCondition(), new AtomicBoolean(false)));
         }
         return notifierExecutables;
     }
@@ -363,8 +364,9 @@ public class MultiThreadExecutorTest {
         int counter = 0;
         while (!executor.isQuiescence()) {
             executor.awaitQuiescence(1000);
+            log.debug("WakeUp wait quiescence, Executor = {}", executor);
             counter++;
-            if (counter >= 15)
+            if (counter >= 5)
                 fail("To mush time to wait quiescence");
         }
     }
@@ -373,8 +375,9 @@ public class MultiThreadExecutorTest {
         int counter = 0;
         while (!executor.isTerminated()) {
             executor.awaitTermination(DEFAULT_TERMINATION_WAITING_TIMEOUT);
+            log.debug("WakeUp wait termination, Executor = {}", executor);
             counter++;
-            if (counter >= 15)
+            if (counter >= 5)
                 fail("To mush time to wait quiescence");
         }
     }
@@ -419,24 +422,39 @@ public class MultiThreadExecutorTest {
     }
 
     @AllArgsConstructor
-    @RequiredArgsConstructor()
     public static class WaitingExecutable extends BasicExecutable {
 
         private final Executor executor;
 
-        private Executor.Condition condition;
+        private final NotifierExecutable notifierExecutable;
 
         @Override
         public void execute() throws Exception {
-            Executor.ExecutorThread executorThread = executor.getCurrentExecutorThread();
-            prepareCondition(executorThread);
-            executorThread.await();
-            super.execute();
+            if (notifierExecutable == null) {
+                Executor.ExecutorThread executorThread = executor.getCurrentExecutorThread();
+                prepareCondition(executorThread);
+                executorThread.await();
+                super.execute();
+            } else {
+                synchronized (notifierExecutable) {
+                    Executor.ExecutorThread executorThread = executor.getCurrentExecutorThread();
+                    prepareCondition(executorThread);
+                    if (!notifierExecutable.getWaitingExecutableFree().get())
+                        executorThread.await();
+
+                    super.execute();
+                }
+            }
         }
 
         private void prepareCondition(Executor.ExecutorThread executorThread) {
-            if (condition != null)
-                condition.prepare(executorThread);
+            if (notifierExecutable != null)
+                notifierExecutable.condition.prepare(executorThread);
+        }
+
+        @Override
+        public Object getLockMonitor() {
+            return notifierExecutable;
         }
     }
 
@@ -446,10 +464,20 @@ public class MultiThreadExecutorTest {
         @Getter
         private final Executor.Condition condition;
 
+        @Getter
+        @NonNull
+        private AtomicBoolean waitingExecutableFree;
+
         @Override
-        public void execute() throws Exception {
+        public synchronized void execute() throws Exception {
+            waitingExecutableFree.set(true);
             condition.wakeup();
             super.execute();
+        }
+
+        @Override
+        public Object getLockMonitor() {
+            return this;
         }
     }
 

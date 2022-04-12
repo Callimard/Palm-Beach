@@ -1,26 +1,28 @@
 package agent.behavior;
 
 import agent.SimpleAgent;
-import common.SimpleContext;
+import agent.protocol.Protocol;
 import common.Context;
+import common.SimpleContext;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
-import agent.protocol.Protocol;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
- * A {@code Behavior} represents a part of the arbitrary conduct of a {@link SimpleAgent}. When a {@link SimpleAgent} start to play a {@code Behavior },
- * maybe some {@link Protocol} use by the {@code SimpleAgent} will changes and follow "another" {@link Protocol}. For example, it is possible to define
- * two agent.behavior for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine agent.
+ * A {@code Behavior} represents a part of the arbitrary conduct of a {@link SimpleAgent}. When a {@link SimpleAgent} start to play a {@code
+ * Behavior}, maybe some {@link Protocol} use by the {@code SimpleAgent} will changes and follow "another" {@link Protocol}. For example, it is
+ * possible to define two {@code Behavior} for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine
+ * agent.
  * <p>
- * This class can also allow the simulation of several arbitrary agent.behavior in {@code Protocol} that allow this type of agent.behavior. For example, in
- * Bitcoin blockchain, the transaction selection is totally arbitrary. Therefore, it is possible to define several strategies to know which is the
- * more efficient for a certain goal.
+ * This class can also allow the simulation of several arbitrary agent.behavior in {@code Protocol} that allow this type of agent.behavior. For
+ * example, in Bitcoin blockchain, the transaction selection is totally arbitrary. Therefore, it is possible to define several strategies to know
+ * which is the more efficient for a certain goal.
  *
  * <strong>Implementation instructions:</strong> a subclass of {@code Behavior} must add a constructor like this:
  * <pre>
@@ -42,9 +44,7 @@ public abstract class Behavior {
     @Getter
     private final Context context;
 
-    @Getter
-    private boolean played;
-
+    private final AtomicBoolean played;
 
     // Constructors.
 
@@ -60,14 +60,14 @@ public abstract class Behavior {
     }
 
     /**
-     * @param agent   the agent which can play the agent.behavior
-     * @param context the agent.behavior initial context
+     * @param agent   the agent which can play the {@code Behavior}
+     * @param context the {@code Behavior} initial context
      *
      * @throws NullPointerException if the specified agent is null
      */
     protected Behavior(@NonNull SimpleAgent agent, Context context) {
         this.agent = Optional.of(agent).get();
-        this.played = false;
+        this.played = new AtomicBoolean(false);
         this.context = context != null ? context : new SimpleContext();
     }
 
@@ -96,8 +96,7 @@ public abstract class Behavior {
      * Start to play the {@link Behavior}. Do nothing if the {@code Behavior} is already played.
      */
     public void play() {
-        if (!isPlayed()) {
-            this.played = true;
+        if (played.compareAndSet(false, true)) {
             beginToBePlayed();
             log.info("Agent " + agent.getIdentifier() + " start to played the Behavior " + this.getClass().getSimpleName());
         } else
@@ -113,8 +112,7 @@ public abstract class Behavior {
      * Stop to play the {@link Behavior}. Do nothing if the {@code Behavior} is already not played.
      */
     public void stopPlay() {
-        if (isPlayed()) {
-            this.played = false;
+        if (played.compareAndSet(true, false)) {
             stopToBePlayed();
             log.info("Agent = " + agent.getIdentifier() + " stop to played the Behavior " + this.getClass().getSimpleName());
         } else
