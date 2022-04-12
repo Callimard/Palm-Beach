@@ -71,6 +71,19 @@ public class SimpleSchedulerTest {
     }
 
     @Nested
+    @DisplayName("SimpleScheduler isRunning()")
+    @Tag("isRunning")
+    class IsRunning {
+
+        @Test
+        @DisplayName("isRunning() returns false if the Scheduler is not started")
+        void withNotStartedScheduler(@Mock Executor executor) {
+            Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
+            assertThat(scheduler.isRunning()).isFalse();
+        }
+    }
+
+    @Nested
     @DisplayName("SimpleScheduler addSchedulerObserve()")
     @Tag("addSchedulerObserver")
     class AddSchedulerObserver {

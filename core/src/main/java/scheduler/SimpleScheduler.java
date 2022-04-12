@@ -77,15 +77,20 @@ public class SimpleScheduler implements Scheduler {
     private void executeNextStep() {
         TreeSet<Long> sortedScheduledTimes = Sets.newTreeSet(executables.keySet());
         if (sortedScheduledTimes.isEmpty()) {
+            log.info("No executables to executes");
             endByNoExecutable();
         } else {
             currentTime = sortedScheduledTimes.first();
             if (!isEnded()) {
+                log.info("New step -> current time = {}", currentTime);
                 Deque<Executable> execDeque = executables.get(currentTime);
                 executables.remove(currentTime);
                 execDeque.forEach(executor::execute);
-            } else
+            } else {
+                log.debug("End reach");
                 notifySchedulerReachEnd();
+                kill();
+            }
         }
     }
 

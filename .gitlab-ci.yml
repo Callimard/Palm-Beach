@@ -33,6 +33,16 @@ test-job:
     - pushes
     - merge_requests
 
+integration-test-job:
+  stage: test
+  needs: [ "compile-job" ]
+  script:
+    - mvn $MAVEN_CLI_OPTS clean verify
+  allow_failure: true
+  when: on_success
+  only:
+    - merge_requests
+
 sonarqube-scan-job:
   stage: scan
   needs: [ "compile-job", "test-job" ]

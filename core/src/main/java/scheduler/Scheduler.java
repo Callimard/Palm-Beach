@@ -1,6 +1,7 @@
 package scheduler;
 
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import scheduler.exception.CannotKillSchedulerException;
 import scheduler.exception.CannotStartSchedulerException;
 import scheduler.exception.ForcedWakeUpException;
@@ -226,6 +227,52 @@ public interface Scheduler {
          * Call when the {@link Scheduler} has not anymore {@link Executable} to execute.
          */
         void noExecutableToExecute();
+    }
+
+    /**
+     * An {@link SchedulerObserver} which allow user to wait until the observed {@link Scheduler} be killed.
+     */
+    @Slf4j
+    class WaitingSchedulerEndObserver implements SchedulerObserver {
+
+        private boolean hasBeenKilled = false;
+
+        /**
+         * Wait until the observed {@link Scheduler} be killed or the timeout be reached.
+         *
+         * @param timeout timeout until wake up
+         */
+        public synchronized void waitSchedulerEnd(long timeout) {
+            try {
+                if (!hasBeenKilled)
+                    wait(timeout);
+            } catch (InterruptedException e) {
+                log.error("WaitingSchedulerObserver Interrupted", e);
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public void schedulerStarted() {
+            // Nothing
+        }
+
+        @Override
+        public synchronized void schedulerKilled() {
+            log.debug("Scheduler has been killed");
+            hasBeenKilled = true;
+            notifyAll();
+        }
+
+        @Override
+        public void schedulerReachEnd() {
+            // Nothing
+        }
+
+        @Override
+        public void noExecutableToExecute() {
+            // Nothing
+        }
     }
 
 }
