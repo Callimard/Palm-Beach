@@ -210,6 +210,8 @@ public class MultiThreadExecutor implements Executor {
 
         private boolean lastRun = false;
 
+        private int increaseCounter = 0;
+
         // Constructors.
 
         public InternalThread() {
@@ -274,6 +276,7 @@ public class MultiThreadExecutor implements Executor {
         private void increaseActiveThreads() {
             try {
                 lock.lock();
+                increaseCounter++;
                 executor.activeThreads++;
             } finally {
                 lock.unlock();
@@ -283,7 +286,8 @@ public class MultiThreadExecutor implements Executor {
         private void decreaseActiveThreads() {
             try {
                 lock.lock();
-                executor.activeThreads--;
+                executor.activeThreads -= increaseCounter;
+                increaseCounter = 0;
 
                 if (executor.isQuiescence()) {
                     executor.waitQuiescenceCondition.signalAll();
@@ -305,6 +309,7 @@ public class MultiThreadExecutor implements Executor {
             try {
                 synchronized (getLockMonitor()) {
                     log.debug("ExecutorThread wait");
+                    decreaseActiveThreads();
                     getLockMonitor().wait();
                     log.debug("ExecutorThread wake up");
                 }
@@ -323,7 +328,6 @@ public class MultiThreadExecutor implements Executor {
         private void prepareWaiting() {
             lastRun = true;
             waiting.set(true);
-            decreaseActiveThreads();
             createNewExecutorThread();
         }
 
@@ -345,9 +349,9 @@ public class MultiThreadExecutor implements Executor {
         @Override
         public void wakeUp() {
             if (waiting.get() && awake.compareAndSet(false, true)) {
-                increaseActiveThreads();
                 synchronized (getLockMonitor()) {
                     log.debug("WakeUp ExecutorThread");
+                    increaseActiveThreads();
                     getLockMonitor().notifyAll();
                 }
             }
