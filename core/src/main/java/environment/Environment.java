@@ -12,18 +12,27 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Set;
 
 /**
  * Represents an {@code Environment} where {@link SimpleAgent} are evolving in.
  * <p>
- * In {@code Environment}, it is not directly {@link SimpleAgent} which are manipulated but {@link agent.SimpleAgent.AgentIdentifier}. The instance of
- * {@code SimpleAgent} is manage by the Simulation. In that way it is more simple to manipulate agent because {@link
- * agent.SimpleAgent.AgentIdentifier} is immutable. To simplify, in the documentation of {@code Environment}, agent means {@code AgentIdentifier}.
+ * In {@code Environment}, it is not directly {@link SimpleAgent} which are manipulated but {@link SimpleAgent.AgentIdentifier}. The instance of
+ * {@code SimpleAgent} is manage by the Simulation. In that way it is more simple to manipulate agent because {@link SimpleAgent.AgentIdentifier} is
+ * immutable. To simplify, in the documentation of {@code Environment}, agent means {@code AgentIdentifier}.
  * <p>
  * An {@code Environment} can also have {@link PhysicalNetwork} which simulate physical connection between agent in the {@code Environment}. A {@code
  * PhysicalNetwork} also simulate {@link Event} sending between agents.
+ * <p>
+ * {@code Environment} sub classes must have at least this constructor:
+ * <pre>
+ *     Environment(String name, Context context) {
+ *         ...
+ *     }
+ * </pre>
  */
 @ToString
 @Slf4j
@@ -47,18 +56,6 @@ public abstract class Environment {
     // Constructors.
 
     /**
-     * Constructs an {@link Environment} with the specified name (must be not null) and an empty context. The classe used to create a {@link Context}
-     * is the {@link SimpleContext} class.
-     *
-     * @param name the environment name
-     *
-     * @throws NullPointerException if the name is null
-     */
-    protected Environment(@NonNull String name) {
-        this(name, null);
-    }
-
-    /**
      * Constructs an {@link Environment} with the specified name (must be not null) and the specified context. If the specified context is null, a
      * default context class is used to create an empty {@link Context}. In that case, the context class implementation used is {@link
      * SimpleContext}.
@@ -76,6 +73,12 @@ public abstract class Environment {
     }
 
     // Methods.
+
+    public static Environment instantiateEnvironment(Class<? extends Environment> environmentClass, String environmentName, Context context)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Constructor<? extends Environment> constructor = environmentClass.getConstructor(String.class, Context.class);
+        return constructor.newInstance(environmentName, context);
+    }
 
     /**
      * Add the agent in the {@link Environment}. An agent cannot be added several times in a {@code Environment}. If the agent is already added in the

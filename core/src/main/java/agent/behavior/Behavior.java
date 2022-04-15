@@ -24,9 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * example, in Bitcoin blockchain, the transaction selection is totally arbitrary. Therefore, it is possible to define several strategies to know
  * which is the more efficient for a certain goal.
  *
- * <strong>Implementation instructions:</strong> a subclass of {@code Behavior} must add a constructor like this:
+ * <strong>Implementation instructions:</strong> a subclass of {@code Behavior} must have a constructor like this:
  * <pre>
- *     Behavior(SimpleAgent) {
+ *     Behavior(SimpleAgent, Context) {
  *        super(...);
  *        ...
  *     }
@@ -49,17 +49,6 @@ public abstract class Behavior {
     // Constructors.
 
     /**
-     * Constructs a {@link Behavior} with a specified {@link SimpleAgent} which can play the {@code Behavior}.
-     * <p>
-     * The {@code Behavior} is initiate with an empty {@link Context}. The default {@code Context} class used is {@link SimpleContext}.
-     *
-     * @param agent the agent which can play the agent.behavior
-     */
-    protected Behavior(@NonNull SimpleAgent agent) {
-        this(agent, null);
-    }
-
-    /**
      * @param agent   the agent which can play the {@code Behavior}
      * @param context the {@code Behavior} initial context
      *
@@ -78,6 +67,7 @@ public abstract class Behavior {
      *
      * @param behaviorClass the {@code Behavior} class
      * @param agent         the agent with which the {@code Behavior} will be instantiated
+     * @param context       the behavior context
      *
      * @return an instance of a {@code Behavior} of the specified {@code Behavior} class.
      *
@@ -86,10 +76,10 @@ public abstract class Behavior {
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
      */
-    public static Behavior instantiateBehavior(Class<? extends Behavior> behaviorClass, SimpleAgent agent)
+    public static Behavior instantiateBehavior(Class<? extends Behavior> behaviorClass, SimpleAgent agent, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Constructor<? extends Behavior> behaviorConstructor = behaviorClass.getConstructor(SimpleAgent.class);
-        return behaviorConstructor.newInstance(agent);
+        Constructor<? extends Behavior> behaviorConstructor = behaviorClass.getConstructor(SimpleAgent.class, Context.class);
+        return behaviorConstructor.newInstance(agent, context);
     }
 
     /**

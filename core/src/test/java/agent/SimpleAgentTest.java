@@ -17,7 +17,6 @@ import junit.PalmBeachTest;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -146,72 +145,29 @@ public class SimpleAgentTest {
 
         @SuppressWarnings("ConstantConditions")
         @Nested
-        @DisplayName("SimpleAgent(AgentIdentifier, Environment, Context)")
+        @DisplayName("SimpleAgent(AgentIdentifier, Context)")
         class MainConstructor {
 
             @Test
             @DisplayName("Throws NullPointerException if null identifier")
-            void nullIdentifier(@Mock Environment environment, @Mock Context context) {
-                assertThrows(NullPointerException.class, () -> new SimpleAgent(null, environment, context));
+            void nullIdentifier(@Mock Context context) {
+                assertThrows(NullPointerException.class, () -> new SimpleAgent(null, context));
             }
-
-            @Test
-            @DisplayName("Throws NullPointerException if null environment")
-            void nullEnvironment(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Context context) {
-                assertThrows(NullPointerException.class, () -> new SimpleAgent(identifier, null, context));
-            }
-
             @Test
             @DisplayName("Does not throw exception with null context and not null context")
-            void nullContext(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Context context) {
-                assertDoesNotThrow(() -> new SimpleAgent(identifier, environment, null));
-                assertDoesNotThrow(() -> new SimpleAgent(identifier, environment, context));
+            void nullContext(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Context context) {
+                assertDoesNotThrow(() -> new SimpleAgent(identifier, null));
+                assertDoesNotThrow(() -> new SimpleAgent(identifier, context));
             }
 
             @Test
             @DisplayName("Constructor set the agent state to CREATED")
-            void setCorrectState(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Context context) {
-                SimpleAgent simpleAgent = new SimpleAgent(identifier, environment, context);
+            void setCorrectState(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Context context) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, context);
 
                 assertThat(simpleAgent.getState()).isEqualTo(SimpleAgent.AgentState.CREATED);
             }
 
-        }
-
-        @Nested
-        @DisplayName("SimpleAgent(AgentIdentifier, Environment)")
-        class SecondaryConstructor {
-
-            @Test
-            @DisplayName("Throws NullPointerException if null identifier")
-            void nullIdentifier(@Mock Environment environment) {
-                //noinspection ConstantConditions
-                assertThrows(NullPointerException.class, () -> new SimpleAgent(null, environment));
-            }
-
-            @Test
-            @DisplayName("Throws NullPointerException if null environment")
-            void nullEnvironment(@Mock SimpleAgent.AgentIdentifier identifier) {
-                //noinspection ConstantConditions
-                assertThrows(NullPointerException.class, () -> new SimpleAgent(identifier, null));
-            }
-
-            @Test
-            @DisplayName("Does not throw exception with non null parameter and SimpleAgent context is not null after construction")
-            void nullEnvironment(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-                final AtomicReference<SimpleAgent> SimpleAgent = new AtomicReference<>();
-
-                assertDoesNotThrow(() -> SimpleAgent.set(new SimpleAgent(identifier, environment)));
-                assertThat(SimpleAgent.get().getContext()).isNotNull();
-                assertThat(SimpleAgent.get().getContext().isEmpty()).isTrue();
-            }
-
-            @Test
-            @DisplayName("Constructor set the agent state to CREATED")
-            void setCorrectState(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-                SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
-                assertThat(simpleAgent.getState()).isEqualTo(SimpleAgent.AgentState.CREATED);
-            }
         }
     }
 
@@ -223,16 +179,15 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("Throws NullPointerException if observer is null")
-        void withNullObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void withNullObserver(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             assertThrows(NullPointerException.class, () -> simpleAgent.addObserver(null));
         }
 
         @Test
         @DisplayName("Does not throw exception if observer is not null")
-        void withNotNullObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment,
-                                 @Mock SimpleAgent.AgentObserver observer) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void withNotNullObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock SimpleAgent.AgentObserver observer) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             assertDoesNotThrow(() -> simpleAgent.addObserver(observer));
         }
     }
@@ -244,8 +199,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("start() does not throw exception fro created agent and change the state of the agent")
-        void startCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void startCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertDoesNotThrow(simpleAgent::start);
             assertThat(simpleAgent.isStarted()).isTrue();
@@ -253,8 +208,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("start() throws AgentCannotBeStartedException for started agent")
-        void startStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void startStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
 
             assertThrows(AgentCannotBeStartedException.class, simpleAgent::start);
@@ -263,8 +218,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("start() does not throw exception for a stopped agent")
-        void startStoppedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void startStoppedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
 
             simpleAgent.stop();
@@ -275,8 +230,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("start() throws AgentCannotBeStartedException for killed agent")
-        void startKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void startKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.kill();
 
             assertThrows(AgentCannotBeStartedException.class, simpleAgent::start);
@@ -285,9 +240,9 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("start() notify AgentObserver")
-        void startNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment,
+        void startNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier,
                                       @Mock SimpleAgent.AgentObserver observer) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addObserver(observer);
             simpleAgent.start();
 
@@ -302,8 +257,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("stop() throws AgentCannotBeStoppedException for a created agent")
-        void stopCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void stopCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(AgentCannotBeStoppedException.class, simpleAgent::stop);
             assertThat(simpleAgent.getState()).isEqualTo(SimpleAgent.AgentState.CREATED);
@@ -311,8 +266,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("stop() does not throw exception for started agent")
-        void stopStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void stopStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
 
             assertDoesNotThrow(simpleAgent::stop);
@@ -321,8 +276,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("stop() throws AgentCannotBeStoppedException for killed agent")
-        void stopKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void stopKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.kill();
 
             assertThrows(AgentCannotBeStoppedException.class, simpleAgent::stop);
@@ -331,9 +286,9 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("stop() notify AgentObserver")
-        void stopNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment,
+        void stopNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier,
                                      @Mock SimpleAgent.AgentObserver observer) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addObserver(observer);
             simpleAgent.start();
             simpleAgent.stop();
@@ -349,8 +304,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("kill() does not throw exception for created agent")
-        void killCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void killCreatedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertDoesNotThrow(simpleAgent::kill);
             assertThat(simpleAgent.isKilled()).isTrue();
@@ -358,8 +313,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("kill() does not throw exception for started agent")
-        void killStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void killStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
 
             assertDoesNotThrow(simpleAgent::kill);
@@ -368,8 +323,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("kill() does not throw exception for stopped agent")
-        void killStoppedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void killStoppedAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
             simpleAgent.stop();
 
@@ -379,8 +334,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("kill() throws AgentCannotBeKilledException for killed agent")
-        void killKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void killKilledAgent(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.kill();
 
             assertThrows(AgentCannotBeKilledException.class, simpleAgent::kill);
@@ -389,9 +344,9 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("kill() notify AgentObserver")
-        void killNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment,
+        void killNotifyAgentObserver(@Mock SimpleAgent.AgentIdentifier identifier,
                                      @Mock SimpleAgent.AgentObserver observer) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addObserver(observer);
             simpleAgent.kill();
 
@@ -406,8 +361,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("addProtocol() with non correct Protocol class throws FailToAddProtocolException")
-        void nonCorrectProtocolClasses(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void nonCorrectProtocolClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.NoCorrectConstructorProtocol.class));
             assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.WrongConstructorVisibilityProtocol.class));
@@ -416,8 +371,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("addProtocol() with correct Protocol class does not throw exception and add the agent.protocol")
-        void withCorrectProtocolClass(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void withCorrectProtocolClass(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isFalse();
             assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNull();
@@ -429,8 +384,8 @@ public class SimpleAgentTest {
         @Test
         @DisplayName("addProtocol() with correct Protocol does not throw exception for already added agent.protocol and keep the previous instance of " +
                 "protocol")
-        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);
 
             Protocol protocol = simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class);
@@ -448,8 +403,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("addBehavior() with non correct Behavior classes throws FailToAddBehaviorException")
-        void nonCorrectBehaviorClasses(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void nonCorrectBehaviorClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.NoCorrectConstructorBehavior.class));
             assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.WrongConstructorVisibilityBehavior.class));
@@ -458,8 +413,8 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("addBehavior() does not throw exception with correct Behavior class and add the Behavior")
-        void withCorrectBehaviorClass(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void withCorrectBehaviorClass(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isFalse();
             assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNull();
@@ -471,8 +426,8 @@ public class SimpleAgentTest {
         @Test
         @DisplayName("addBehavior() with correct Behavior does not throw exception for already added agent.behavior and keep the previous instance of " +
                 "behavior")
-        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
             Behavior behavior = simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class);
@@ -490,16 +445,16 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("playBehavior() throws NullPointerException if the SimpleAgent does not have the Behavior")
-        void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(NullPointerException.class, () -> simpleAgent.playBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
 
         @Test
         @DisplayName("playBehavior() does not throws exception if the Behavior has been previously added in the SimpleAgent")
-        void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
             assertDoesNotThrow(() -> simpleAgent.playBehavior(BehaviorTest.CorrectConstructorBehavior.class));
@@ -513,16 +468,16 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("stopPlayBehavior() throws NullPointerException if the SimpleAgent does not have the Behavior")
-        void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void notAddedBehavior(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(NullPointerException.class, () -> simpleAgent.stopPlayBehavior(BehaviorTest.CorrectConstructorBehavior.class));
         }
 
         @Test
         @DisplayName("stopPlayBehavior() does not throws exception if the Behavior has been previously added in the SimpleAgent")
-        void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void addBehavior(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
 
             assertDoesNotThrow(() -> simpleAgent.stopPlayBehavior(BehaviorTest.CorrectConstructorBehavior.class));
@@ -536,26 +491,12 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("toString() does not returns null value")
-        void testToString(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void testToString(@Mock SimpleAgent.AgentIdentifier identifier) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThat(simpleAgent.toString()).isNotNull();
         }
 
-    }
-
-    @Nested
-    @DisplayName("SimpleAgent getEnvironment()")
-    @Tag("getEnvironment")
-    class GetEnvironment {
-
-        @Test
-        @DisplayName("getEnvironment() never returns null")
-        void neverReturnsNull(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
-
-            assertThat(simpleAgent.getEnvironment()).isNotNull();
-        }
     }
 
     @Nested
@@ -565,16 +506,16 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("processEvent() throws AgentNotStartedException if the agent is not started")
-        void notStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void notStartedAgent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThrows(AgentNotStartedException.class, () -> simpleAgent.processEvent(event));
         }
 
         @Test
         @DisplayName("processEvent() throws AgentCannotProcessEventException if the agent has no agent.protocol which can process the Event")
-        void noProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void noProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
 
             assertThrows(AgentCannotProcessEventException.class, () -> simpleAgent.processEvent(event));
@@ -583,8 +524,8 @@ public class SimpleAgentTest {
         @Test
         @DisplayName("processEvent() does not throw exception if there is at least one agent.protocol which can process the event and the agent.protocol " +
                 "process the event")
-        void withProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void withProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();
             simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);
 
@@ -601,16 +542,16 @@ public class SimpleAgentTest {
 
         @Test
         @DisplayName("canProcessEvent() returns false if the agent does not have agent.protocol")
-        void agentWithoutProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void agentWithoutProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
             assertThat(simpleAgent.canProcessEvent(event)).isFalse();
         }
 
         @Test
         @DisplayName("canProcessEvent() returns true if at least one agent.protocol can process the event")
-        void agentWithOneProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Environment environment, @Mock Event<?> event) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, environment);
+        void agentWithOneProtocol(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
+            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);
 
             assertThat(simpleAgent.canProcessEvent(event)).isTrue();

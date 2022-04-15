@@ -1,15 +1,14 @@
 package agent.behavior;
 
 import agent.SimpleAgent;
-import agent.behavior.Behavior;
 import common.Context;
+import junit.PalmBeachTest;
 import lombok.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import junit.PalmBeachTest;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -48,28 +47,6 @@ public class BehaviorTest {
                 assertThat(behavior.get().getContext().isEmpty()).isTrue();
             }
         }
-
-        @Nested
-        @DisplayName("Behavior(SimpleAgent)")
-        class SecondaryConstructor {
-
-            @Test
-            @DisplayName("Throws NullPointerException if agent is null")
-            void withNullAgent() {
-                //noinspection ConstantConditions
-                assertThrows(NullPointerException.class, () -> new BasicBehavior(null));
-            }
-
-            @Test
-            @DisplayName("Does not throw exception if agent is not null")
-            void withNotNullAgent(@Mock SimpleAgent agent) {
-                AtomicReference<Behavior> behavior = new AtomicReference<>();
-                assertDoesNotThrow(() -> behavior.set(new BasicBehavior(agent)));
-
-                assertThat(behavior.get().getContext()).isNotNull();
-                assertThat(behavior.get().getContext().isEmpty()).isTrue();
-            }
-        }
     }
 
     @Nested
@@ -80,9 +57,9 @@ public class BehaviorTest {
         @Test
         @DisplayName("instantiateBehavior() throws Exception with non correct Behavior classes")
         void nonCorrectBehaviorClasses(@Mock SimpleAgent agent) {
-            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(NoCorrectConstructorBehavior.class, agent));
-            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(WrongConstructorVisibilityBehavior.class, agent));
-            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(ThrowExceptionConstructorBehavior.class, agent));
+            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(NoCorrectConstructorBehavior.class, agent, null));
+            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(WrongConstructorVisibilityBehavior.class, agent, null));
+            assertThrows(Exception.class, () -> Behavior.instantiateBehavior(ThrowExceptionConstructorBehavior.class, agent, null));
         }
 
         @Test
@@ -90,7 +67,7 @@ public class BehaviorTest {
         void withCorrectBehaviorClass(@Mock SimpleAgent agent) {
             AtomicReference<Behavior> behavior = new AtomicReference<>();
 
-            assertDoesNotThrow(() -> behavior.set(Behavior.instantiateBehavior(BasicBehavior.class, agent)));
+            assertDoesNotThrow(() -> behavior.set(Behavior.instantiateBehavior(BasicBehavior.class, agent, null)));
             assertThat(behavior.get()).isNotNull();
         }
     }
@@ -103,7 +80,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("play() does not throws exception if the Behavior is not already played")
         void notAlreadyPlayed(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
 
             assertDoesNotThrow(b::play);
         }
@@ -111,7 +88,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("play() does not throws exception even if the Behavior is already played")
         void alreadyPlayed(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
             b.play();
 
             assertDoesNotThrow(b::play);
@@ -126,7 +103,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("stopPlay() does not throws exception if the Behavior is played")
         void notAlreadyStopped(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
             b.play();
 
             assertDoesNotThrow(b::stopPlay);
@@ -135,7 +112,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("stopPlay() does not throws exception even if the Behavior is already stopped")
         void alreadyStopped(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
 
             assertDoesNotThrow(b::stopPlay);
         }
@@ -149,7 +126,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("getAgent() never returns null")
         void neverReturnsNull(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
 
             assertThat(b.getAgent()).isNotNull().isSameAs(agent);
         }
@@ -163,7 +140,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("getContext() never returns null")
         void neverReturnsNull(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
 
             assertThat(b.getContext()).isNotNull();
         }
@@ -177,7 +154,7 @@ public class BehaviorTest {
         @Test
         @DisplayName("toString() never returns null")
         void neverReturnsNull(@Mock SimpleAgent agent) {
-            Behavior b = new BasicBehavior(agent);
+            Behavior b = new BasicBehavior(agent, null);
 
             assertThat(b.toString()).isNotNull();
         }
@@ -186,10 +163,6 @@ public class BehaviorTest {
     // Inner classes.
 
     public static class BasicBehavior extends Behavior {
-
-        public BasicBehavior(@NonNull SimpleAgent agent) {
-            super(agent);
-        }
 
         public BasicBehavior(@NonNull SimpleAgent agent, Context context) {
             super(agent, context);
@@ -208,29 +181,29 @@ public class BehaviorTest {
 
     public static class CorrectConstructorBehavior extends BasicBehavior {
 
-        public CorrectConstructorBehavior(@NonNull SimpleAgent agent) {
-            super(agent);
+        public CorrectConstructorBehavior(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
         }
     }
 
     public static class NoCorrectConstructorBehavior extends BasicBehavior {
 
         public NoCorrectConstructorBehavior(@NonNull SimpleAgent agent, @SuppressWarnings("unused") String toMuchArgs) {
-            super(agent);
+            super(agent, null);
         }
     }
 
     public static class WrongConstructorVisibilityBehavior extends BasicBehavior {
 
-        protected WrongConstructorVisibilityBehavior(@NonNull SimpleAgent agent) {
-            super(agent);
+        protected WrongConstructorVisibilityBehavior(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
         }
     }
 
     public static class ThrowExceptionConstructorBehavior extends BasicBehavior {
 
-        public ThrowExceptionConstructorBehavior(@NonNull SimpleAgent agent) {
-            super(agent);
+        public ThrowExceptionConstructorBehavior(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
             throw new RuntimeException();
         }
     }

@@ -14,8 +14,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import simulation.configuration.BehaviorConfiguration;
+import simulation.configuration.ProtocolConfiguration;
+import simulation.configuration.exception.GenerationFailedException;
 
 import java.io.Serializable;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +31,13 @@ import java.util.Vector;
  * <p>
  * An {@code SimpleAgent} always evolves in one {@link Environment} and use several {@link Protocol}s. An agent can add several {@link Behavior}s and
  * during the simulation, the {@code Agent} can dynamically start and stop to play the different {@code Behavior} that it has.
+ * <p>
+ * All {@code SimpleAgent} subclasses must have constructor:
+ * <pre>
+ *     SimpleAgent(AgentIdentifier, Context) {
+ *         ...
+ *     }
+ * </pre>
  */
 @ToString
 @Slf4j
@@ -36,9 +47,6 @@ public class SimpleAgent implements EventCatcher {
 
     @Getter
     private final AgentIdentifier identifier;
-
-    @Getter
-    private final Environment environment;
 
     @Getter
     private final Context context;
@@ -54,30 +62,18 @@ public class SimpleAgent implements EventCatcher {
     // Constructors.
 
     /**
-     * Construct a {@link SimpleAgent} with a unique {@link AgentIdentifier} and an {@link Environment}. The {@code SimpleAgent} context is not
-     * specified that it means the initial context is empty and the default class use for the {@code SimpleAgent} will be {@link SimpleContext}.
-     *
-     * @param identifier  the unique identifier of the {@code SimpleAgent}
-     * @param environment the environment where the {@code SimpleAgent} evolves
-     */
-    public SimpleAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment) {
-        this(identifier, environment, null);
-    }
-
-    /**
      * Constructs a {@link SimpleAgent} with a unique {@link AgentIdentifier}, an {@link Environment} and a {@link Context}. The context parameter is
      * here to allow the {@code SimpleAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is
      * null, the default class use is {@link SimpleContext}.
      *
-     * @param identifier  the unique identifier of the {@code SimpleAgent}
-     * @param environment the environment where the {@code SimpleAgent} evolves
-     * @param context     the context of the {@code SimpleAgent}
+     * @param identifier the unique identifier of the {@code SimpleAgent}
+     * @param context    the context of the {@code SimpleAgent}
      *
      * @throws NullPointerException if specified identifier or environment is/are null.
      */
-    public SimpleAgent(@NonNull AgentIdentifier identifier, @NonNull Environment environment, Context context) {
+    public SimpleAgent(@NonNull AgentIdentifier identifier, Context context) {
         this.identifier = identifier;
-        this.environment = environment;
+
         this.context = context != null ? context : new SimpleContext();
 
         this.protocols = Maps.newConcurrentMap();
@@ -91,6 +87,12 @@ public class SimpleAgent implements EventCatcher {
     }
 
     // Methods.
+
+    public static SimpleAgent initiateAgent(Class<? extends SimpleAgent> agentClass, @NonNull AgentIdentifier identifier, Context context)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Constructor<? extends SimpleAgent> constructor = agentClass.getConstructor(AgentIdentifier.class, Context.class);
+        return constructor.newInstance(identifier, context);
+    }
 
     /**
      * Add observer. Observer must be not null.
@@ -233,11 +235,11 @@ public class SimpleAgent implements EventCatcher {
      *     }
      * </pre>
      *
-     * @param protocolClass the agent.protocol class
+     * @param protocolClass the {@code Protocol} class
      */
-    public void addProtocol(Class<? extends Protocol> protocolClass) {
+    public void addProtocol(@NonNull Class<? extends Protocol> protocolClass) {
         try {
-            Protocol protocol = Protocol.instantiateProtocol(protocolClass, this);
+            Protocol protocol = Protocol.instantiateProtocol(protocolClass, this, null);
             if (protocols.putIfAbsent(protocolClass, protocol) == null) {
                 // Protocol added
                 addObserver(protocol);
@@ -250,10 +252,24 @@ public class SimpleAgent implements EventCatcher {
         }
     }
 
+    public void addProtocol(@NonNull ProtocolConfiguration protocolConfiguration) {
+        try {
+            Protocol protocol = protocolConfiguration.generateProtocol(this);
+            if (protocols.putIfAbsent(protocol.getClass(), protocol) == null) {
+                // Protocol added
+                addObserver(protocol);
+                log.info("Protocol " + protocol.getClass().getSimpleName() + " added to the Agent " + identifier);
+            } else
+                log.info(identifier + " try to add an already added Protocol " + protocol.getClass());
+        } catch (GenerationFailedException e) {
+            throw new FailToAddProtocolException(e);
+        }
+    }
+
     /**
      * Verify if the {@link SimpleAgent} has already added a {@link Protocol} for the specified class or not.
      *
-     * @param protocolClass the agent.protocol class to verify
+     * @param protocolClass the {@code Protocol} class to verify
      *
      * @return true if the {@code SimpleAgent} has already a {@code Protocol} for this {@code Protocol} class, else false.
      */
@@ -262,7 +278,7 @@ public class SimpleAgent implements EventCatcher {
     }
 
     /**
-     * @param protocolClass the agent.protocol class
+     * @param protocolClass the {@link Protocol} class
      *
      * @return the instance of the {@link Protocol} if the {@link SimpleAgent} has added a {@code Protocol} for the specified class, else null.
      *
@@ -275,15 +291,30 @@ public class SimpleAgent implements EventCatcher {
 
     public void addBehavior(Class<? extends Behavior> behaviorClass) {
         try {
-            if (behaviors.putIfAbsent(behaviorClass, Behavior.instantiateBehavior(behaviorClass, this)) == null)
-                // Added Behavior
-                log.info(identifier + " add the Behavior " + behaviorClass);
-            else
-                // Already added Behavior
-                log.info(identifier + " try to add an already added Behavior " + behaviorClass);
+            Behavior behavior = Behavior.instantiateBehavior(behaviorClass, this, null);
+            addBehavior(behavior);
         } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
             throw new FailToAddBehaviorException(behaviorClass);
         }
+    }
+
+    public void addBehavior(@NonNull BehaviorConfiguration behaviorConfiguration) {
+        try {
+            Behavior behavior = behaviorConfiguration.generateBehavior(this);
+            addBehavior(behavior);
+        } catch (GenerationFailedException e) {
+            throw new FailToAddBehaviorException(e);
+        }
+
+    }
+
+    private void addBehavior(Behavior behavior) {
+        if (behaviors.putIfAbsent(behavior.getClass(), behavior) == null)
+            // Added Behavior
+            log.info(identifier + " add the Behavior " + behavior.getClass());
+        else
+            // Already added Behavior
+            log.info(identifier + " try to add an already added Behavior " + behavior.getClass());
     }
 
     public boolean hasBehavior(Class<? extends Behavior> behaviorClass) {
@@ -321,11 +352,11 @@ public class SimpleAgent implements EventCatcher {
     }
 
     /**
-     * Call in the method {@link #processEvent(Event)} only if the {@link SimpleAgent} is started. Because {@link #processEvent(Event)} is final. 
-     * In is this method that you can override to update the implementation of {@link #processEvent(Event)}
+     * Call in the method {@link #processEvent(Event)} only if the {@link SimpleAgent} is started. Because {@link #processEvent(Event)} is final. In
+     * is this method that you can override to update the implementation of {@link #processEvent(Event)}
      *
      * @param event the event to process
-     *              
+     *
      * @see #processEvent(Event)
      */
     protected void inProcessEvent(Event<?> event) {

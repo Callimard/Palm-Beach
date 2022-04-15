@@ -241,14 +241,17 @@ public interface Scheduler {
          * Wait until the observed {@link Scheduler} be killed or the timeout be reached.
          *
          * @param timeout timeout until wake up
+         *
+         * @throws InterruptedException if current thread is interrupted before or while it is waiting
          */
-        public synchronized void waitSchedulerEnd(long timeout) {
+        public synchronized void waitSchedulerEnd(long timeout) throws InterruptedException {
             try {
                 if (!hasBeenKilled)
                     wait(timeout);
             } catch (InterruptedException e) {
                 log.error("WaitingSchedulerObserver Interrupted", e);
                 Thread.currentThread().interrupt();
+                throw e;
             }
         }
 

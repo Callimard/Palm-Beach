@@ -1,9 +1,14 @@
 package common;
 
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+
 /**
  * Allow objects of the simulation to have context add shares value with others.
  * <p>
  * This is interesting to collect datas dynamically during the simulation and make graphic display more easily.
+ * <p>
+ * {@code Context} sub classes must have a default constructor.
  */
 public interface Context {
 
@@ -27,4 +32,10 @@ public interface Context {
      * @return true if there is no mapping value on the context.
      */
     boolean isEmpty();
+
+    static Context instantiateContext(Class<? extends Context> contextClass)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Constructor<? extends Context> constructor = contextClass.getConstructor();
+        return constructor.newInstance();
+    }
 }

@@ -2,12 +2,16 @@ package environment.physical;
 
 import agent.SimpleAgent;
 import agent.protocol.Protocol;
+import common.Context;
+import common.SimpleContext;
 import event.Event;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * Simulate a {@code PhysicalNetwork}. A {@code PhysicalNetwork} represents physical connection between several {@link SimpleAgent}. Via the {@code
@@ -16,9 +20,15 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * It is advice to create for each {@code PhysicalNetwork} a specific type of {@link PhysicalEvent} which can PhysicalNetwork be managed and processed
  * by specifics {@link Protocol}s.
+ * <p>
+ * All {@code PhysicalNetwork} subclasses must have this constructor:
+ * <pre>
+ *     PhysicalNetwork(String name, Context context) {
+ *         ...
+ *     }
+ * </pre>
  */
 @ToString
-@AllArgsConstructor
 @Slf4j
 public abstract class PhysicalNetwork {
 
@@ -28,7 +38,24 @@ public abstract class PhysicalNetwork {
     @NonNull
     private final String name;
 
+    @Getter
+    private final Context context;
+
+    // Constructors.
+
+    protected PhysicalNetwork(@NonNull String name, Context context) {
+        this.name = name;
+        this.context = context != null ? context : new SimpleContext();
+    }
+
     // Methods.
+
+    public static PhysicalNetwork initiatePhysicalNetwork(@NonNull Class<? extends PhysicalNetwork> physicalNetworkClass,
+                                                          @NonNull String physicalNetworkName, Context context)
+            throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Constructor<? extends PhysicalNetwork> constructor = physicalNetworkClass.getConstructor(String.class, Context.class);
+        return constructor.newInstance(physicalNetworkName, context);
+    }
 
     /**
      * Sends the {@link Event} from the source to the target. First check if from the source, the target is reachable with the method {@link

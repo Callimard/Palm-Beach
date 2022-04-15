@@ -108,7 +108,7 @@ public class PhysicalNetworkTest {
         private Supplier<Boolean> hasPhysicalConnectionSupplier;
 
         public BasicPhysicalNetwork(@NonNull String name) {
-            super(name);
+            super(name, null);
         }
 
         @Override
