@@ -50,6 +50,22 @@ public abstract class PhysicalNetwork {
 
     // Methods.
 
+    /**
+     * Create an instance of the specified {@link PhysicalNetwork} class. The specified class must have a construct as described in the general doc of
+     * {@code PhysicalNetwork}.
+     *
+     * @param physicalNetworkClass the PhysicalNetwork class name
+     * @param physicalNetworkName  the PhysicalNetwork name
+     * @param context              the PhysicalNetwork context
+     *
+     * @return a new instance of the specified {@code PhysicalNetwork} class
+     *
+     * @throws NoSuchMethodException     if the {@code PhysicalNetwork} class does not have the specific needed constructor
+     * @throws InvocationTargetException if the constructor has thrown an exception
+     * @throws InstantiationException    if the instantiation failed
+     * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if physicalNetworkClass or physicalNetworkName is null
+     */
     public static PhysicalNetwork initiatePhysicalNetwork(@NonNull Class<? extends PhysicalNetwork> physicalNetworkClass,
                                                           @NonNull String physicalNetworkName, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

@@ -11,6 +11,19 @@ import simulation.configuration.exception.GenerationFailedException;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link Behavior}.
+ *
+ * Example of complete {@code Behavior} configuration:
+ * <pre>
+ * behavior.correctBehavior.class=behavior.CorrectBehavior
+ * behavior.correctBehavior.context.class=context.CustomContext
+ * behavior.correctBehavior.context.key1="value1"
+ * behavior.correctBehavior.context.key2="value2"
+ *
+ * behavior.byzantineBehavior.class=behavior.ByzantineBehavior
+ * </pre>
+ */
 @Getter
 @ToString
 public class BehaviorConfiguration extends PalmBeachConfiguration<Void> {

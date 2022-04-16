@@ -53,6 +53,35 @@ public class EnvironmentTest {
         }
 
         @Nested
+        @DisplayName("Environment instantiateEnvironment()")
+        @Tag("instantiateEnvironment")
+        class InstantiateEnvironment {
+
+            @SuppressWarnings("ConstantConditions")
+            @Test
+            @DisplayName("instantiateEnvironment() throws NullPointerException with null environmentClass or null environmentName")
+            void withNullParameters(@Mock Context context) {
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, "environmentName", context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(BasicEnvironment.class, null, context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, null, context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, null, null));
+                assertDoesNotThrow(() -> Environment.instantiateEnvironment(BasicEnvironment.class, "environmentName", null));
+            }
+
+            @Test
+            @DisplayName("instantiateEnvironment() does not throw exception and create a new instance of Environment")
+            void createNewInstanceOfEnvironment(@Mock Context context) {
+                String environmentName = "environmentName";
+                AtomicReference<Environment> environment = new AtomicReference<>();
+
+                assertDoesNotThrow(() -> environment.set(Environment.instantiateEnvironment(BasicEnvironment.class, environmentName, context)));
+                assertThat(environment.get()).isNotNull();
+                assertThat(environment.get().getClass()).isEqualTo(BasicEnvironment.class);
+                assertThat(environment.get().getName()).isEqualTo(environmentName);
+            }
+        }
+
+        @Nested
         @DisplayName("Environment(String)")
         class SecondaryConstructor {
 
@@ -269,7 +298,7 @@ public class EnvironmentTest {
 
     public static class BasicEnvironment extends Environment {
 
-        protected BasicEnvironment(@NonNull String name, Context context) {
+        public BasicEnvironment(@NonNull String name, Context context) {
             super(name, context);
         }
     }

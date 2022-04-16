@@ -1,5 +1,7 @@
 package common;
 
+import lombok.NonNull;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
@@ -33,7 +35,18 @@ public interface Context {
      */
     boolean isEmpty();
 
-    static Context instantiateContext(Class<? extends Context> contextClass)
+    /**
+     * @param contextClass the context class
+     *
+     * @return a new instance of a {@link Context} which has the same type specified.
+     *
+     * @throws NoSuchMethodException     if the {@code Context} class does not have the specific needed constructor
+     * @throws InvocationTargetException if the constructor has thrown an exception
+     * @throws InstantiationException    if the instantiation failed
+     * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if contextClass is null
+     */
+    static Context instantiateContext(@NonNull Class<? extends Context> contextClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends Context> constructor = contextClass.getConstructor();
         return constructor.newInstance();

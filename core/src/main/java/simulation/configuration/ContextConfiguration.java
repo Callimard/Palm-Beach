@@ -13,6 +13,18 @@ import java.util.Map;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link Context}.
+ * <p>
+ * Example of complete {@code Context} configuration:
+ * <pre>
+ * context.class=context.CustomContext
+ * context.key1="value1"
+ * context.key2="value2"
+ * </pre>
+ * <p>
+ * A {@code ContextConfiguration} is always nested in another configuration.
+ */
 @Getter
 @ToString
 public class ContextConfiguration extends PalmBeachConfiguration<Context> {

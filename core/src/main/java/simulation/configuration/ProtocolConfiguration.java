@@ -11,6 +11,22 @@ import simulation.configuration.exception.GenerationFailedException;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link Protocol}.
+ * <p>
+ * Example of complete {@code Protocol} configuration:
+ * <pre>
+ * protocol.transport.class=protocol.TransportProtocol
+ * protocol.transport.context.class=context.CustomContext
+ * protocol.transport.context.key1="value1"
+ * protocol.transport.context.key2="value2"
+ *
+ * protocol.tendermint.class=protocol.TendermintProtocol
+ * protocol.tendermint.context.class=context.CustomContext
+ *
+ * protocol.hackProtocol.class=protocol.HackProtocol
+ * </pre>
+ */
 @Getter
 @ToString
 public class ProtocolConfiguration extends PalmBeachConfiguration<Void> {

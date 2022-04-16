@@ -62,14 +62,14 @@ public class SimpleAgent implements EventCatcher {
     // Constructors.
 
     /**
-     * Constructs a {@link SimpleAgent} with a unique {@link AgentIdentifier}, an {@link Environment} and a {@link Context}. The context parameter is
-     * here to allow the {@code SimpleAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is
-     * null, the default class use is {@link SimpleContext}.
+     * Constructs a {@link SimpleAgent} with a unique {@link AgentIdentifier} and a {@link Context} (which can be null). The context parameter is here
+     * to allow the {@code SimpleAgent} to begin with an initial context and allow the user to specify any subclass of context. If context is null,
+     * the default class use is {@link SimpleContext}.
      *
      * @param identifier the unique identifier of the {@code SimpleAgent}
      * @param context    the context of the {@code SimpleAgent}
      *
-     * @throws NullPointerException if specified identifier or environment is/are null.
+     * @throws NullPointerException if specified identifier is null.
      */
     public SimpleAgent(@NonNull AgentIdentifier identifier, Context context) {
         this.identifier = identifier;
@@ -88,7 +88,24 @@ public class SimpleAgent implements EventCatcher {
 
     // Methods.
 
-    public static SimpleAgent initiateAgent(Class<? extends SimpleAgent> agentClass, @NonNull AgentIdentifier identifier, Context context)
+    /**
+     * Create an instance of the specified {@link SimpleAgent} class. The specified class must have a construct as described in the general doc of
+     * {@code SimpleAgent}.
+     *
+     * @param agentClass the agent class to instantiate
+     * @param identifier the identifier of the agent
+     * @param context    the context of the agent
+     *
+     * @return a new instance of the specified {@code SimpleAgent} class.
+     *
+     * @throws NoSuchMethodException     if the {@code SimpleAgent} class does not have the specific needed constructor
+     * @throws InvocationTargetException if the constructor has thrown an exception
+     * @throws InstantiationException    if the instantiation failed
+     * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if agentClass or identifier is null
+     * @see #SimpleAgent(AgentIdentifier, Context)
+     */
+    public static SimpleAgent initiateAgent(@NonNull Class<? extends SimpleAgent> agentClass, @NonNull AgentIdentifier identifier, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends SimpleAgent> constructor = agentClass.getConstructor(AgentIdentifier.class, Context.class);
         return constructor.newInstance(identifier, context);
@@ -236,34 +253,43 @@ public class SimpleAgent implements EventCatcher {
      * </pre>
      *
      * @param protocolClass the {@code Protocol} class
+     *
+     * @throws FailToAddProtocolException if the {@code Protocol} has not been added
+     * @throws NullPointerException       if the protocolClass is null
      */
     public void addProtocol(@NonNull Class<? extends Protocol> protocolClass) {
         try {
             Protocol protocol = Protocol.instantiateProtocol(protocolClass, this, null);
-            if (protocols.putIfAbsent(protocolClass, protocol) == null) {
-                // Protocol added
-                addObserver(protocol);
-                log.info("Protocol " + protocolClass.getSimpleName() + " added to the Agent " + identifier);
-            } else
-                // Already added agent.protocol
-                log.info(identifier + " try to add an already added Protocol " + protocolClass);
+            addProtocol(protocol);
         } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new FailToAddProtocolException(protocolClass, e);
         }
     }
 
+    /**
+     * Add the protocol to the {@link SimpleAgent} by generated one base on the specified {@link ProtocolConfiguration}.
+     *
+     * @param protocolConfiguration the protocol configuration to instantiate and add
+     *
+     * @throws FailToAddProtocolException if the {@code Protocol} has not been added
+     * @throws NullPointerException       if the protocolConfiguration is null
+     */
     public void addProtocol(@NonNull ProtocolConfiguration protocolConfiguration) {
         try {
             Protocol protocol = protocolConfiguration.generateProtocol(this);
-            if (protocols.putIfAbsent(protocol.getClass(), protocol) == null) {
-                // Protocol added
-                addObserver(protocol);
-                log.info("Protocol " + protocol.getClass().getSimpleName() + " added to the Agent " + identifier);
-            } else
-                log.info(identifier + " try to add an already added Protocol " + protocol.getClass());
+            addProtocol(protocol);
         } catch (GenerationFailedException e) {
             throw new FailToAddProtocolException(e);
         }
+    }
+
+    private void addProtocol(Protocol protocol) {
+        if (protocols.putIfAbsent(protocol.getClass(), protocol) == null) {
+            // Protocol added
+            addObserver(protocol);
+            log.info("Protocol " + protocol.getClass().getSimpleName() + " added to the Agent " + identifier);
+        } else
+            log.info(identifier + " try to add an already added Protocol " + protocol.getClass());
     }
 
     /**
@@ -289,6 +315,13 @@ public class SimpleAgent implements EventCatcher {
         return (T) protocols.get(protocolClass);
     }
 
+    /**
+     * Add to the {@link SimpleAgent} the specified {@link Behavior} by instantiate the {@code behavior} and add it.
+     *
+     * @param behaviorClass the behavior class to instantiate and add
+     *
+     * @throws FailToAddBehaviorException if the {@code Behavior} has not been added
+     */
     public void addBehavior(Class<? extends Behavior> behaviorClass) {
         try {
             Behavior behavior = Behavior.instantiateBehavior(behaviorClass, this, null);
@@ -298,6 +331,14 @@ public class SimpleAgent implements EventCatcher {
         }
     }
 
+    /**
+     * Create a new instance of {@link Behavior} base on the specified {@link BehaviorConfiguration} and add it the {@link SimpleAgent}.
+     *
+     * @param behaviorConfiguration the behavior configuration to instantiate and add
+     *
+     * @throws FailToAddBehaviorException if the {@code Behavior} has not been added
+     * @throws NullPointerException       if behaviorConfiguration is null
+     */
     public void addBehavior(@NonNull BehaviorConfiguration behaviorConfiguration) {
         try {
             Behavior behavior = behaviorConfiguration.generateBehavior(this);
@@ -308,7 +349,7 @@ public class SimpleAgent implements EventCatcher {
 
     }
 
-    private void addBehavior(Behavior behavior) {
+    private void addBehavior(@NonNull Behavior behavior) {
         if (behaviors.putIfAbsent(behavior.getClass(), behavior) == null)
             // Added Behavior
             log.info(identifier + " add the Behavior " + behavior.getClass());
@@ -317,10 +358,21 @@ public class SimpleAgent implements EventCatcher {
             log.info(identifier + " try to add an already added Behavior " + behavior.getClass());
     }
 
+    /**
+     * @param behaviorClass the behavior class
+     *
+     * @return true if the agent has an added {@link Behavior} which has the specified class, else false.
+     */
     public boolean hasBehavior(Class<? extends Behavior> behaviorClass) {
         return behaviors.containsKey(behaviorClass);
     }
 
+    /**
+     * @param behaviorClass the behavior class
+     * @param <T>           the type of the {@code Behavior}
+     *
+     * @return the instance of {@link Behavior} which has been added to the {@link SimpleAgent} and which has the specified class, else null.
+     */
     public <T extends Behavior> T getBehavior(Class<T> behaviorClass) {
         //noinspection unchecked
         return (T) behaviors.get(behaviorClass);

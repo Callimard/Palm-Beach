@@ -10,6 +10,17 @@ import simulation.configuration.exception.GenerationFailedException;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link PhysicalNetwork}.
+ * <p>
+ * Example of complete {@code PhysicalNetwork} configuration:
+ * <pre>
+ * physical-network.fullyConnected.class=environment.physical.PhysicalNetwork
+ * physical-network.fullyConnected.context.class=context.CustomContext
+ * physical-network.fullyConnected.context.key1="value1"
+ * physical-network.fullyConnected.context.key2="value2"
+ * </pre>
+ */
 @Getter
 @ToString
 public class PhysicalNetworkConfiguration extends PalmBeachConfiguration<PhysicalNetwork> {

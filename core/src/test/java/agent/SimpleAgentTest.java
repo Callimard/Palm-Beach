@@ -3,26 +3,28 @@ package agent;
 import agent.behavior.Behavior;
 import agent.behavior.BehaviorTest;
 import agent.exception.*;
+import agent.protocol.Protocol;
 import agent.protocol.ProtocolTest;
 import common.Context;
-import environment.Environment;
+import event.Event;
+import junit.PalmBeachTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import agent.protocol.Protocol;
-import event.Event;
-import junit.PalmBeachTest;
+import simulation.configuration.BehaviorConfiguration;
+import simulation.configuration.ProtocolConfiguration;
+import simulation.configuration.exception.GenerationFailedException;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.*;
 
 @Nested
 @DisplayName("SimpleAgent tests")
@@ -139,6 +141,32 @@ public class SimpleAgentTest {
     }
 
     @Nested
+    @DisplayName("SimpleAgent initiateAgent()")
+    @Tag("initiateAgent")
+    class InitiateAgent {
+
+        @SuppressWarnings("ConstantConditions")
+        @Test
+        @DisplayName("initiateAgent() throws NullPointerException with null agentClass or null AgentIdentifier")
+        void withNullParameter(@Mock SimpleAgent.AgentIdentifier agentIdentifier, @Mock Context context) {
+            assertThrows(NullPointerException.class, () -> SimpleAgent.initiateAgent(null, agentIdentifier, context));
+            assertThrows(NullPointerException.class, () -> SimpleAgent.initiateAgent(SimpleAgent.class, null, context));
+            assertThrows(NullPointerException.class, () -> SimpleAgent.initiateAgent(null, null, context));
+            assertDoesNotThrow(() -> SimpleAgent.initiateAgent(SimpleAgent.class, agentIdentifier, null));
+        }
+
+        @Test
+        @DisplayName("initiateAgent() does not throw exception and create a new instance of SimpleAgent with correct parameters")
+        void withCorrectParameters(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Context context) {
+            AtomicReference<SimpleAgent> simpleAgent = new AtomicReference<>();
+
+            assertDoesNotThrow(() -> simpleAgent.set(SimpleAgent.initiateAgent(SimpleAgent.class, identifier, context)));
+            assertThat(simpleAgent.get()).isNotNull();
+            assertThat(simpleAgent.get().getClass()).isEqualTo(SimpleAgent.class);
+        }
+    }
+
+    @Nested
     @DisplayName("SimpleAgent constructor")
     @Tag("constructor")
     class Constructor {
@@ -153,6 +181,7 @@ public class SimpleAgentTest {
             void nullIdentifier(@Mock Context context) {
                 assertThrows(NullPointerException.class, () -> new SimpleAgent(null, context));
             }
+
             @Test
             @DisplayName("Does not throw exception with null context and not null context")
             void nullContext(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Context context) {
@@ -359,40 +388,82 @@ public class SimpleAgentTest {
     @Tag("addProtocol")
     class AddProtocol {
 
-        @Test
-        @DisplayName("addProtocol() with non correct Protocol class throws FailToAddProtocolException")
-        void nonCorrectProtocolClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+        @Nested
+        @DisplayName("addProtocol(Class)")
+        class FirstAddProtocol {
 
-            assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.NoCorrectConstructorProtocol.class));
-            assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.WrongConstructorVisibilityProtocol.class));
-            assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.ThrowExceptionConstructorProtocol.class));
+            @Test
+            @DisplayName("addProtocol(Class) with non correct Protocol class throws FailToAddProtocolException")
+            void nonCorrectProtocolClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+
+                assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.NoCorrectConstructorProtocol.class));
+                assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.WrongConstructorVisibilityProtocol.class));
+                assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(ProtocolTest.ThrowExceptionConstructorProtocol.class));
+            }
+
+            @Test
+            @DisplayName("addProtocol(Class) with correct Protocol class does not throw exception and add the agent.protocol")
+            void withCorrectProtocolClass(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+
+                assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isFalse();
+                assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNull();
+                assertDoesNotThrow(() -> simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class));
+                assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isTrue();
+                assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNotNull();
+            }
+
+            @Test
+            @DisplayName(
+                    "addProtocol(Class) with correct Protocol does not throw exception for already added agent.protocol and keep the previous instance of " +
+                            "protocol")
+            void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+                simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);
+
+                Protocol protocol = simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class);
+
+                assertDoesNotThrow(() -> simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class));
+                assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isTrue();
+                assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNotNull().isSameAs(protocol);
+            }
         }
 
-        @Test
-        @DisplayName("addProtocol() with correct Protocol class does not throw exception and add the agent.protocol")
-        void withCorrectProtocolClass(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+        @Nested
+        @DisplayName("addProtocol(ProtocolConfiguration)")
+        class SecondAddProtocol {
 
-            assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isFalse();
-            assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNull();
-            assertDoesNotThrow(() -> simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class));
-            assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isTrue();
-            assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNotNull();
-        }
+            @Test
+            @DisplayName("addProtocol(ProtocolConfiguration) throws NullPointerException with null protocolConfiguration")
+            void withNullProtocolConfiguration(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
-        @Test
-        @DisplayName("addProtocol() with correct Protocol does not throw exception for already added agent.protocol and keep the previous instance of " +
-                "protocol")
-        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
-            simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class);
+                //noinspection ConstantConditions
+                assertThrows(NullPointerException.class, () -> simpleAgent.addProtocol((ProtocolConfiguration) null));
+            }
 
-            Protocol protocol = simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class);
+            @Test
+            @DisplayName("addProtocol(ProtocolConfiguration) throws FailToAddProtocolException if protocolConfiguration fail to generate")
+            void protocolConfigurationFailGeneration(@Mock SimpleAgent.AgentIdentifier identifier, @Mock ProtocolConfiguration protocolConfiguration)
+                    throws GenerationFailedException {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
-            assertDoesNotThrow(() -> simpleAgent.addProtocol(ProtocolTest.BasicProtocol.class));
-            assertThat(simpleAgent.hasProtocol(ProtocolTest.BasicProtocol.class)).isTrue();
-            assertThat(simpleAgent.getProtocol(ProtocolTest.BasicProtocol.class)).isNotNull().isSameAs(protocol);
+                when(protocolConfiguration.generateProtocol(simpleAgent)).thenThrow(new GenerationFailedException("", null));
+
+                assertThrows(FailToAddProtocolException.class, () -> simpleAgent.addProtocol(protocolConfiguration));
+            }
+
+            @Test
+            @DisplayName("addProtocol(ProtocolConfiguration) does not throws with correct parameters")
+            void withCorrectParameters(@Mock SimpleAgent.AgentIdentifier identifier, @Mock ProtocolConfiguration protocolConfiguration,
+                                       @Mock Protocol protocol) throws GenerationFailedException {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+
+                when(protocolConfiguration.generateProtocol(simpleAgent)).thenReturn(protocol);
+
+                assertDoesNotThrow(() -> simpleAgent.addProtocol(protocolConfiguration));
+            }
         }
     }
 
@@ -401,40 +472,82 @@ public class SimpleAgentTest {
     @Tag("addBehavior")
     class AddBehavior {
 
-        @Test
-        @DisplayName("addBehavior() with non correct Behavior classes throws FailToAddBehaviorException")
-        void nonCorrectBehaviorClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+        @Nested
+        @DisplayName("addBehavior(Class)")
+        class FirstAddBehavior {
 
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.NoCorrectConstructorBehavior.class));
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.WrongConstructorVisibilityBehavior.class));
-            assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.ThrowExceptionConstructorBehavior.class));
+            @Test
+            @DisplayName("addBehavior(Class) with non correct Behavior classes throws FailToAddBehaviorException")
+            void nonCorrectBehaviorClasses(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+
+                assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.NoCorrectConstructorBehavior.class));
+                assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.WrongConstructorVisibilityBehavior.class));
+                assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(BehaviorTest.ThrowExceptionConstructorBehavior.class));
+            }
+
+            @Test
+            @DisplayName("addBehavior(Class) does not throw exception with correct Behavior class and add the Behavior")
+            void withCorrectBehaviorClass(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+
+                assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isFalse();
+                assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNull();
+                assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
+                assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
+                assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull();
+            }
+
+            @Test
+            @DisplayName(
+                    "addBehavior(Class) with correct Behavior does not throw exception for already added agent.behavior and keep the previous instance of " +
+                            "behavior")
+            void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+                simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
+
+                Behavior behavior = simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class);
+
+                assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
+                assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
+                assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull().isSameAs(behavior);
+            }
         }
 
-        @Test
-        @DisplayName("addBehavior() does not throw exception with correct Behavior class and add the Behavior")
-        void withCorrectBehaviorClass(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+        @Nested
+        @DisplayName("addBehavior(BehaviorConfiguration)")
+        class SecondAddBehavior {
 
-            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isFalse();
-            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNull();
-            assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
-            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
-            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull();
-        }
+            @Test
+            @DisplayName("addBehavior(BehaviorConfiguration) throw NullPointerException with null BehaviorConfiguration")
+            void withNullBehaviorConfiguration(@Mock SimpleAgent.AgentIdentifier identifier) {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
-        @Test
-        @DisplayName("addBehavior() with correct Behavior does not throw exception for already added agent.behavior and keep the previous instance of " +
-                "behavior")
-        void addTheSameProtocol(@Mock SimpleAgent.AgentIdentifier identifier) {
-            SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
-            simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class);
+                //noinspection ConstantConditions
+                assertThrows(NullPointerException.class, () -> simpleAgent.addBehavior((BehaviorConfiguration) null));
+            }
 
-            Behavior behavior = simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class);
+            @Test
+            @DisplayName("addBehavior(BehaviorConfiguration) throws GenerationFailedException if behaviorConfiguration fail to generate Behavior")
+            void configurationFailed(@Mock SimpleAgent.AgentIdentifier identifier, @Mock BehaviorConfiguration behaviorConfiguration)
+                    throws GenerationFailedException {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
 
-            assertDoesNotThrow(() -> simpleAgent.addBehavior(BehaviorTest.CorrectConstructorBehavior.class));
-            assertThat(simpleAgent.hasBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isTrue();
-            assertThat(simpleAgent.getBehavior(BehaviorTest.CorrectConstructorBehavior.class)).isNotNull().isSameAs(behavior);
+                when(behaviorConfiguration.generateBehavior(simpleAgent)).thenThrow(new GenerationFailedException("", null));
+
+                assertThrows(FailToAddBehaviorException.class, () -> simpleAgent.addBehavior(behaviorConfiguration));
+            }
+
+            @Test
+            @DisplayName("addBehavior(BehaviorConfiguration) does not throw Exception with correct parameters")
+            void withCorrectParameters(@Mock SimpleAgent.AgentIdentifier identifier, @Mock BehaviorConfiguration behaviorConfiguration,
+                                       @Mock Behavior behavior) throws GenerationFailedException {
+                SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
+                when(behaviorConfiguration.generateBehavior(simpleAgent)).thenReturn(behavior);
+
+                assertDoesNotThrow(() -> simpleAgent.addBehavior(behaviorConfiguration));
+            }
+
         }
     }
 
@@ -522,8 +635,9 @@ public class SimpleAgentTest {
         }
 
         @Test
-        @DisplayName("processEvent() does not throw exception if there is at least one agent.protocol which can process the event and the agent.protocol " +
-                "process the event")
+        @DisplayName(
+                "processEvent() does not throw exception if there is at least one agent.protocol which can process the event and the agent.protocol " +
+                        "process the event")
         void withProtocolCanProcessEvent(@Mock SimpleAgent.AgentIdentifier identifier, @Mock Event<?> event) {
             SimpleAgent simpleAgent = new SimpleAgent(identifier, null);
             simpleAgent.start();

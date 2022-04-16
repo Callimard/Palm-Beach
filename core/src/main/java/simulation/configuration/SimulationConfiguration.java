@@ -24,6 +24,83 @@ import java.util.Set;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link PalmBeachSimulation}.
+ * <p>
+ * Example of complete {@code PalmBeachSimulation} configuration:
+ * <pre>
+ * # Simulation
+ *
+ * simulation.threads=4
+ * simulation.max-duration=1500
+ * simulation.setup-class=simulation.SimulationSetup
+ *
+ * # Controllers
+ *
+ * controller.myController.class=simulation.MyController
+ * controller.myController.schedule-mode=REPEATEDLY
+ * controller.myController.schedule-time=1
+ * controller.myController.executions-step=50
+ * controller.myController.repetitions=5
+ * controller.myController.custom-property=custom-value
+ *
+ * # Physical Networks
+ *
+ * physical-network.fullyConnected.class=environment.physical.PhysicalNetwork
+ * physical-network.fullyConnected.context.class=context.CustomContext
+ * physical-network.fullyConnected.context.key1="value1"
+ * physical-network.fullyConnected.context.key2="value2"
+ *
+ * # Environments
+ *
+ * environment.simpleEnvironment.class=environment.SimpleEnvironment
+ * environment.simpleEnvironment.context.class=context.CustomContext
+ * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
+ * environment.simpleEnvironment.context.key1="value1"
+ * environment.simpleEnvironment.context.key2="value2"
+ * environment.simpleEnvironment.custom-property-1=argument1
+ * environment.simpleEnvironment.custom-property-2=argument2
+ *
+ * # Protocols
+ *
+ * protocol.transport.class=protocol.TransportProtocol
+ * protocol.transport.context.class=context.CustomContext
+ * protocol.transport.context.key1="value1"
+ * protocol.transport.context.key2="value2"
+ *
+ * protocol.tendermint.class=protocol.TendermintProtocol
+ * protocol.tendermint.context.class=context.CustomContext
+ *
+ * protocol.hackProtocol.class=protocol.HackProtocol
+ *
+ * # Behaviors
+ *
+ * behavior.correctBehavior.class=behavior.CorrectBehavior
+ * behavior.correctBehavior.context.class=context.CustomContext
+ * behavior.correctBehavior.context.key1="value1"
+ * behavior.correctBehavior.context.key2="value2"
+ *
+ * behavior.byzantineBehavior.class=behavior.ByzantineBehavior
+ *
+ * # Agents
+ *
+ * agent.correctAgent.name-pattern="CorrectAgent %d"
+ * agent.correctAgent.number=15
+ * agent.correctAgent.context.class=context.CustomContext
+ * agent.correctAgent.context.key1="value1"
+ * agent.correctAgent.context.key2="value2"
+ * agent.correctAgent.environments=[simpleEnvironment]
+ * agent.correctAgent.protocols=[transport, tendermint]
+ * agent.correctAgent.behaviors=[correctBehavior]
+ *
+ * agent.byzantineAgent.class=agent.ByzantineAgent
+ * agent.byzantineAgent.name-pattern="ByzantineAgent %d"
+ * agent.byzantineAgent.number=3
+ * agent.byzantineAgent.environments=[simpleEnvironment]
+ * agent.byzantineAgent.protocols=[transport, tendermint, hackProtocol]
+ * agent.byzantineAgent.behaviors=[byzantineBehavior]
+ * </pre>
+ */
 @Getter
 @ToString
 @Slf4j

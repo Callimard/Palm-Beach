@@ -1,6 +1,7 @@
 package simulation;
 
 import event.Event;
+import lombok.NonNull;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -20,7 +21,21 @@ public interface SimulationSetup {
      */
     void setupSimulation();
 
-    static SimulationSetup initiateSimulationSetup(Class<? extends SimulationSetup> simulationSetupClass)
+    /**
+     * Create an instance of the specified {@link SimulationSetup} class. The specified class must have a construct as described in the general doc of
+     * * {@code SimulationSetup}.
+     *
+     * @param simulationSetupClass the SimulationSetup class
+     *
+     * @return a new instance of the specified {@code SimulationSetup} class.
+     *
+     * @throws NoSuchMethodException     if the {@code SimulationSetup} class does not have the specific needed constructor
+     * @throws InvocationTargetException if the constructor has thrown an exception
+     * @throws InstantiationException    if the instantiation failed
+     * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if the simulationSetupClass is null
+     */
+    static SimulationSetup initiateSimulationSetup(@NonNull Class<? extends SimulationSetup> simulationSetupClass)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends SimulationSetup> constructor = simulationSetupClass.getConstructor();
         return constructor.newInstance();

@@ -75,8 +75,9 @@ public abstract class Behavior {
      * @throws InvocationTargetException if the constructor has thrown an exception
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if behaviorClass or agent is null
      */
-    public static Behavior instantiateBehavior(Class<? extends Behavior> behaviorClass, SimpleAgent agent, Context context)
+    public static Behavior instantiateBehavior(@NonNull Class<? extends Behavior> behaviorClass, @NonNull SimpleAgent agent, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends Behavior> behaviorConstructor = behaviorClass.getConstructor(SimpleAgent.class, Context.class);
         return behaviorConstructor.newInstance(agent, context);

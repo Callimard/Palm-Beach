@@ -14,6 +14,28 @@ import java.util.Set;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link SimpleAgent}.
+ *
+ * Example of complete agent configuration:
+ * <pre>
+ * agent.correctAgent.name-pattern="CorrectAgent %d"
+ * agent.correctAgent.number=15
+ * agent.correctAgent.context.class=context.CustomContext
+ * agent.correctAgent.context.key1="value1"
+ * agent.correctAgent.context.key2="value2"
+ * agent.correctAgent.environments=[simpleEnvironment]
+ * agent.correctAgent.protocols=[transport, tendermint]
+ * agent.correctAgent.behaviors=[correctBehavior]
+ *
+ * agent.byzantineAgent.class=agent.ByzantineAgent
+ * agent.byzantineAgent.name-pattern="ByzantineAgent %d"
+ * agent.byzantineAgent.number=3
+ * agent.byzantineAgent.environments=[simpleEnvironment]
+ * agent.byzantineAgent.protocols=[transport, tendermint, hackProtocol]
+ * agent.byzantineAgent.behaviors=[byzantineBehavior]
+ * </pre>
+ */
 @Getter
 @ToString
 public class AgentConfiguration extends PalmBeachConfiguration<Set<SimpleAgent>> {

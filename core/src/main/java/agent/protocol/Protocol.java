@@ -79,6 +79,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      * @throws InvocationTargetException if the constructor has thrown an exception
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if protocolClass or agent is null
      */
     public static Protocol instantiateProtocol(@NonNull Class<? extends Protocol> protocolClass, @NonNull SimpleAgent agent, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {

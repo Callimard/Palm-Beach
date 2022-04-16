@@ -74,7 +74,24 @@ public abstract class Environment {
 
     // Methods.
 
-    public static Environment instantiateEnvironment(Class<? extends Environment> environmentClass, String environmentName, Context context)
+    /**
+     * Create an instance of the specified {@link Environment} class. The specified class must have a construct as described in the general doc of
+     * {@code Environment}.
+     *
+     * @param environmentClass the Environment class name
+     * @param environmentName  the Environment name
+     * @param context          the Environment context
+     *
+     * @return a new instance of the specified {@code Environment} class.
+     *
+     * @throws NoSuchMethodException     if the {@code Environment} class does not have the specific needed constructor
+     * @throws InvocationTargetException if the constructor has thrown an exception
+     * @throws InstantiationException    if the instantiation failed
+     * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if environmentClass or environmentName is null
+     */
+    public static Environment instantiateEnvironment(@NonNull Class<? extends Environment> environmentClass, @NonNull String environmentName,
+                                                     Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
         Constructor<? extends Environment> constructor = environmentClass.getConstructor(String.class, Context.class);
         return constructor.newInstance(environmentName, context);

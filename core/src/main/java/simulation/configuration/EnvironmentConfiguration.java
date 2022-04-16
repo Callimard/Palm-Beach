@@ -16,6 +16,20 @@ import java.util.Set;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link Environment}.
+ * <p>
+ * Example of complete {@code Environment} configuration:
+ * <pre>
+ * environment.simpleEnvironment.class=environment.SimpleEnvironment
+ * environment.simpleEnvironment.context.class=context.CustomContext
+ * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
+ * environment.simpleEnvironment.context.key1="value1"
+ * environment.simpleEnvironment.context.key2="value2"
+ * environment.simpleEnvironment.custom-property-1=argument1
+ * environment.simpleEnvironment.custom-property-2=argument2
+ * </pre>
+ */
 @Getter
 @ToString
 public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment> {

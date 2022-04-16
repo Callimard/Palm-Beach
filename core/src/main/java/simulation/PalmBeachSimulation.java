@@ -15,6 +15,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+/**
+ * Represents the Simulation.
+ * <p>
+ * Use the Singleton pattern, a unique instance of {@code PalmBeachSimulation} is created with the method {@link
+ * #generateSingletonPalmBeachSimulation(SimulationSetup, Scheduler, Set, Set, Set)}, after that, static methods can be used to manipulated and
+ * interact with the {@code PalmBeachSimulation}
+ */
 @ToString
 @Slf4j
 public class PalmBeachSimulation {
@@ -142,6 +149,14 @@ public class PalmBeachSimulation {
         return palmBeachSimulation.scheduler;
     }
 
+    /**
+     * Add the {@link Environment} in the simulation. {@code Environment} are mapped with their name, therefore, if there already is a {@code
+     * Environment} added with the same name, the specified {@code Environment} will not be added and the method will return false.
+     *
+     * @param environment the Environment to add
+     *
+     * @return true if the {@code Environment} has been added, else false.
+     */
     public static boolean addEnvironment(Environment environment) {
         Environment old = palmBeachSimulation.environments.putIfAbsent(environment.getName(), environment);
         if (old != null) {
@@ -157,7 +172,11 @@ public class PalmBeachSimulation {
     }
 
     /**
-     * Add the {@link SimpleAgent} in the simulation. Just add it, does not manage if is evolving or not in some {@link Environment} or not.
+     * Add the {@link SimpleAgent} in the simulation. Just add it, does not manage if it is evolving or not in some {@link Environment}.
+     * <p>
+     * {@code SimpleAgent} are mapped with their {@link agent.SimpleAgent.AgentIdentifier}. Therefore, if there already is a {@code SimpleAgent} with
+     * the same {@code AgentIdentifier} in the Simulation, the specified {@code SimpleAgent} will not be added in the Simulation and the method will
+     * return false.
      *
      * @param agent to add
      *

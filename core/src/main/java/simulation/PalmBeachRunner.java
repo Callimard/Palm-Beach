@@ -7,6 +7,9 @@ import simulation.configuration.SimulationConfiguration;
 
 import static simulation.configuration.SimulationConfiguration.DEFAULT_SIMULATION_CONFIG_NAME;
 
+/**
+ * Class used to run any {@link PalmBeachSimulation}
+ */
 @Slf4j
 public class PalmBeachRunner {
 

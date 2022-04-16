@@ -10,6 +10,19 @@ import simulation.configuration.exception.GenerationFailedException;
 
 import static common.Tools.extractClass;
 
+/**
+ * Configuration for {@link Controller}.
+ * <p>
+ * Example of complete {@code Controller} configuration:
+ * <pre>
+ * controller.myController.class=simulation.MyController
+ * controller.myController.schedule-mode=REPEATEDLY
+ * controller.myController.schedule-time=1
+ * controller.myController.executions-step=50
+ * controller.myController.repetitions=5
+ * controller.myController.custom-property=custom-value
+ * </pre>
+ */
 @Getter
 @ToString
 public class ControllerConfiguration extends PalmBeachConfiguration<Controller> {
