@@ -4,6 +4,7 @@ import agent.SimpleAgent;
 import agent.protocol.Protocol;
 import common.Context;
 import common.SimpleContext;
+import environment.Environment;
 import event.Event;
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,14 +24,14 @@ import java.lang.reflect.InvocationTargetException;
  * <p>
  * All {@code PhysicalNetwork} subclasses must have this constructor:
  * <pre>
- *     PhysicalNetwork(String name, Context context) {
+ *     PhysicalNetwork(String name, Environment environment, Context context) {
  *         ...
  *     }
  * </pre>
  */
 @ToString
 @Slf4j
-public abstract class PhysicalNetwork {
+public abstract class PhysicalNetwork implements Environment.EnvironmentObserver {
 
     // Variables.
 
@@ -41,10 +42,16 @@ public abstract class PhysicalNetwork {
     @Getter
     private final Context context;
 
+    @ToString.Exclude
+    @Getter
+    private final Environment environment;
+
     // Constructors.
 
-    protected PhysicalNetwork(@NonNull String name, Context context) {
+    protected PhysicalNetwork(@NonNull String name, @NonNull Environment environment, Context context) {
         this.name = name;
+        this.environment = environment;
+        this.environment.addObserver(this);
         this.context = context != null ? context : new SimpleContext();
     }
 
@@ -56,6 +63,7 @@ public abstract class PhysicalNetwork {
      *
      * @param physicalNetworkClass the PhysicalNetwork class name
      * @param physicalNetworkName  the PhysicalNetwork name
+     * @param environment          the PhysicalNetwork associated Environment
      * @param context              the PhysicalNetwork context
      *
      * @return a new instance of the specified {@code PhysicalNetwork} class
@@ -67,10 +75,12 @@ public abstract class PhysicalNetwork {
      * @throws NullPointerException      if physicalNetworkClass or physicalNetworkName is null
      */
     public static PhysicalNetwork initiatePhysicalNetwork(@NonNull Class<? extends PhysicalNetwork> physicalNetworkClass,
-                                                          @NonNull String physicalNetworkName, Context context)
+                                                          @NonNull String physicalNetworkName,
+                                                          @NonNull Environment environment,
+                                                          Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Constructor<? extends PhysicalNetwork> constructor = physicalNetworkClass.getConstructor(String.class, Context.class);
-        return constructor.newInstance(physicalNetworkName, context);
+        Constructor<? extends PhysicalNetwork> constructor = physicalNetworkClass.getConstructor(String.class, Environment.class, Context.class);
+        return constructor.newInstance(physicalNetworkName, environment, context);
     }
 
     /**

@@ -17,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @Nested
 @DisplayName("Environment tests")
@@ -134,21 +134,54 @@ public class EnvironmentTest {
 
         @Test
         @DisplayName("addAgent() returns true if the agent has never been added before")
-        void firstAdd(@Mock SimpleAgent.AgentIdentifier agent) {
+        void firstAdd(@Mock SimpleAgent.AgentIdentifier agent, @Mock Environment.EnvironmentObserver observer) {
             Environment environment = new BasicEnvironment("name", null);
+            environment.addObserver(observer);
 
             boolean added = environment.addAgent(agent);
             assertThat(added).isTrue();
+            verify(observer, times(1)).agentAdded(agent);
         }
 
         @Test
         @DisplayName("addAgent() returns false if the agent has already been added")
-        void alreadyAdded(@Mock SimpleAgent.AgentIdentifier agent) {
+        void alreadyAdded(@Mock SimpleAgent.AgentIdentifier agent, @Mock Environment.EnvironmentObserver observer) {
             Environment environment = new BasicEnvironment("name", null);
+            environment.addObserver(observer);
 
             environment.addAgent(agent);
             boolean added = environment.addAgent(agent);
             assertThat(added).isFalse();
+            verify(observer, times(1)).agentAdded(agent);
+        }
+    }
+
+    @Nested
+    @DisplayName("Environment removeAgent()")
+    @Tag("removeAgent")
+    class RemoveAgent {
+
+        @Test
+        @DisplayName("removeAgent() remove agent if agent is evolving in Environment")
+        void withEvolvingAgent(@Mock SimpleAgent.AgentIdentifier agent, @Mock Environment.EnvironmentObserver observer) {
+            Environment environment = new BasicEnvironment("name", null);
+            environment.addObserver(observer);
+            environment.addAgent(agent);
+
+            environment.removeAgent(agent);
+            assertThat(environment.agentIsEvolving(agent)).isFalse();
+            verify(observer, times(1)).agentRemoved(agent);
+        }
+
+        @Test
+        @DisplayName("removeAgent() remove do nothing if agent is not evolving in Environment")
+        void withNotEvolvingAgent(@Mock SimpleAgent.AgentIdentifier agent, @Mock Environment.EnvironmentObserver observer) {
+            Environment environment = new BasicEnvironment("name", null);
+            environment.addObserver(observer);
+
+            environment.removeAgent(agent);
+            assertThat(environment.agentIsEvolving(agent)).isFalse();
+            verify(observer, times(0)).agentRemoved(agent);
         }
     }
 

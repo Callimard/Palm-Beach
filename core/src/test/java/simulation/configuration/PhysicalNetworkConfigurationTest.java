@@ -1,6 +1,7 @@
 package simulation.configuration;
 
 import com.typesafe.config.Config;
+import environment.Environment;
 import environment.physical.PhysicalNetwork;
 import environment.physical.PhysicalNetworkTest;
 import junit.PalmBeachTest;
@@ -45,17 +46,33 @@ public class PhysicalNetworkConfigurationTest {
     class Generate {
 
         @Test
-        @DisplayName("generate() generate correct PhysicalNetwork")
-        void generateCorrectPhysicalNetwork(@Mock Config config) {
+        @DisplayName("generate() throws UnsupportedOperationException")
+        void throwsUnsupportedOperation(@Mock Config config) {
+            when(config.getString(PhysicalNetworkConfiguration.CLASS_PROPERTY)).thenReturn(PhysicalNetworkTest.BasicPhysicalNetwork.class.getName());
+            PhysicalNetworkConfiguration pnConfiguration = new PhysicalNetworkConfiguration("name", config);
+
+            assertThrows(UnsupportedOperationException.class, pnConfiguration::generate);
+        }
+    }
+
+    @Nested
+    @DisplayName("PhysicalNetworkConfiguration generatePhysicalNetwork()")
+    @Tag("generatePhysicalNetwork")
+    class GeneratePhysicalNetwork {
+
+        @Test
+        @DisplayName("generatePhysicalNetwork() generate correct PhysicalNetwork")
+        void generateCorrectPhysicalNetwork(@Mock Environment environment, @Mock Config config) {
             String pnName = "pnName";
             when(config.getString(PhysicalNetworkConfiguration.CLASS_PROPERTY)).thenReturn(PhysicalNetworkTest.BasicPhysicalNetwork.class.getName());
             PhysicalNetworkConfiguration pnConfiguration = new PhysicalNetworkConfiguration(pnName, config);
 
             AtomicReference<PhysicalNetwork> pn = new AtomicReference<>();
-            assertDoesNotThrow(() -> pn.set(pnConfiguration.generate()));
+            assertDoesNotThrow(() -> pn.set(pnConfiguration.generatePhysicalNetwork(environment)));
             assertThat(pn.get()).isNotNull();
             assertThat(pn.get().getClass()).isEqualTo(PhysicalNetworkTest.BasicPhysicalNetwork.class);
             assertThat(pn.get().getName()).isEqualTo(pnName);
+            assertThat(pn.get().getEnvironment()).isSameAs(environment);
         }
     }
 

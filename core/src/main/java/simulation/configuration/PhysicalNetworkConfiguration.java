@@ -2,6 +2,7 @@ package simulation.configuration;
 
 import com.typesafe.config.Config;
 import common.Context;
+import environment.Environment;
 import environment.physical.PhysicalNetwork;
 import lombok.Getter;
 import lombok.NonNull;
@@ -48,11 +49,21 @@ public class PhysicalNetworkConfiguration extends PalmBeachConfiguration<Physica
 
     // Methods.
 
+    /**
+     * @return Nothing, unsupported operation
+     *
+     * @throws UnsupportedOperationException see {@link #generatePhysicalNetwork(Environment)}
+     * @see #generatePhysicalNetwork(Environment)
+     */
     @Override
-    public PhysicalNetwork generate() throws GenerationFailedException {
+    public PhysicalNetwork generate() {
+        throw new UnsupportedOperationException();
+    }
+
+    public PhysicalNetwork generatePhysicalNetwork(Environment environment) throws GenerationFailedException {
         try {
             Context context = contextConfiguration != null ? contextConfiguration.generate() : null;
-            return PhysicalNetwork.initiatePhysicalNetwork(extractClass(physicalNetworkClass), physicalNetworkName, context);
+            return PhysicalNetwork.initiatePhysicalNetwork(extractClass(physicalNetworkClass), physicalNetworkName, environment, context);
         } catch (Exception e) {
             throw new GenerationFailedException("Cannot generate PhysicalNetwork from configuration " + this, e);
         }

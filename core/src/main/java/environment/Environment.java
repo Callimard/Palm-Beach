@@ -14,8 +14,10 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Vector;
 
 /**
  * Represents an {@code Environment} where {@link SimpleAgent} are evolving in.
@@ -50,8 +52,10 @@ public abstract class Environment {
     @ToString.Exclude
     private final Set<SimpleAgent.AgentIdentifier> agents;
 
-    @ToString.Exclude
     private final Map<String, PhysicalNetwork> physicalNetworks;
+
+    @ToString.Exclude
+    private final List<EnvironmentObserver> observers;
 
     // Constructors.
 
@@ -70,9 +74,26 @@ public abstract class Environment {
         this.context = context != null ? context : new SimpleContext();
         this.agents = Sets.newConcurrentHashSet();
         this.physicalNetworks = Maps.newHashMap();
+        this.observers = new Vector<>();
     }
 
     // Methods.
+
+    /**
+     * @param observer the observer to add
+     */
+    public void addObserver(EnvironmentObserver observer) {
+        if (!observers.contains(observer))
+            observers.add(observer);
+    }
+
+    protected void notifyAgentAdded(SimpleAgent.AgentIdentifier addedAgent) {
+        observers.forEach(o -> o.agentAdded(addedAgent));
+    }
+
+    protected void notifyAgentRemoved(SimpleAgent.AgentIdentifier removedAgent) {
+        observers.forEach(o -> o.agentRemoved(removedAgent));
+    }
 
     /**
      * Create an instance of the specified {@link Environment} class. The specified class must have a construct as described in the general doc of
@@ -106,7 +127,22 @@ public abstract class Environment {
      * @return true if the agent has been added, else false.
      */
     public boolean addAgent(@NonNull SimpleAgent.AgentIdentifier agent) {
-        return agents.add(agent);
+        if (agents.add(agent)) {
+            notifyAgentAdded(agent);
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * Remove the {@link SimpleAgent} of the {@link Environment} only if the {@code SimpleAgent} is evolving in.
+     *
+     * @param agent the agent identifier of the agent to remove
+     */
+    public void removeAgent(@NonNull SimpleAgent.AgentIdentifier agent) {
+        if (agents.remove(agent)) {
+            notifyAgentRemoved(agent);
+        }
     }
 
     /**
@@ -149,5 +185,14 @@ public abstract class Environment {
      */
     public PhysicalNetwork getPhysicalNetwork(String physicalNetworkName) {
         return physicalNetworks.get(physicalNetworkName);
+    }
+
+    // Inner classes.
+
+    public interface EnvironmentObserver {
+
+        void agentAdded(SimpleAgent.AgentIdentifier addedAgent);
+
+        void agentRemoved(SimpleAgent.AgentIdentifier removedAgent);
     }
 }
