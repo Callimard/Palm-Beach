@@ -143,15 +143,19 @@ class SimpleSchedulerAndMultiThreadExecutorIT {
     }
 
     private void waitSchedulerEnd(Scheduler scheduler, Scheduler.WaitingSchedulerEndObserver observer) {
-        int counter = 0;
-        while (!scheduler.isKilled()) {
-            observer.waitSchedulerEnd(1000L);
-            counter++;
-            log.debug("Wake up after waiting Scheduler end");
-            if (counter >= 10) {
-                log.error("To much wait Scheduler end");
-                fail();
+        try {
+            int counter = 0;
+            while (!scheduler.isKilled()) {
+                observer.waitSchedulerEnd(1000L);
+                counter++;
+                log.debug("Wake up after waiting Scheduler end");
+                if (counter >= 10) {
+                    log.error("To much wait Scheduler end");
+                    fail();
+                }
             }
+        } catch (InterruptedException e) {
+            fail(e);
         }
     }
 

@@ -53,6 +53,35 @@ public class EnvironmentTest {
         }
 
         @Nested
+        @DisplayName("Environment instantiateEnvironment()")
+        @Tag("instantiateEnvironment")
+        class InstantiateEnvironment {
+
+            @SuppressWarnings("ConstantConditions")
+            @Test
+            @DisplayName("instantiateEnvironment() throws NullPointerException with null environmentClass or null environmentName")
+            void withNullParameters(@Mock Context context) {
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, "environmentName", context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(BasicEnvironment.class, null, context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, null, context));
+                assertThrows(NullPointerException.class, () -> Environment.instantiateEnvironment(null, null, null));
+                assertDoesNotThrow(() -> Environment.instantiateEnvironment(BasicEnvironment.class, "environmentName", null));
+            }
+
+            @Test
+            @DisplayName("instantiateEnvironment() does not throw exception and create a new instance of Environment")
+            void createNewInstanceOfEnvironment(@Mock Context context) {
+                String environmentName = "environmentName";
+                AtomicReference<Environment> environment = new AtomicReference<>();
+
+                assertDoesNotThrow(() -> environment.set(Environment.instantiateEnvironment(BasicEnvironment.class, environmentName, context)));
+                assertThat(environment.get()).isNotNull();
+                assertThat(environment.get().getClass()).isEqualTo(BasicEnvironment.class);
+                assertThat(environment.get().getName()).isEqualTo(environmentName);
+            }
+        }
+
+        @Nested
         @DisplayName("Environment(String)")
         class SecondaryConstructor {
 
@@ -60,7 +89,7 @@ public class EnvironmentTest {
             @DisplayName("constructor throws NullPointerException if name is null")
             void withNullName() {
                 //noinspection ConstantConditions
-                assertThrows(NullPointerException.class, () -> new BasicEnvironment(null));
+                assertThrows(NullPointerException.class, () -> new BasicEnvironment(null, null));
             }
 
             @Test
@@ -68,7 +97,7 @@ public class EnvironmentTest {
             void withNullContext() {
                 AtomicReference<Environment> environment = new AtomicReference<>();
 
-                assertDoesNotThrow(() -> environment.set(new BasicEnvironment("name")));
+                assertDoesNotThrow(() -> environment.set(new BasicEnvironment("name", null)));
                 assertThat(environment.get().getContext()).isNotNull();
                 assertThat(environment.get().getContext().isEmpty()).isTrue();
             }
@@ -83,7 +112,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("getName() never returns null")
         void neverReturnsNull() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.getName()).isNotNull();
         }
@@ -97,7 +126,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addAgent() throws NullPointerException if the agent is null")
         void withNullAgent() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> environment.addAgent(null));
@@ -106,7 +135,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addAgent() returns true if the agent has never been added before")
         void firstAdd(@Mock SimpleAgent.AgentIdentifier agent) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             boolean added = environment.addAgent(agent);
             assertThat(added).isTrue();
@@ -115,7 +144,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addAgent() returns false if the agent has already been added")
         void alreadyAdded(@Mock SimpleAgent.AgentIdentifier agent) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             environment.addAgent(agent);
             boolean added = environment.addAgent(agent);
@@ -131,7 +160,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("agentIsEvolving returns false if it is not added in Environment")
         void notAddedAgent(@Mock SimpleAgent.AgentIdentifier agent) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.agentIsEvolving(agent)).isFalse();
         }
@@ -139,7 +168,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("agentIsEvolving throws NullPointerException with null agent")
         void withNullAgent() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> environment.agentIsEvolving(null));
@@ -148,7 +177,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("agentIsEvolving returns true if it is added in Environment")
         void addedAgent(@Mock SimpleAgent.AgentIdentifier agent) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
             environment.addAgent(agent);
 
             assertThat(environment.agentIsEvolving(agent)).isTrue();
@@ -163,7 +192,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("evolvingAgents() returns empty set if no agent has been added")
         void noAgentAdded() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.evolvingAgents()).isEmpty();
         }
@@ -171,7 +200,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("evolvingAgents() returns non empty set if agent has been added and added agent are contains in this set")
         void withAddedAgent(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
             environment.addAgent(a0);
             environment.addAgent(a1);
 
@@ -188,7 +217,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addPhysicalNetwork() throws NullPointerException with null PhysicalNetwork")
         void withNullPhysicalNetwork() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> environment.addPhysicalNetwork(null));
@@ -197,7 +226,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addPhysicalNetwork() does not throw exception with non null PhysicalNetwork")
         void withNonNullPhysicalNetwork(@Mock PhysicalNetwork physicalNetwork) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertDoesNotThrow(() -> environment.addPhysicalNetwork(physicalNetwork));
         }
@@ -205,7 +234,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("addPhysicalNetwork() erase the previous value if added PhysicalNetwork has the same name")
         void withSameName(@Mock PhysicalNetwork pN0, @Mock PhysicalNetwork pN1) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             String physicalNetworkName = "PN name";
             when(pN0.getName()).thenReturn(physicalNetworkName);
@@ -225,7 +254,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("getPhysicalNetwork() returns null with null name")
         void withNullName() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.getPhysicalNetwork(null)).isNull();
         }
@@ -233,7 +262,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("getPhysicalNetwork() returns null with non added PhysicalNetwork with the specified name")
         void notAddedPhysicalNetworkName() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.getPhysicalNetwork("not added name")).isNull();
         }
@@ -241,7 +270,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("getPhysicalNetwork() returns the correct PhysicalNetwork if it has been added")
         void withAddedPhysicalNetwork(@Mock PhysicalNetwork physicalNetwork) {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             String physicalNetworkName = "pN Name";
             when(physicalNetwork.getName()).thenReturn(physicalNetworkName);
@@ -259,7 +288,7 @@ public class EnvironmentTest {
         @Test
         @DisplayName("toString() never returns null")
         void neverReturnsNull() {
-            Environment environment = new BasicEnvironment("name");
+            Environment environment = new BasicEnvironment("name", null);
 
             assertThat(environment.toString()).isNotNull();
         }
@@ -269,11 +298,7 @@ public class EnvironmentTest {
 
     public static class BasicEnvironment extends Environment {
 
-        protected BasicEnvironment(@NonNull String name) {
-            super(name);
-        }
-
-        protected BasicEnvironment(@NonNull String name, Context context) {
+        public BasicEnvironment(@NonNull String name, Context context) {
             super(name, context);
         }
     }

@@ -8,4 +8,8 @@ public class AgentException extends RuntimeException {
     public AgentException(String message, Throwable cause) {
         super(message, cause);
     }
+
+    public AgentException(Throwable cause) {
+        super(cause);
+    }
 }

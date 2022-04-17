@@ -1,11 +1,11 @@
 package agent.protocol;
 
 import agent.SimpleAgent;
-import common.SimpleContext;
-import common.Context;
-import lombok.*;
-import event.EventCatcher;
 import agent.protocol.exception.NullDefaultProtocolManipulatorException;
+import common.Context;
+import common.SimpleContext;
+import event.EventCatcher;
+import lombok.*;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -18,9 +18,9 @@ import java.lang.reflect.InvocationTargetException;
  * <p>
  * A {@code Protocol} can for example be a <i>Message Transporter</i> or a more complex algorithm than a <i>Consensus Algorithm</i>.
  *
- * <strong>Implementation instructions:</strong> a subclass of {@code Protocol} must add a constructor like this:
+ * <strong>Implementation instructions:</strong> a subclass of {@code Protocol} must have a constructor like this:
  * <pre>
- *     Protocol(SimpleAgent) {
+ *     Protocol(SimpleAgent, Context) {
  *      super(...);
  *      ...
  *     }
@@ -31,6 +31,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
 
     // Variables.
 
+    @ToString.Exclude
     @Getter
     private final SimpleAgent agent;
 
@@ -43,17 +44,6 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
     private ProtocolManipulator manipulator;
 
     // Constructors.
-
-    /**
-     * Constructs a {@link Protocol} with a specified {@link SimpleAgent} and an empty {@link Context} with the default class {@link SimpleContext}.
-     *
-     * @param agent the agent
-     *
-     * @throws NullPointerException if the specified agent is null
-     */
-    protected Protocol(@NonNull SimpleAgent agent) {
-        this(agent, null);
-    }
 
     /**
      * Constructs a {@link Protocol} with a specified {@link SimpleAgent} and a specified initial {@link Context}. If the {@code Context} is null,
@@ -82,6 +72,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      *
      * @param protocolClass the {@code Protocol} class
      * @param agent         the agent with which the {@code Protocol} will be instantiated
+     * @param context       the protocol context
      *
      * @return an instance of a {@code Protocol} of the specified {@code Protocol} class.
      *
@@ -89,11 +80,12 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      * @throws InvocationTargetException if the constructor has thrown an exception
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
+     * @throws NullPointerException      if protocolClass or agent is null
      */
-    public static Protocol instantiateProtocol(Class<? extends Protocol> protocolClass, SimpleAgent agent)
+    public static Protocol instantiateProtocol(@NonNull Class<? extends Protocol> protocolClass, @NonNull SimpleAgent agent, Context context)
             throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
-        Constructor<? extends Protocol> protocolConstructor = protocolClass.getConstructor(SimpleAgent.class);
-        return protocolConstructor.newInstance(agent);
+        Constructor<? extends Protocol> protocolConstructor = protocolClass.getConstructor(SimpleAgent.class, Context.class);
+        return protocolConstructor.newInstance(agent, context);
     }
 
     /**
@@ -120,11 +112,11 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
      * the {@code Protocol} can define an Interface that several {@code ProtocolManipulator} can implement with different implementation. In that way,
      * when a {@code Protocol} change its manipulator, the implementation will also change and depends on the new {@code ProtocolManipulator}.
      * <p>
-     * This feature can be use by {@link agent.behavior.Behavior}. Indeed, when a {@code Behavior} is started to be played, the {@code Behavior} can for
-     * example change {@code ProtocolManipulator} of several {@code Protocols}.
+     * This feature can be use by {@link agent.behavior.Behavior}. Indeed, when a {@code Behavior} is started to be played, the {@code Behavior} can
+     * for example change {@code ProtocolManipulator} of several {@code Protocols}.
      *
-     * <strong>WARNING! A {@code ProtocolManipulator} is destined to ONE instance of a {@code Protocol}. The manipulated agent.protocol instance is always
-     * the same and cannot change.</strong>
+     * <strong>WARNING! A {@code ProtocolManipulator} is destined to ONE instance of a {@code Protocol}. The manipulated agent.protocol instance is
+     * always the same and cannot change.</strong>
      */
     @Getter
     @AllArgsConstructor

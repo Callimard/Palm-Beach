@@ -1,8 +1,10 @@
 package agent.protocol;
 
 import agent.SimpleAgent;
-import agent.protocol.Protocol;
+import agent.protocol.exception.NullDefaultProtocolManipulatorException;
 import common.Context;
+import event.Event;
+import junit.PalmBeachTest;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
@@ -11,9 +13,6 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import event.Event;
-import agent.protocol.exception.NullDefaultProtocolManipulatorException;
-import junit.PalmBeachTest;
 
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -76,53 +75,9 @@ public class ProtocolTest {
             @Test
             @DisplayName("Throws NullDefaultProtocolManipulatorException if the method defaultProtocolManipulator() implementation returns null")
             void withNullDefaultProtocolManipulator(@Mock SimpleAgent agent, @Mock Context context) {
-                assertThrows(NullDefaultProtocolManipulatorException.class, () -> new WrongProtocol(agent, context));
+                assertThrows(NullDefaultProtocolManipulatorException.class, () -> new WrongProtocolManipulatorProtocol(agent, context));
             }
 
-        }
-
-        @Nested
-        @DisplayName("Protocol(SimpleAgent)")
-        class SecondaryConstructor {
-
-            @Test
-            @DisplayName("Throws NullPointerException if the agent is null")
-            void withNullAgent() {
-                //noinspection ConstantConditions
-                assertThrows(NullPointerException.class, () -> new BasicProtocol(null));
-            }
-
-            @Test
-            @DisplayName("Does not throw exception with non null agent and create a non nul empty context")
-            void withNonNullAgent(@Mock SimpleAgent agent) {
-                AtomicReference<Protocol> p = new AtomicReference<>();
-
-                assertDoesNotThrow(() -> p.set(new BasicProtocol(agent)));
-                assertThat(p.get().getContext()).isNotNull();
-                assertThat(p.get().getContext().isEmpty()).isTrue();
-            }
-
-            @Test
-            @DisplayName("Throws NullDefaultProtocolManipulatorException if the method defaultProtocolManipulator() implementation returns null")
-            void withNullDefaultProtocolManipulator(@Mock SimpleAgent agent) {
-                assertThrows(NullDefaultProtocolManipulatorException.class, () -> new WrongProtocol(agent));
-            }
-        }
-
-        public static class WrongProtocol extends BasicProtocol {
-
-            public WrongProtocol(@NonNull SimpleAgent agent) {
-                super(agent);
-            }
-
-            public WrongProtocol(@NonNull SimpleAgent agent, Context context) {
-                super(agent, context);
-            }
-
-            @Override
-            protected ProtocolManipulator defaultProtocolManipulator() {
-                return null;
-            }
         }
     }
 
@@ -134,9 +89,9 @@ public class ProtocolTest {
         @Test
         @DisplayName("instantiateProtocol() throws Exception with non correct Protocol classes")
         void nonCorrectProtocolClasses(@Mock SimpleAgent agent) {
-            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(NoCorrectConstructorProtocol.class, agent));
-            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(WrongConstructorVisibilityProtocol.class, agent));
-            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(ThrowExceptionConstructorProtocol.class, agent));
+            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(NoCorrectConstructorProtocol.class, agent, null));
+            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(WrongConstructorVisibilityProtocol.class, agent, null));
+            assertThrows(Exception.class, () -> Protocol.instantiateProtocol(ThrowExceptionConstructorProtocol.class, agent, null));
         }
 
         @Test
@@ -144,7 +99,7 @@ public class ProtocolTest {
         void withCorrectProtocolClass(@Mock SimpleAgent agent) {
             AtomicReference<Protocol> p = new AtomicReference<>();
 
-            assertDoesNotThrow(() -> p.set(Protocol.instantiateProtocol(BasicProtocol.class, agent)));
+            assertDoesNotThrow(() -> p.set(Protocol.instantiateProtocol(BasicProtocol.class, agent, null)));
             assertThat(p.get()).isNotNull();
         }
 
@@ -158,7 +113,7 @@ public class ProtocolTest {
         @Test
         @DisplayName("resetDefaultProtocolManipulator() reset ProtocolManipulator to the default ProtocolManipulator class")
         void resetDefaultProtocolManipulator(@Mock SimpleAgent agent) {
-            Protocol p = new BasicProtocol(agent);
+            Protocol p = new BasicProtocol(agent, null);
             Protocol.ProtocolManipulator manipulator = p.getManipulator();
             p.resetDefaultProtocolManipulator();
             Protocol.ProtocolManipulator newManipulator = p.getManipulator();
@@ -175,7 +130,7 @@ public class ProtocolTest {
         @Test
         @DisplayName("toString() does not returns null value")
         void notReturnsNull(@Mock SimpleAgent agent) {
-            Protocol p = new BasicProtocol(agent);
+            Protocol p = new BasicProtocol(agent, null);
 
             assertThat(p.toString()).isNotNull();
         }
@@ -189,7 +144,7 @@ public class ProtocolTest {
         @Test
         @DisplayName("setManipulator() throws NullPointerException if specified ProtocolManipulator is null")
         void withNullProtocolManipulator(@Mock SimpleAgent agent) {
-            Protocol p = new BasicProtocol(agent);
+            Protocol p = new BasicProtocol(agent, null);
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> p.setManipulator(null));
@@ -198,7 +153,7 @@ public class ProtocolTest {
         @Test
         @DisplayName("setManipulator() does not throw exception with non null ProtocolManipulator")
         void withNonNullProtocolManipulator(@Mock SimpleAgent agent, @Mock Protocol.ProtocolManipulator manipulator) {
-            Protocol p = new BasicProtocol(agent);
+            Protocol p = new BasicProtocol(agent, null);
 
             assertDoesNotThrow(() -> p.setManipulator(manipulator));
             assertThat(p.getManipulator()).isNotNull().isSameAs(manipulator);
@@ -210,10 +165,6 @@ public class ProtocolTest {
         @Getter
         @Setter
         private int processEventCounter = 0;
-
-        public BasicProtocol(@NonNull SimpleAgent agent) {
-            super(agent);
-        }
 
         public BasicProtocol(@NonNull SimpleAgent agent, Context context) {
             super(agent, context);
@@ -252,8 +203,8 @@ public class ProtocolTest {
 
     public static class NoCorrectConstructorProtocol extends BasicProtocol {
 
-        public NoCorrectConstructorProtocol(SimpleAgent agent, @SuppressWarnings("unused") String toMuchArgs) {
-            super(agent);
+        public NoCorrectConstructorProtocol(@NonNull SimpleAgent agent) {
+            super(agent, null);
         }
 
         @Override
@@ -264,8 +215,8 @@ public class ProtocolTest {
 
     public static class WrongConstructorVisibilityProtocol extends BasicProtocol {
 
-        protected WrongConstructorVisibilityProtocol(SimpleAgent agent) {
-            super(agent);
+        protected WrongConstructorVisibilityProtocol(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
         }
 
         @Override
@@ -274,10 +225,22 @@ public class ProtocolTest {
         }
     }
 
+    public static class WrongProtocolManipulatorProtocol extends BasicProtocol {
+
+        public WrongProtocolManipulatorProtocol(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
+        }
+
+        @Override
+        protected ProtocolManipulator defaultProtocolManipulator() {
+            return null;
+        }
+    }
+
     public static class ThrowExceptionConstructorProtocol extends BasicProtocol {
 
-        public ThrowExceptionConstructorProtocol(SimpleAgent agent) {
-            super(agent);
+        public ThrowExceptionConstructorProtocol(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
             throw new RuntimeException();
         }
 
