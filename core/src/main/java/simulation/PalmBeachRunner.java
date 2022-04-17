@@ -13,6 +13,8 @@ import static simulation.configuration.SimulationConfiguration.DEFAULT_SIMULATIO
 @Slf4j
 public class PalmBeachRunner {
 
+    public static final long SIMULATION_WAIT_END_TIMEOUT = 500L;
+
     public static void main(String[] args) {
         Config mainConfig = getMainConfig(args);
         createAndStartSimulation(mainConfig);
@@ -34,6 +36,7 @@ public class PalmBeachRunner {
             SimulationConfiguration simulationConfiguration = new SimulationConfiguration(mainConfig);
             PalmBeachSimulation palmBeachSimulation = simulationConfiguration.generate();
             log.info("Generate PalmBeachSimulation {}", palmBeachSimulation);
+            PalmBeachSimulation.setSingletonInstance(palmBeachSimulation);
             PalmBeachSimulation.start();
         } catch (Exception e) {
             log.error("Cannot run Palm Beach Simulation cause to an Error", e);
@@ -42,7 +45,8 @@ public class PalmBeachRunner {
 
     private static void waitSimulationEnd() {
         try {
-            PalmBeachSimulation.waitSimulationEnd();
+            while (!PalmBeachSimulation.isEnded())
+                PalmBeachSimulation.waitSimulationEnd(SIMULATION_WAIT_END_TIMEOUT);
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             log.error("Interrupted during waiting the simulation end", e);

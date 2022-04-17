@@ -38,6 +38,7 @@ public abstract class Behavior {
 
     // Variables.
 
+    @ToString.Exclude
     @Getter
     private final SimpleAgent agent;
 

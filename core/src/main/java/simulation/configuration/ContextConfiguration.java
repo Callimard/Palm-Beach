@@ -3,6 +3,7 @@ package simulation.configuration;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigValue;
 import common.Context;
+import common.SimpleContext;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
@@ -42,7 +43,8 @@ public class ContextConfiguration extends PalmBeachConfiguration<Context> {
 
     public ContextConfiguration(@NonNull Config baseConfig) {
         super(baseConfig);
-        this.contextClass = getBaseConfig().getString(CLASS_PROPERTY);
+
+        this.contextClass = parseContextClass();
 
         this.contextKeyValue = new HashMap<>();
         for (Map.Entry<String, ConfigValue> entry : getBaseConfig().entrySet()) {
@@ -50,6 +52,15 @@ public class ContextConfiguration extends PalmBeachConfiguration<Context> {
                 this.contextKeyValue.put(entry.getKey(), entry.getValue().unwrapped());
             }
         }
+    }
+
+    private String parseContextClass() {
+        String cClass;
+        if (getBaseConfig().hasPath(CLASS_PROPERTY))
+            cClass = getBaseConfig().getString(CLASS_PROPERTY);
+        else
+            cClass = SimpleContext.class.getName();
+        return cClass;
     }
 
     // Methods.

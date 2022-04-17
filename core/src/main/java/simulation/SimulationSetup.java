@@ -11,7 +11,6 @@ import java.lang.reflect.InvocationTargetException;
  * {@link Event}.
  * <p>
  * All {@code SimulationSetup} subclasses must have a default constructor.
- * </pre>
  */
 public interface SimulationSetup {
 

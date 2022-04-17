@@ -1,6 +1,7 @@
 package simulation;
 
 import agent.SimpleAgent;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import environment.Environment;
@@ -11,6 +12,7 @@ import scheduler.Scheduler;
 import simulation.exception.PalmBeachSimulationSingletonAlreadyCreateException;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -19,16 +21,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Represents the Simulation.
  * <p>
  * Use the Singleton pattern, a unique instance of {@code PalmBeachSimulation} is created with the method {@link
- * #generateSingletonPalmBeachSimulation(SimulationSetup, Scheduler, Set, Set, Set)}, after that, static methods can be used to manipulated and
- * interact with the {@code PalmBeachSimulation}
+ * #setSingletonInstance(PalmBeachSimulation)}, after that, static methods can be used to manipulated and interact with the
+ * {@code PalmBeachSimulation}
  */
-@ToString
 @Slf4j
 public class PalmBeachSimulation {
-
-    // Constants.
-
-    private static final long WAITING_END_TIMEOUT = 500L;
 
     // Static.
 
@@ -44,7 +41,6 @@ public class PalmBeachSimulation {
     @NonNull
     private final Scheduler scheduler;
 
-    @ToString.Exclude
     private final Scheduler.WaitingSchedulerEndObserver schedulerObserver;
 
     private final Map<String, Environment> environments;
@@ -53,9 +49,9 @@ public class PalmBeachSimulation {
 
     // Constructors.
 
-    private PalmBeachSimulation(@NonNull SimulationSetup simulationSetup, @NonNull Scheduler scheduler,
-                                Set<Environment> environments, Set<SimpleAgent> agents,
-                                Set<Controller> controllers) {
+    public PalmBeachSimulation(@NonNull SimulationSetup simulationSetup, @NonNull Scheduler scheduler,
+                               Set<Environment> environments, Set<SimpleAgent> agents,
+                               Set<Controller> controllers) {
         this.simulationSetup = simulationSetup;
 
         this.scheduler = scheduler;
@@ -76,10 +72,11 @@ public class PalmBeachSimulation {
             for (Environment environment : environments) {
                 Environment old = this.environments.putIfAbsent(environment.getName(), environment);
                 if (old != null) {
-                    log.error("Cannot add the Environment {} because an Environment has already been added with the name {}", environment,
+                    log.error("Cannot add the Environment {} in Simulation because an Environment has already been added with the name {}",
+                              environment,
                               environment.getName());
                 } else
-                    log.info("Environment {} added", environment);
+                    log.info("Environment {} added in Simulation", environment);
             }
         }
     }
@@ -89,26 +86,32 @@ public class PalmBeachSimulation {
             for (SimpleAgent agent : agents) {
                 SimpleAgent old = this.agents.putIfAbsent(agent.getIdentifier(), agent);
                 if (old != null) {
-                    log.error("cannot add the SimpleAgent {} because an SimpleAgent has already been added with the identifier {}", agent,
+                    log.error("cannot add the SimpleAgent {} in Simulation because an SimpleAgent has already been added with the identifier {}",
+                              agent,
                               agent.getIdentifier());
                 } else
-                    log.info("Agent {} added", agent);
+                    log.info("Agent {} added in Simulation", agent);
             }
         }
     }
 
     // Methods.
 
-    public static PalmBeachSimulation generateSingletonPalmBeachSimulation(@NonNull SimulationSetup simulationSetup, @NonNull Scheduler scheduler,
-                                                                           Set<Environment> environments, Set<SimpleAgent> agents,
-                                                                           Set<Controller> controllers) {
+    /**
+     * Set the {@link PalmBeachSimulation} singleton instance to the specified instance, only if the singleton has not already been set.
+     *
+     * @param simulation instance of the simulation
+     */
+    public static void setSingletonInstance(@NonNull PalmBeachSimulation simulation) {
         if (palmBeachSimulation == null) {
-            palmBeachSimulation = new PalmBeachSimulation(simulationSetup, scheduler, environments, agents, controllers);
-            return palmBeachSimulation;
+            palmBeachSimulation = simulation;
         } else
             throw new PalmBeachSimulationSingletonAlreadyCreateException();
     }
 
+    /**
+     * Start the {@link PalmBeachSimulation}, if the simulation has already been started, do nothing.
+     */
     public static void start() {
         if (palmBeachSimulation.started.compareAndSet(false, true)) {
             scheduleControllers();
@@ -137,13 +140,25 @@ public class PalmBeachSimulation {
         palmBeachSimulation.scheduler.start();
     }
 
-    public static void waitSimulationEnd() throws InterruptedException {
+    public static void waitSimulationEnd(long timeout) throws InterruptedException {
         while (!palmBeachSimulation.scheduler.isKilled()) {
-            palmBeachSimulation.schedulerObserver.waitSchedulerEnd(WAITING_END_TIMEOUT);
+            palmBeachSimulation.schedulerObserver.waitSchedulerEnd(timeout);
         }
     }
 
     // Simulation methods.
+
+    /**
+     * <strong>WARNING!</strong> Very dangerous method, only use for UT and clear the singleton, however, there is no protection of the current
+     * Simulation. Therefore, if user calls clear, it must be aware that it can break the execution.
+     */
+    public static void clear() {
+        palmBeachSimulation = null;
+    }
+
+    public static boolean isEnded() {
+        return palmBeachSimulation.scheduler.isKilled();
+    }
 
     public static Scheduler scheduler() {
         return palmBeachSimulation.scheduler;
@@ -156,19 +171,26 @@ public class PalmBeachSimulation {
      * @param environment the Environment to add
      *
      * @return true if the {@code Environment} has been added, else false.
+     *
+     * @throws NullPointerException if the environment is null
      */
-    public static boolean addEnvironment(Environment environment) {
+    public static boolean addEnvironment(@NonNull Environment environment) {
         Environment old = palmBeachSimulation.environments.putIfAbsent(environment.getName(), environment);
         if (old != null) {
             log.error("Cannot add Environment {} because already added Environment with the name {}", environment, environment.getName());
+            return false;
         }
 
         log.info("Environment {} added in the Simulation", environment);
-        return false;
+        return true;
     }
 
     public static Environment getEnvironment(String environmentName) {
         return palmBeachSimulation.environments.get(environmentName);
+    }
+
+    public static List<Environment> allEnvironments() {
+        return Lists.newArrayList(palmBeachSimulation.environments.values());
     }
 
     /**
@@ -181,8 +203,10 @@ public class PalmBeachSimulation {
      * @param agent to add
      *
      * @return if the {@code SimpleAgent} has been added, else false.
+     *
+     * @throws NullPointerException if agent is null
      */
-    public static boolean addAgent(SimpleAgent agent) {
+    public static boolean addAgent(@NonNull SimpleAgent agent) {
         SimpleAgent old = palmBeachSimulation.agents.putIfAbsent(agent.getIdentifier(), agent);
         if (old != null) {
             log.error("Cannot add agent {} because already added agent with the identifier {}", agent, agent.getIdentifier());
@@ -195,5 +219,9 @@ public class PalmBeachSimulation {
 
     public static SimpleAgent getAgent(SimpleAgent.AgentIdentifier agentIdentifier) {
         return palmBeachSimulation.agents.get(agentIdentifier);
+    }
+
+    public static List<SimpleAgent> allAgents() {
+        return Lists.newArrayList(palmBeachSimulation.agents.values());
     }
 }

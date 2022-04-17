@@ -16,6 +16,9 @@ import simulation.Controller;
 import simulation.PalmBeachSimulation;
 import simulation.SimulationSetup;
 import simulation.configuration.exception.GenerationFailedException;
+import simulation.configuration.exception.WrongAgentConfigurationException;
+import simulation.configuration.exception.WrongControllerConfigurationException;
+import simulation.configuration.exception.WrongSimulationConfigurationException;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -58,8 +61,6 @@ import static common.Tools.extractClass;
  * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
  * environment.simpleEnvironment.context.key1="value1"
  * environment.simpleEnvironment.context.key2="value2"
- * environment.simpleEnvironment.custom-property-1=argument1
- * environment.simpleEnvironment.custom-property-2=argument2
  *
  * # Protocols
  *
@@ -137,34 +138,44 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
 
     // Constructors.
 
-    public SimulationConfiguration(@NonNull Config baseConfig) {
+    public SimulationConfiguration(@NonNull Config baseConfig) throws WrongSimulationConfigurationException {
         super(baseConfig);
 
         Config simulationConfig = getBaseConfig().getConfig(SIMULATION_PROPERTY);
         this.threads = simulationConfig.getInt(THREADS_PROPERTY);
+        if (this.threads < 1)
+            throw new WrongSimulationConfigurationException("Threads cannot be less than 1");
+
         this.maxDuration = simulationConfig.getInt(MAX_DURATION_PROPERTY);
+        if (this.maxDuration < 1)
+            throw new WrongSimulationConfigurationException("Max duration cannot be less than 1");
+
         this.setupClass = simulationConfig.getString(SETUP_CLASS_PROPERTY);
 
-        this.controllers = new HashSet<>();
-        parseControllersConfiguration();
+        try {
+            this.controllers = new HashSet<>();
+            parseControllersConfiguration();
 
-        this.physicalNetworks = new HashMap<>();
-        parsePhysicalNetworksConfiguration();
+            this.physicalNetworks = new HashMap<>();
+            parsePhysicalNetworksConfiguration();
 
-        this.environments = new HashSet<>();
-        parseEnvironmentsConfiguration();
+            this.environments = new HashSet<>();
+            parseEnvironmentsConfiguration();
 
-        this.protocols = new HashMap<>();
-        parseProtocolsConfiguration();
+            this.protocols = new HashMap<>();
+            parseProtocolsConfiguration();
 
-        this.behaviors = new HashMap<>();
-        parseBehaviorsConfiguration();
+            this.behaviors = new HashMap<>();
+            parseBehaviorsConfiguration();
 
-        this.agents = new HashSet<>();
-        parseAgentsConfiguration();
+            this.agents = new HashSet<>();
+            parseAgentsConfiguration();
+        } catch (Exception e) {
+            throw new WrongSimulationConfigurationException("Fail to create Simulation configuration", e);
+        }
     }
 
-    private void parseControllersConfiguration() {
+    private void parseControllersConfiguration() throws WrongControllerConfigurationException {
         if (getBaseConfig().hasPath(CONTROLLER_PROPERTY)) {
             ConfigObject controllerConfigObject = getBaseConfig().getObject(CONTROLLER_PROPERTY);
             for (String controllerIdentifier : controllerConfigObject.keySet()) {
@@ -211,7 +222,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         }
     }
 
-    private void parseAgentsConfiguration() {
+    private void parseAgentsConfiguration() throws WrongAgentConfigurationException {
         if (getBaseConfig().hasPath(AGENT_PROPERTY)) {
             ConfigObject agentConfigObject = getBaseConfig().getObject(AGENT_PROPERTY);
             for (String agentIdentifier : agentConfigObject.keySet()) {
@@ -231,8 +242,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
             Set<Controller> allControllers = generateAllControllers();
             Map<String, Environment> allEnvironments = generateAllEnvironments();
             Set<SimpleAgent> allAgents = generateAllAgents(allEnvironments);
-            return PalmBeachSimulation.generateSingletonPalmBeachSimulation(simulationSetup, scheduler, new HashSet<>(allEnvironments.values()),
-                                                                            allAgents, allControllers);
+            return new PalmBeachSimulation(simulationSetup, scheduler, new HashSet<>(allEnvironments.values()), allAgents, allControllers);
         } catch (Exception e) {
             throw new GenerationFailedException("Cannot generate PalmBeachSimulation from configuration " + this, e);
         }
@@ -251,15 +261,20 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         for (EnvironmentConfiguration environmentConfiguration : environments) {
             Environment environment = environmentConfiguration.generate();
             allEnvironments.put(environmentConfiguration.getEnvironmentName(), environment);
-            for (String pNIdentifier : environmentConfiguration.getPhysicalNetworks()) {
-                PhysicalNetworkConfiguration pNConfiguration = physicalNetworks.get(pNIdentifier);
-                if (pNConfiguration != null) {
-                    environment.addPhysicalNetwork(pNConfiguration.generate());
-                } else
-                    log.error("No PhysicalNetwork identified by {} find in the configuration", pNIdentifier);
-            }
+            addEnvironmentPhysicalNetwork(environmentConfiguration, environment);
         }
         return allEnvironments;
+    }
+
+    private void addEnvironmentPhysicalNetwork(EnvironmentConfiguration environmentConfiguration, Environment environment)
+            throws GenerationFailedException {
+        for (String pNIdentifier : environmentConfiguration.getPhysicalNetworks()) {
+            PhysicalNetworkConfiguration pNConfiguration = physicalNetworks.get(pNIdentifier);
+            if (pNConfiguration != null) {
+                environment.addPhysicalNetwork(pNConfiguration.generate());
+            } else
+                log.error("No PhysicalNetwork identified by {} find in the configuration", pNIdentifier);
+        }
     }
 
     private Set<SimpleAgent> generateAllAgents(Map<String, Environment> allEnvironments) throws GenerationFailedException {

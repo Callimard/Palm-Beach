@@ -7,6 +7,7 @@ import lombok.ToString;
 import scheduler.Scheduler;
 import simulation.Controller;
 import simulation.configuration.exception.GenerationFailedException;
+import simulation.configuration.exception.WrongControllerConfigurationException;
 
 import static common.Tools.extractClass;
 
@@ -49,22 +50,31 @@ public class ControllerConfiguration extends PalmBeachConfiguration<Controller> 
 
     // Constructors
 
-    public ControllerConfiguration(@NonNull Config baseConfig) {
+    public ControllerConfiguration(@NonNull Config baseConfig) throws WrongControllerConfigurationException {
         super(baseConfig);
         this.controllerClass = getBaseConfig().getString(CLASS_PROPERTY);
         this.scheduleMode = getBaseConfig().getEnum(Scheduler.ScheduleMode.class, SCHEDULE_MODE_PROPERTY);
         this.scheduleTime = getBaseConfig().getInt(SCHEDULE_TIME_PROPERTY);
+        verifyTimeNumber(this.scheduleTime, "Schedule time cannot be less than 1");
+
         if (!this.scheduleMode.equals(Scheduler.ScheduleMode.ONCE)) {
             this.executionsStep = getBaseConfig().getInt(EXECUTIONS_STEP_PROPERTY);
-            if (this.scheduleMode.equals(Scheduler.ScheduleMode.REPEATEDLY))
-                this.repetitions = getBaseConfig().getInt(REPETITIONS_PROPERTY);
-            else
-                this.repetitions = -1;
+            verifyTimeNumber(this.executionsStep, "ExecutionStep cannot be less than 1 in REPEATEDLY or INFINITELY schedule mode");
 
+            if (this.scheduleMode.equals(Scheduler.ScheduleMode.REPEATEDLY)) {
+                this.repetitions = getBaseConfig().getInt(REPETITIONS_PROPERTY);
+                verifyTimeNumber(this.repetitions, "Repetitions cannot be less than 1 in REPEATEDLY schedule mode");
+            } else
+                this.repetitions = -1;
         } else {
             this.executionsStep = -1;
             this.repetitions = -1;
         }
+    }
+
+    private void verifyTimeNumber(int repetitions, String s) throws WrongControllerConfigurationException {
+        if (repetitions < 1)
+            throw new WrongControllerConfigurationException(s);
     }
 
     // Methods

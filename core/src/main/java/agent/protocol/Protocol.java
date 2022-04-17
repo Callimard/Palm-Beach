@@ -31,6 +31,7 @@ public abstract class Protocol implements SimpleAgent.AgentObserver, EventCatche
 
     // Variables.
 
+    @ToString.Exclude
     @Getter
     private final SimpleAgent agent;
 

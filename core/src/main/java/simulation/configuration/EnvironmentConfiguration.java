@@ -1,17 +1,15 @@
 package simulation.configuration;
 
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigValue;
 import common.Context;
 import environment.Environment;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import simulation.configuration.exception.GenerationFailedException;
 
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
 
 import static common.Tools.extractClass;
@@ -26,12 +24,11 @@ import static common.Tools.extractClass;
  * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
  * environment.simpleEnvironment.context.key1="value1"
  * environment.simpleEnvironment.context.key2="value2"
- * environment.simpleEnvironment.custom-property-1=argument1
- * environment.simpleEnvironment.custom-property-2=argument2
  * </pre>
  */
 @Getter
 @ToString
+@Slf4j
 public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment> {
 
     // Constants.
@@ -46,7 +43,6 @@ public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment
     private final String environmentName;
     private final Set<String> physicalNetworks;
     private final ContextConfiguration contextConfiguration;
-    private final Map<String, Object> customValues;
 
     // Constructors.
 
@@ -60,14 +56,10 @@ public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment
         this.physicalNetworks = new HashSet<>();
         if (getBaseConfig().hasPath(PHYSICAL_NETWORKS_PROPERTY)) {
             this.physicalNetworks.addAll(getBaseConfig().getStringList(PHYSICAL_NETWORKS_PROPERTY));
-        }
-
-        this.customValues = new HashMap<>();
-        for (Map.Entry<String, ConfigValue> entry : getBaseConfig().entrySet()) {
-            if (!entry.getKey().equals(CLASS_PROPERTY) && !entry.getKey().equals(CONTEXT_PROPERTY)) {
-                this.customValues.put(entry.getKey(), entry.getValue().unwrapped());
-            }
-        }
+            if (this.physicalNetworks.isEmpty())
+                log.info("Environment without PhysicalNetwork");
+        } else
+            log.info("Environment without PhysicalNetwork");
     }
 
     // Methods.
