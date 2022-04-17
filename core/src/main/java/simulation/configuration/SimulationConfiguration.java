@@ -271,7 +271,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         for (String pNIdentifier : environmentConfiguration.getPhysicalNetworks()) {
             PhysicalNetworkConfiguration pNConfiguration = physicalNetworks.get(pNIdentifier);
             if (pNConfiguration != null) {
-                environment.addPhysicalNetwork(pNConfiguration.generate());
+                environment.addPhysicalNetwork(pNConfiguration.generatePhysicalNetwork(environment));
             } else
                 log.error("No PhysicalNetwork identified by {} find in the configuration", pNIdentifier);
         }
