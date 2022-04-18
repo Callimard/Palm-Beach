@@ -515,7 +515,7 @@ public class SimpleAgent implements EventCatcher {
         }
 
         /**
-         * Generate the next unique id for a {@link SimpleAgent}. If this methos is always used to generate {@code SimpleAgent} identifier unique id,
+         * Generate the next unique id for a {@link SimpleAgent}. If this method is always used to generate {@code SimpleAgent} identifier unique id,
          * it is guaranty that each {@code SimpleAgent} will have different id.
          *
          * @return the next generated unique id.

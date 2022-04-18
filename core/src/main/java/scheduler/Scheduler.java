@@ -18,7 +18,9 @@ public interface Scheduler {
     /**
      * The waiting time for schedule something now (The now is 1 and not 0 because we cannot schedule a task for the current step).
      */
-    long NOW = 1;
+    long NEXT_STEP = 1;
+
+    long IGNORED = -1;
 
     /**
      * Start the {@link Scheduler}. A {@code Scheduler} can be started only one times.
@@ -54,13 +56,13 @@ public interface Scheduler {
     boolean addSchedulerObserver(@NonNull SchedulerObserver observer);
 
     /**
-     * Schedules the specified {@link Executable} to be executed at the specified time. The specified time must be greater or equal to {@link #NOW}.
+     * Schedules the specified {@link Executable} to be executed at the specified time. The specified time must be greater or equal to {@link #NEXT_STEP}.
      *
      * @param executable the executable to schedule
      * @param time       the time when the executable must be executed
      *
      * @throws NullPointerException          if specified executable is null
-     * @throws IllegalArgumentException      if time is less than {@link #NOW}
+     * @throws IllegalArgumentException      if time is less than {@link #NEXT_STEP}
      * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     void scheduleAtTime(@NonNull Executable executable, long time);
@@ -84,7 +86,7 @@ public interface Scheduler {
      * @param executionTimeStep the time step between executions (only use in {@link ScheduleMode#REPEATEDLY} or {@link ScheduleMode#INFINITELY})
      *
      * @throws NullPointerException          if specified executable or scheduleMode is null
-     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1 in
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NEXT_STEP} or if nbRepetitions or executionTimeStep is less than 1 in
      *                                       {@link ScheduleMode#REPEATEDLY} or {@link ScheduleMode#INFINITELY}
      * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      * @see #scheduleOnce(Executable, long)
@@ -101,7 +103,7 @@ public interface Scheduler {
      * @param waitingTime the time to wait from the current time of the scheduler before the executable begin to be executed
      *
      * @throws NullPointerException     if specified executable is null
-     * @throws IllegalArgumentException if time is less than {@link #NOW}
+     * @throws IllegalArgumentException if time is less than {@link #NEXT_STEP}
      */
     default void scheduleOnce(@NonNull Executable executable, long waitingTime) {
         scheduleExecutable(executable, waitingTime, ScheduleMode.ONCE, -1, -1);
@@ -117,7 +119,7 @@ public interface Scheduler {
      * @param executionTimeStep the time step between executions
      *
      * @throws NullPointerException          if executable is null
-     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if nbRepetitions or executionTimeStep is less than 1
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NEXT_STEP} or if nbRepetitions or executionTimeStep is less than 1
      * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     default void scheduleRepeatedly(@NonNull Executable executable, long waitingTime, long nbRepetitions, long executionTimeStep) {
@@ -133,7 +135,7 @@ public interface Scheduler {
      * @param executionTimeStep the time step between executions
      *
      * @throws NullPointerException          if executable is null
-     * @throws IllegalArgumentException      if waitingTime is less than {@link #NOW} or if executionTimeStep is less than 1
+     * @throws IllegalArgumentException      if waitingTime is less than {@link #NEXT_STEP} or if executionTimeStep is less than 1
      * @throws ImpossibleSchedulingException if the {@code Scheduler} is not in a correct state to schedule the {@code Executable}
      */
     default void scheduleInfinitely(@NonNull Executable executable, long waitingTime, long executionTimeStep) {

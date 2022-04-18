@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import environment.Environment;
 import lombok.NonNull;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import scheduler.Scheduler;
 import simulation.exception.PalmBeachSimulationSingletonAlreadyCreateException;
@@ -21,8 +20,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Represents the Simulation.
  * <p>
  * Use the Singleton pattern, a unique instance of {@code PalmBeachSimulation} is created with the method {@link
- * #setSingletonInstance(PalmBeachSimulation)}, after that, static methods can be used to manipulated and interact with the
- * {@code PalmBeachSimulation}
+ * #setSingletonInstance(PalmBeachSimulation)}, after that, static methods can be used to manipulated and interact with the {@code
+ * PalmBeachSimulation}
  */
 @Slf4j
 public class PalmBeachSimulation {

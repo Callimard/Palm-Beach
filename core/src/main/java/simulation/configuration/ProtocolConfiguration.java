@@ -53,7 +53,7 @@ public class ProtocolConfiguration extends PalmBeachConfiguration<Void> {
     // Methods.
 
     @Override
-    public Void generate() throws GenerationFailedException {
+    public Void generate() {
         throw new UnsupportedOperationException("Cannot generate Protocol directly without a SimpleAgent instance");
     }
 

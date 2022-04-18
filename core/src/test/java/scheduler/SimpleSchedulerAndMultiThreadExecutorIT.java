@@ -73,20 +73,20 @@ class SimpleSchedulerAndMultiThreadExecutorIT {
         @DisplayName("scheduleAtTime() with await(Condition, long) wake up the specified executable")
         void wakeUpExecutableWithAwaitTimeout() {
             int waitingTime = 50;
-            WaitingExecutable waitingExecutable = new WaitingExecutable(scheduler, Scheduler.NOW, waitingTime);
+            WaitingExecutable waitingExecutable = new WaitingExecutable(scheduler, Scheduler.NEXT_STEP, waitingTime);
             scheduler.scheduleAtTime(waitingExecutable, waitingExecutable.getExpectedExecutedTime());
             scheduler.start();
 
             waitSchedulerEnd(scheduler, observer);
 
             assertThat(waitingExecutable.getExecutionCounter()).isEqualByComparingTo(1);
-            assertThat(waitingExecutable.getExecutedTime()).isEqualByComparingTo(Scheduler.NOW + waitingTime);
+            assertThat(waitingExecutable.getExecutedTime()).isEqualByComparingTo(Scheduler.NEXT_STEP + waitingTime);
         }
 
         @Test
         @DisplayName("scheduleExecutable() in Repeatedly mode execute the Executable correctly")
         void inRepeatedlyMode() {
-            BasicExecutable basicExecutable = new BasicExecutable(scheduler, Scheduler.NOW);
+            BasicExecutable basicExecutable = new BasicExecutable(scheduler, Scheduler.NEXT_STEP);
             int nbRepetitions = 5;
             int executionTimeStep = 50;
             scheduler.scheduleExecutable(basicExecutable, basicExecutable.getExpectedExecutedTime(), Scheduler.ScheduleMode.REPEATEDLY,
@@ -96,13 +96,13 @@ class SimpleSchedulerAndMultiThreadExecutorIT {
             waitSchedulerEnd(scheduler, observer);
 
             assertThat(basicExecutable.getExecutionCounter()).isEqualByComparingTo(nbRepetitions);
-            assertThat(basicExecutable.getExecutedTime()).isEqualByComparingTo(Scheduler.NOW + (executionTimeStep * (nbRepetitions - 1)));
+            assertThat(basicExecutable.getExecutedTime()).isEqualByComparingTo(Scheduler.NEXT_STEP + (executionTimeStep * (nbRepetitions - 1)));
         }
 
         @Test
         @DisplayName("ScheduleExecutable() in Infinitely mode finish")
         void inInfinitelyMode() {
-            BasicExecutable basicExecutable = new BasicExecutable(scheduler, Scheduler.NOW);
+            BasicExecutable basicExecutable = new BasicExecutable(scheduler, Scheduler.NEXT_STEP);
             int executionTimeStep = 50;
             scheduler.scheduleExecutable(basicExecutable, basicExecutable.getExpectedExecutedTime(), Scheduler.ScheduleMode.INFINITELY,
                                          -1, executionTimeStep);
@@ -116,7 +116,7 @@ class SimpleSchedulerAndMultiThreadExecutorIT {
     private List<BasicExecutable> generateExecutable(Scheduler scheduler) {
         List<BasicExecutable> executables = new ArrayList<>();
         for (int i = 0; i < NB_GENERATED_EXECUTABLES; i++) {
-            executables.add(new BasicExecutable(scheduler, r.nextLong(Scheduler.NOW, MAX_DURATION + 1)));
+            executables.add(new BasicExecutable(scheduler, r.nextLong(Scheduler.NEXT_STEP, MAX_DURATION + 1)));
         }
         return executables;
     }
@@ -124,7 +124,7 @@ class SimpleSchedulerAndMultiThreadExecutorIT {
     private List<WaitingExecutable> generateWaitingExecutable(Scheduler scheduler) {
         List<WaitingExecutable> executables = new ArrayList<>();
         for (int i = 0; i < NB_GENERATED_EXECUTABLES; i++) {
-            executables.add(new WaitingExecutable(scheduler, r.nextLong(Scheduler.NOW, MAX_DURATION + 1)));
+            executables.add(new WaitingExecutable(scheduler, r.nextLong(Scheduler.NEXT_STEP, MAX_DURATION + 1)));
         }
         return executables;
     }

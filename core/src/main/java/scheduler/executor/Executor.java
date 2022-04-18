@@ -12,7 +12,7 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * Interface for pool of thread which can execute {@link Executable}. The inspiration is the interface {@link ExecutorService}, however this last one
- * is to general and {@code Executor} is only here to execute {@code Executables}.
+ * is too general and {@code Executor} is only here to execute {@code Executables}.
  */
 public interface Executor {
 

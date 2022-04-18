@@ -1,9 +1,9 @@
 package junit;
 
-import agent.SimpleAgentTest;
 import org.apache.log4j.PropertyConfigurator;
 import org.junit.jupiter.api.extension.BeforeAllCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
+import simulation.PalmBeachSimulation;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,7 +20,7 @@ public class PalmBeachTestExtension implements BeforeAllCallback {
         Properties prop = new Properties();
         String propFileName = "slf4j.properties";
 
-        InputStream inputStream = SimpleAgentTest.class.getClassLoader().getResourceAsStream(propFileName);
+        InputStream inputStream = PalmBeachSimulation.class.getClassLoader().getResourceAsStream(propFileName);
 
         if (inputStream != null) {
             prop.load(inputStream);
