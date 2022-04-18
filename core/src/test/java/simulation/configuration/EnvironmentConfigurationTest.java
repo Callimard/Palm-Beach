@@ -55,7 +55,7 @@ public class EnvironmentConfigurationTest {
         @DisplayName("generate() returns correct Environment")
         void generateCorrectEnvironment(@Mock Config config) {
             String envName = "envName";
-            when(config.getString(EnvironmentConfiguration.CLASS_PROPERTY)).thenReturn(EnvironmentTest.BasicEnvironment.class.getName());
+            when(config.getString(EnvironmentConfiguration.CLASS_PROPERTY)).thenReturn(Environment.class.getName());
             when(config.hasPath(EnvironmentConfiguration.CONTEXT_PROPERTY)).thenReturn(false);
             when(config.hasPath(EnvironmentConfiguration.PHYSICAL_NETWORKS_PROPERTY)).thenReturn(true);
             when(config.getStringList(EnvironmentConfiguration.PHYSICAL_NETWORKS_PROPERTY)).thenReturn(Lists.newArrayList("pN1", "pN2"));
@@ -77,7 +77,7 @@ public class EnvironmentConfigurationTest {
         @DisplayName("toString() never returns null")
         void neverReturnsNull(@Mock Config config) {
             String envName = "envName";
-            when(config.getString(EnvironmentConfiguration.CLASS_PROPERTY)).thenReturn(EnvironmentTest.BasicEnvironment.class.getName());
+            when(config.getString(EnvironmentConfiguration.CLASS_PROPERTY)).thenReturn(Environment.class.getName());
             when(config.hasPath(EnvironmentConfiguration.CONTEXT_PROPERTY)).thenReturn(false);
             when(config.hasPath(EnvironmentConfiguration.PHYSICAL_NETWORKS_PROPERTY)).thenReturn(true);
             when(config.getStringList(EnvironmentConfiguration.PHYSICAL_NETWORKS_PROPERTY)).thenReturn(Lists.newArrayList("pN1", "pN2"));

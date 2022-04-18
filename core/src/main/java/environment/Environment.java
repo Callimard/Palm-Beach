@@ -38,7 +38,7 @@ import java.util.Vector;
  */
 @ToString
 @Slf4j
-public abstract class Environment {
+public class Environment {
 
     // Variables.
 
@@ -69,7 +69,7 @@ public abstract class Environment {
      *
      * @throws NullPointerException if name is null
      */
-    protected Environment(@NonNull String name, Context context) {
+    public Environment(@NonNull String name, Context context) {
         this.name = name;
         this.context = context != null ? context : new SimpleContext();
         this.agents = Sets.newConcurrentHashSet();
