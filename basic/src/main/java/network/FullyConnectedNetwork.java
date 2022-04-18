@@ -17,7 +17,7 @@ public class FullyConnectedNetwork extends Network {
     // Constants.
 
     public static final String MIN_SENDING_DELAY = "minDelay";
-    public static final String MAX_SENDING_DELAY = "minDelay";
+    public static final String MAX_SENDING_DELAY = "maxDelay";
 
     public static final long DEFAULT_MIN_DELAY = 50L;
     public static final long DEFAULT_MAX_DELAY = 100L;
@@ -64,6 +64,8 @@ public class FullyConnectedNetwork extends Network {
      * @param source the source agent
      * @param target the target agent
      * @param event  the event
+     *
+     * @throws IllegalArgumentException if minDelay is greater or equal to maxDelay - 1
      */
     @Override
     protected void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event) {
