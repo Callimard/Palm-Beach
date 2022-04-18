@@ -212,7 +212,7 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
             scheduler.start(); // Directly killed
 
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleAtTime(executable, Scheduler.NOW));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleAtTime(executable, Scheduler.NEXT_STEP));
         }
 
         @ParameterizedTest
@@ -292,11 +292,11 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
             scheduler.start(); // Directly killed
 
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NEXT_STEP,
                                                                                                  Scheduler.ScheduleMode.ONCE, 1, 1));
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NEXT_STEP,
                                                                                                  Scheduler.ScheduleMode.REPEATEDLY, 1, 1));
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NOW,
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleExecutable(executable, Scheduler.NEXT_STEP,
                                                                                                  Scheduler.ScheduleMode.INFINITELY, 1, 1));
         }
     }
@@ -339,7 +339,7 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
             scheduler.start(); // Directly killed
 
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleOnce(executable, Scheduler.NOW));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleOnce(executable, Scheduler.NEXT_STEP));
         }
     }
 
@@ -398,7 +398,7 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
             scheduler.start(); // Directly killed
 
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleRepeatedly(executable, Scheduler.NOW, 1, 1));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleRepeatedly(executable, Scheduler.NEXT_STEP, 1, 1));
         }
     }
 
@@ -448,7 +448,7 @@ public class SimpleSchedulerTest {
             Scheduler scheduler = new SimpleScheduler(DEFAULT_MAX_DURATION, executor);
             scheduler.start(); // Directly killed
 
-            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleInfinitely(executable, Scheduler.NOW, 1));
+            assertThrows(ImpossibleSchedulingException.class, () -> scheduler.scheduleInfinitely(executable, Scheduler.NEXT_STEP, 1));
         }
     }
 
