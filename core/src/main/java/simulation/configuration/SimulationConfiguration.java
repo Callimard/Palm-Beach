@@ -49,16 +49,16 @@ import static common.Tools.extractClass;
  *
  * # Physical Networks
  *
- * physical-network.fullyConnected.class=environment.physical.PhysicalNetwork
- * physical-network.fullyConnected.context.class=context.CustomContext
- * physical-network.fullyConnected.context.key1="value1"
- * physical-network.fullyConnected.context.key2="value2"
+ * network.fullyConnected.class=environment.physical.Network
+ * network.fullyConnected.context.class=context.CustomContext
+ * network.fullyConnected.context.key1="value1"
+ * network.fullyConnected.context.key2="value2"
  *
  * # Environments
  *
  * environment.simpleEnvironment.class=environment.SimpleEnvironment
  * environment.simpleEnvironment.context.class=context.CustomContext
- * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
+ * environment.simpleEnvironment.Networks=[fullyConnected]
  * environment.simpleEnvironment.context.key1="value1"
  * environment.simpleEnvironment.context.key2="value2"
  *
@@ -117,7 +117,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
 
     public static final String SIMULATION_PROPERTY = "simulation";
     public static final String CONTROLLER_PROPERTY = "controller";
-    public static final String PHYSICAL_NETWORK_PROPERTY = "physical-network";
+    public static final String PHYSICAL_NETWORK_PROPERTY = "network";
     public static final String ENVIRONMENT_PROPERTY = "environment";
     public static final String PROTOCOL_PROPERTY = "protocol";
     public static final String BEHAVIOR_PROPERTY = "behavior";
@@ -130,7 +130,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
     private final String setupClass;
 
     private final Set<ControllerConfiguration> controllers;
-    private final Map<String, PhysicalNetworkConfiguration> physicalNetworks;
+    private final Map<String, NetworkConfiguration> networks;
     private final Set<EnvironmentConfiguration> environments;
     private final Map<String, ProtocolConfiguration> protocols;
     private final Map<String, BehaviorConfiguration> behaviors;
@@ -156,8 +156,8 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
             this.controllers = new HashSet<>();
             parseControllersConfiguration();
 
-            this.physicalNetworks = new HashMap<>();
-            parsePhysicalNetworksConfiguration();
+            this.networks = new HashMap<>();
+            parseNetworksConfiguration();
 
             this.environments = new HashSet<>();
             parseEnvironmentsConfiguration();
@@ -184,12 +184,12 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         }
     }
 
-    private void parsePhysicalNetworksConfiguration() {
+    private void parseNetworksConfiguration() {
         if (getBaseConfig().hasPath(PHYSICAL_NETWORK_PROPERTY)) {
             ConfigObject pNConfigObject = getBaseConfig().getObject(PHYSICAL_NETWORK_PROPERTY);
             for (String pNIdentifier : pNConfigObject.keySet()) {
-                this.physicalNetworks.put(pNIdentifier,
-                                          new PhysicalNetworkConfiguration(pNIdentifier, pNConfigObject.toConfig().getConfig(pNIdentifier)));
+                this.networks.put(pNIdentifier,
+                                  new NetworkConfiguration(pNIdentifier, pNConfigObject.toConfig().getConfig(pNIdentifier)));
             }
         }
     }
@@ -261,19 +261,19 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         for (EnvironmentConfiguration environmentConfiguration : environments) {
             Environment environment = environmentConfiguration.generate();
             allEnvironments.put(environmentConfiguration.getEnvironmentName(), environment);
-            addEnvironmentPhysicalNetwork(environmentConfiguration, environment);
+            addEnvironmentNetwork(environmentConfiguration, environment);
         }
         return allEnvironments;
     }
 
-    private void addEnvironmentPhysicalNetwork(EnvironmentConfiguration environmentConfiguration, Environment environment)
+    private void addEnvironmentNetwork(EnvironmentConfiguration environmentConfiguration, Environment environment)
             throws GenerationFailedException {
-        for (String pNIdentifier : environmentConfiguration.getPhysicalNetworks()) {
-            PhysicalNetworkConfiguration pNConfiguration = physicalNetworks.get(pNIdentifier);
+        for (String pNIdentifier : environmentConfiguration.getNetworks()) {
+            NetworkConfiguration pNConfiguration = networks.get(pNIdentifier);
             if (pNConfiguration != null) {
-                environment.addPhysicalNetwork(pNConfiguration.generatePhysicalNetwork(environment));
+                environment.addNetwork(pNConfiguration.generateNetwork(environment));
             } else
-                log.error("No PhysicalNetwork identified by {} find in the configuration", pNIdentifier);
+                log.error("No Network identified by {} find in the configuration", pNIdentifier);
         }
     }
 

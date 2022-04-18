@@ -18,9 +18,10 @@
     <groupId>org.palm-beach</groupId>
     <artifactId>root</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.0-SNAPSHOT</version>
+    <version>0.9.0-SNAPSHOT</version>
     <modules>
         <module>core</module>
+        <module>basic</module>
     </modules>
 
     <properties>

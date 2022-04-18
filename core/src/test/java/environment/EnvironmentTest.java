@@ -2,9 +2,8 @@ package environment;
 
 import agent.SimpleAgent;
 import common.Context;
-import environment.physical.PhysicalNetwork;
+import environment.network.Network;
 import junit.PalmBeachTest;
-import lombok.NonNull;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -140,7 +139,7 @@ public class EnvironmentTest {
 
             boolean added = environment.addAgent(agent);
             assertThat(added).isTrue();
-            verify(observer, times(1)).agentAdded(agent);
+            verify(observer, times(1)).environmentAddAgent(agent);
         }
 
         @Test
@@ -152,7 +151,7 @@ public class EnvironmentTest {
             environment.addAgent(agent);
             boolean added = environment.addAgent(agent);
             assertThat(added).isFalse();
-            verify(observer, times(1)).agentAdded(agent);
+            verify(observer, times(1)).environmentAddAgent(agent);
         }
     }
 
@@ -170,7 +169,7 @@ public class EnvironmentTest {
 
             environment.removeAgent(agent);
             assertThat(environment.agentIsEvolving(agent)).isFalse();
-            verify(observer, times(1)).agentRemoved(agent);
+            verify(observer, times(1)).environmentRemoveAgent(agent);
         }
 
         @Test
@@ -181,7 +180,7 @@ public class EnvironmentTest {
 
             environment.removeAgent(agent);
             assertThat(environment.agentIsEvolving(agent)).isFalse();
-            verify(observer, times(0)).agentRemoved(agent);
+            verify(observer, times(0)).environmentRemoveAgent(agent);
         }
     }
 
@@ -243,73 +242,73 @@ public class EnvironmentTest {
     }
 
     @Nested
-    @DisplayName("Environment addPhysicalNetwork()")
-    @Tag("addPhysicalNetwork")
-    class AddPhysicalNetwork {
+    @DisplayName("Environment addNetwork()")
+    @Tag("addNetwork")
+    class AddNetwork {
 
         @Test
-        @DisplayName("addPhysicalNetwork() throws NullPointerException with null PhysicalNetwork")
-        void withNullPhysicalNetwork() {
+        @DisplayName("addNetwork() throws NullPointerException with null Network")
+        void withNullNetwork() {
             Environment environment = new Environment("name", null);
 
             //noinspection ConstantConditions
-            assertThrows(NullPointerException.class, () -> environment.addPhysicalNetwork(null));
+            assertThrows(NullPointerException.class, () -> environment.addNetwork(null));
         }
 
         @Test
-        @DisplayName("addPhysicalNetwork() does not throw exception with non null PhysicalNetwork")
-        void withNonNullPhysicalNetwork(@Mock PhysicalNetwork physicalNetwork) {
+        @DisplayName("addNetwork() does not throw exception with non null Network")
+        void withNonNullNetwork(@Mock Network network) {
             Environment environment = new Environment("name", null);
 
-            assertDoesNotThrow(() -> environment.addPhysicalNetwork(physicalNetwork));
+            assertDoesNotThrow(() -> environment.addNetwork(network));
         }
 
         @Test
-        @DisplayName("addPhysicalNetwork() erase the previous value if added PhysicalNetwork has the same name")
-        void withSameName(@Mock PhysicalNetwork pN0, @Mock PhysicalNetwork pN1) {
+        @DisplayName("addNetwork() erase the previous value if added Network has the same name")
+        void withSameName(@Mock Network n0, @Mock Network n1) {
             Environment environment = new Environment("name", null);
 
-            String physicalNetworkName = "PN name";
-            when(pN0.getName()).thenReturn(physicalNetworkName);
-            when(pN1.getName()).thenReturn(physicalNetworkName);
-            environment.addPhysicalNetwork(pN0);
-            environment.addPhysicalNetwork(pN1);
+            String networkName = "PN name";
+            when(n0.getName()).thenReturn(networkName);
+            when(n1.getName()).thenReturn(networkName);
+            environment.addNetwork(n0);
+            environment.addNetwork(n1);
 
-            assertThat(environment.getPhysicalNetwork(physicalNetworkName)).isNotNull().isSameAs(pN1);
+            assertThat(environment.getNetwork(networkName)).isNotNull().isSameAs(n1);
         }
     }
 
     @Nested
-    @DisplayName("Environment getPhysicalNetwork()")
-    @Tag("getPhysicalNetwork")
-    class GetPhysicalNetwork {
+    @DisplayName("Environment getNetwork()")
+    @Tag("getNetwork")
+    class GetNetwork {
 
         @Test
-        @DisplayName("getPhysicalNetwork() returns null with null name")
+        @DisplayName("getNetwork() returns null with null name")
         void withNullName() {
             Environment environment = new Environment("name", null);
 
-            assertThat(environment.getPhysicalNetwork(null)).isNull();
+            assertThat(environment.getNetwork(null)).isNull();
         }
 
         @Test
-        @DisplayName("getPhysicalNetwork() returns null with non added PhysicalNetwork with the specified name")
-        void notAddedPhysicalNetworkName() {
+        @DisplayName("getNetwork() returns null with non added Network with the specified name")
+        void notAddedNetworkName() {
             Environment environment = new Environment("name", null);
 
-            assertThat(environment.getPhysicalNetwork("not added name")).isNull();
+            assertThat(environment.getNetwork("not added name")).isNull();
         }
 
         @Test
-        @DisplayName("getPhysicalNetwork() returns the correct PhysicalNetwork if it has been added")
-        void withAddedPhysicalNetwork(@Mock PhysicalNetwork physicalNetwork) {
+        @DisplayName("getNetwork() returns the correct Network if it has been added")
+        void withAddedNetwork(@Mock Network network) {
             Environment environment = new Environment("name", null);
 
-            String physicalNetworkName = "pN Name";
-            when(physicalNetwork.getName()).thenReturn(physicalNetworkName);
-            environment.addPhysicalNetwork(physicalNetwork);
+            String networkName = "pN Name";
+            when(network.getName()).thenReturn(networkName);
+            environment.addNetwork(network);
 
-            assertThat(environment.getPhysicalNetwork(physicalNetworkName)).isNotNull().isSameAs(physicalNetwork);
+            assertThat(environment.getNetwork(networkName)).isNotNull().isSameAs(network);
         }
     }
 

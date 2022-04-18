@@ -3,7 +3,6 @@ package simulation.configuration;
 import agent.SimpleAgent;
 import agent.behavior.Behavior;
 import agent.behavior.BehaviorTest;
-import agent.protocol.ProtocolTest;
 import com.typesafe.config.Config;
 import junit.PalmBeachTest;
 import org.junit.jupiter.api.DisplayName;

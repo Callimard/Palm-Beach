@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * possible to define two {@code Behavior} for a specific {@code Protocol}. One follow the correct {@code Protocol}, the other acts as a Byzantine
  * agent.
  * <p>
- * This class can also allow the simulation of several arbitrary agent.behavior in {@code Protocol} that allow this type of agent.behavior. For
+ * This class can also allow the simulation of several arbitrary {@code Behaviors} in {@code Protocol} that allow this type of agent.behavior. For
  * example, in Bitcoin blockchain, the transaction selection is totally arbitrary. Therefore, it is possible to define several strategies to know
  * which is the more efficient for a certain goal.
  *

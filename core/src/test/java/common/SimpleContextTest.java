@@ -112,7 +112,7 @@ public class SimpleContextTest {
         }
 
         @Test
-        @DisplayName("isEmpty() returns false if at leat map() has been call one times")
+        @DisplayName("isEmpty() returns false if at least map() has been call one times")
         void afterMapCall() {
             SimpleContext context = new SimpleContext();
             context.map("key", "value");

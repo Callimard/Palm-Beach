@@ -21,7 +21,7 @@ import static common.Tools.extractClass;
  * <pre>
  * environment.simpleEnvironment.class=environment.SimpleEnvironment
  * environment.simpleEnvironment.context.class=context.CustomContext
- * environment.simpleEnvironment.physicalNetworks=[fullyConnected]
+ * environment.simpleEnvironment.Networks=[fullyConnected]
  * environment.simpleEnvironment.context.key1="value1"
  * environment.simpleEnvironment.context.key2="value2"
  * </pre>
@@ -35,13 +35,13 @@ public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment
 
     public static final String CLASS_PROPERTY = "class";
     public static final String CONTEXT_PROPERTY = "context";
-    public static final String PHYSICAL_NETWORKS_PROPERTY = "physicalNetworks";
+    public static final String PHYSICAL_NETWORKS_PROPERTY = "Networks";
 
     // Variables.
 
     private final String environmentClass;
     private final String environmentName;
-    private final Set<String> physicalNetworks;
+    private final Set<String> networks;
     private final ContextConfiguration contextConfiguration;
 
     // Constructors.
@@ -53,13 +53,13 @@ public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment
         this.contextConfiguration =
                 getBaseConfig().hasPath(CONTEXT_PROPERTY) ? new ContextConfiguration(getBaseConfig().getConfig(CONTEXT_PROPERTY)) : null;
 
-        this.physicalNetworks = new HashSet<>();
+        this.networks = new HashSet<>();
         if (getBaseConfig().hasPath(PHYSICAL_NETWORKS_PROPERTY)) {
-            this.physicalNetworks.addAll(getBaseConfig().getStringList(PHYSICAL_NETWORKS_PROPERTY));
-            if (this.physicalNetworks.isEmpty())
-                log.info("Environment without PhysicalNetwork");
+            this.networks.addAll(getBaseConfig().getStringList(PHYSICAL_NETWORKS_PROPERTY));
+            if (this.networks.isEmpty())
+                log.info("Environment without Network");
         } else
-            log.info("Environment without PhysicalNetwork");
+            log.info("Environment without Network");
     }
 
     // Methods.

@@ -5,7 +5,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import common.Context;
 import common.SimpleContext;
-import environment.physical.PhysicalNetwork;
+import environment.network.Network;
 import event.Event;
 import lombok.Getter;
 import lombok.NonNull;
@@ -26,8 +26,8 @@ import java.util.Vector;
  * {@code SimpleAgent} is manage by the Simulation. In that way it is more simple to manipulate agent because {@link SimpleAgent.AgentIdentifier} is
  * immutable. To simplify, in the documentation of {@code Environment}, agent means {@code AgentIdentifier}.
  * <p>
- * An {@code Environment} can also have {@link PhysicalNetwork} which simulate physical connection between agent in the {@code Environment}. A {@code
- * PhysicalNetwork} also simulate {@link Event} sending between agents.
+ * An {@code Environment} can also have {@link Network} which simulate connections between agent in the {@code Environment}. A {@code Network}
+ * also simulate {@link Event} sending between agents.
  * <p>
  * {@code Environment} sub classes must have at least this constructor:
  * <pre>
@@ -52,7 +52,7 @@ public class Environment {
     @ToString.Exclude
     private final Set<SimpleAgent.AgentIdentifier> agents;
 
-    private final Map<String, PhysicalNetwork> physicalNetworks;
+    private final Map<String, Network> networks;
 
     @ToString.Exclude
     private final List<EnvironmentObserver> observers;
@@ -73,7 +73,7 @@ public class Environment {
         this.name = name;
         this.context = context != null ? context : new SimpleContext();
         this.agents = Sets.newConcurrentHashSet();
-        this.physicalNetworks = Maps.newHashMap();
+        this.networks = Maps.newHashMap();
         this.observers = new Vector<>();
     }
 
@@ -88,11 +88,11 @@ public class Environment {
     }
 
     protected void notifyAgentAdded(SimpleAgent.AgentIdentifier addedAgent) {
-        observers.forEach(o -> o.agentAdded(addedAgent));
+        observers.forEach(o -> o.environmentAddAgent(addedAgent));
     }
 
     protected void notifyAgentRemoved(SimpleAgent.AgentIdentifier removedAgent) {
-        observers.forEach(o -> o.agentRemoved(removedAgent));
+        observers.forEach(o -> o.environmentRemoveAgent(removedAgent));
     }
 
     /**
@@ -162,37 +162,37 @@ public class Environment {
     }
 
     /**
-     * Add the specified {@link PhysicalNetwork} to the {@link Environment}. In {@code Environment}, {@code PhysicalNetwork} are mapped by their name
-     * . Therefore, if several {@code PhysicalNetwork} has the same name, the last {@code PhysicalNetwork} added will be taken in account and erase
-     * previous added {@code PhysicalNetwork}. You may watch that each {@code PhysicalNetwork} has a unique name.
+     * Add the specified {@link Network} to the {@link Environment}. In {@code Environment}, {@code Network} are mapped by their name . Therefore, if
+     * several {@code Network} has the same name, the last {@code Network} added will be taken in account and erase previous added {@code Network}.
+     * You may watch that each {@code Network} has a unique name.
      * <p>
      * <strong>This method is not thread safe.</strong>
      *
-     * @param physicalNetwork the physical network to add
+     * @param network the network to add
      */
-    public void addPhysicalNetwork(@NonNull PhysicalNetwork physicalNetwork) {
-        PhysicalNetwork old = physicalNetworks.put(physicalNetwork.getName(), physicalNetwork);
-        log.info("PhysicalNetwork {} has been added to the Environment {}", physicalNetwork, getName());
+    public void addNetwork(@NonNull Network network) {
+        Network old = networks.put(network.getName(), network);
+        log.info("Network {} has been added to the Environment {}", network, getName());
         if (old != null)
-            log.warn("PhysicalNetwork previously added in the Environment {} with the name {} has been erase and replace", getName(),
-                     physicalNetwork.getName());
+            log.warn("Network previously added in the Environment {} with the name {} has been erase and replace", getName(),
+                     network.getName());
     }
 
     /**
-     * @param physicalNetworkName the name of the physical network
+     * @param networkName the name of the network
      *
-     * @return the {@link PhysicalNetwork} with the specified name if it has been added to the {@link Environment}, else null.
+     * @return the {@link Network} with the specified name if it has been added to the {@link Environment}, else null.
      */
-    public PhysicalNetwork getPhysicalNetwork(String physicalNetworkName) {
-        return physicalNetworks.get(physicalNetworkName);
+    public Network getNetwork(String networkName) {
+        return networks.get(networkName);
     }
 
     // Inner classes.
 
     public interface EnvironmentObserver {
 
-        void agentAdded(SimpleAgent.AgentIdentifier addedAgent);
+        void environmentAddAgent(SimpleAgent.AgentIdentifier addedAgent);
 
-        void agentRemoved(SimpleAgent.AgentIdentifier removedAgent);
+        void environmentRemoveAgent(SimpleAgent.AgentIdentifier removedAgent);
     }
 }

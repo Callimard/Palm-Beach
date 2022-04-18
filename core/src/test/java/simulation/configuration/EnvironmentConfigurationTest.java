@@ -3,7 +3,6 @@ package simulation.configuration;
 import com.google.common.collect.Lists;
 import com.typesafe.config.Config;
 import environment.Environment;
-import environment.EnvironmentTest;
 import junit.PalmBeachTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
