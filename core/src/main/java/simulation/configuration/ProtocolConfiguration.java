@@ -2,12 +2,17 @@ package simulation.configuration;
 
 import agent.SimpleAgent;
 import agent.protocol.Protocol;
+import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
+import com.typesafe.config.ConfigValue;
 import common.Context;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.extern.slf4j.Slf4j;
 import simulation.configuration.exception.GenerationFailedException;
+
+import java.util.Map;
 
 import static common.Tools.extractClass;
 
@@ -23,12 +28,14 @@ import static common.Tools.extractClass;
  *
  * protocol.tendermint.class=protocol.TendermintProtocol
  * protocol.tendermint.context.class=context.CustomContext
+ * protocol.tendermint.transport=transport
  *
  * protocol.hackProtocol.class=protocol.HackProtocol
  * </pre>
  */
 @Getter
 @ToString
+@Slf4j
 public class ProtocolConfiguration extends PalmBeachConfiguration<Void> {
 
     // Constants.
@@ -40,6 +47,7 @@ public class ProtocolConfiguration extends PalmBeachConfiguration<Void> {
 
     public final String protocolClass;
     private final ContextConfiguration contextConfiguration;
+    private final Map<String, String> protocolDependencies;
 
     // Constructors.
 
@@ -48,6 +56,18 @@ public class ProtocolConfiguration extends PalmBeachConfiguration<Void> {
         this.protocolClass = getBaseConfig().getString(CLASS_PROPERTY);
         this.contextConfiguration = getBaseConfig().hasPath(CONTEXT_PROPERTY) ?
                 new ContextConfiguration(getBaseConfig().getConfig(CONTEXT_PROPERTY)) : null;
+        this.protocolDependencies = Maps.newHashMap();
+        fillProtocolDependencies();
+    }
+
+    private void fillProtocolDependencies() {
+        for (Map.Entry<String, ConfigValue> entry : getBaseConfig().entrySet()) {
+            String key = entry.getKey();
+            if (!key.equals(CLASS_PROPERTY) && !key.equals(CONTEXT_PROPERTY) && !key.contains(".")) {
+                String value = (String) entry.getValue().unwrapped();
+                this.protocolDependencies.put(key, value);
+            }
+        }
     }
 
     // Methods.

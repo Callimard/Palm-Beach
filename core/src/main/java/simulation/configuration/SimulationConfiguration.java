@@ -1,6 +1,8 @@
 package simulation.configuration;
 
 import agent.SimpleAgent;
+import agent.protocol.Protocol;
+import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
 import environment.Environment;
@@ -20,12 +22,16 @@ import simulation.configuration.exception.WrongAgentConfigurationException;
 import simulation.configuration.exception.WrongControllerConfigurationException;
 import simulation.configuration.exception.WrongSimulationConfigurationException;
 
+import java.beans.IntrospectionException;
+import java.beans.PropertyDescriptor;
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import static common.Tools.extractClass;
+import static java.util.Locale.ENGLISH;
 
 /**
  * Configuration for {@link PalmBeachSimulation}.
@@ -281,28 +287,73 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         Set<SimpleAgent> allAgents = new HashSet<>();
         for (AgentConfiguration agentConfiguration : agents) {
             Set<SimpleAgent> generatedAgents = agentConfiguration.generate();
-            addProtocolsAndBehaviors(agentConfiguration, generatedAgents);
-            addAgentsInEnvironments(allEnvironments, agentConfiguration, generatedAgents);
+            for (SimpleAgent agent : generatedAgents) {
+                addProtocols(agentConfiguration, agent);
+                addBehaviors(agentConfiguration, agent);
+                addInEnvironments(allEnvironments, agentConfiguration, agent);
+            }
             allAgents.addAll(generatedAgents);
         }
         return allAgents;
     }
 
-    private void addProtocolsAndBehaviors(AgentConfiguration agentConfiguration, Set<SimpleAgent> generatedAgents) {
-        for (SimpleAgent agent : generatedAgents) {
-            addProtocols(agentConfiguration, agent);
-            addBehaviors(agentConfiguration, agent);
+    private void addProtocols(AgentConfiguration agentConfiguration, SimpleAgent agent) throws GenerationFailedException {
+        Map<String, Protocol> agentProtocolContext = createAndAddProtocols(agentConfiguration, agent);
+        associateProtocolDependencies(agentConfiguration, agentProtocolContext);
+    }
+
+    private Map<String, Protocol> createAndAddProtocols(AgentConfiguration agentConfiguration, SimpleAgent agent)
+            throws GenerationFailedException {
+        Map<String, Protocol> agentProtocolContext = Maps.newHashMap();
+
+        for (String protocolIdentifier : agentConfiguration.getProtocols()) {
+            ProtocolConfiguration protocolConfiguration = protocols.get(protocolIdentifier);
+            Protocol protocol = protocolConfiguration.generateProtocol(agent);
+            agentProtocolContext.put(protocolIdentifier, protocol);
+            agent.addProtocol(protocol);
+        }
+
+        return agentProtocolContext;
+    }
+
+    private void associateProtocolDependencies(AgentConfiguration agentConfiguration, Map<String, Protocol> agentProtocolContext)
+            throws GenerationFailedException {
+        for (String protocolIdentifier : agentConfiguration.getProtocols()) {
+            ProtocolConfiguration protocolConfiguration = protocols.get(protocolIdentifier);
+            Protocol protocol = agentProtocolContext.get(protocolIdentifier);
+            setAllProtocolDependencies(protocol, protocolConfiguration, agentProtocolContext);
         }
     }
 
-    private void addProtocols(AgentConfiguration agentConfiguration, SimpleAgent agent) {
-        for (String protocolIdentifier : agentConfiguration.getProtocols()) {
-            ProtocolConfiguration protocolConfiguration = protocols.get(protocolIdentifier);
-            if (protocolConfiguration != null) {
-                agent.addProtocol(protocolConfiguration);
-            } else {
-                log.error("No Protocol identified by {} find in the configuration", protocolIdentifier);
-            }
+    private void setAllProtocolDependencies(Protocol protocol, ProtocolConfiguration protocolConfiguration,
+                                            Map<String, Protocol> agentProtocolContext)
+            throws GenerationFailedException {
+        for (Map.Entry<String, String> dependency : protocolConfiguration.getProtocolDependencies().entrySet()) {
+            String protocolDependencyName = dependency.getKey();
+            String dependencyIdentifier = dependency.getValue();
+
+            Protocol protocolDependency = agentProtocolContext.get(dependencyIdentifier);
+            if (protocolDependency != null) {
+                setProtocolDependency(protocol, protocolDependencyName, protocolDependency);
+            } else
+                log.error("Cannot find protocol with the identifier {}", dependencyIdentifier);
+        }
+    }
+
+    private void setProtocolDependency(Protocol protocol, String protocolDependencyName, Protocol protocolDependency)
+            throws GenerationFailedException {
+        try {
+            String setterName = "set" + protocolDependencyName.substring(0, 1).toUpperCase(ENGLISH) + protocolDependencyName.substring(1);
+            PropertyDescriptor dependencyProperty = new PropertyDescriptor(protocolDependencyName, protocol.getClass(), null, setterName);
+            dependencyProperty.getWriteMethod().invoke(protocol, protocolDependency);
+            log.info("Set dependency {} to the protocol {}", protocolDependencyName, protocol);
+        } catch (IntrospectionException e) {
+            throw new GenerationFailedException(
+                    "No field " + protocolDependencyName + " in the protocol " + protocol.getClass().getName(), e);
+        } catch (InvocationTargetException | IllegalAccessException e) {
+            throw new GenerationFailedException(
+                    "Fail to set the protocol dependency " + protocolDependencyName + " of the protocol " + protocol.getClass().getName(),
+                    e);
         }
     }
 
@@ -317,16 +368,13 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         }
     }
 
-    private void addAgentsInEnvironments(Map<String, Environment> allEnvironments, AgentConfiguration agentConfiguration,
-                                         Set<SimpleAgent> generatedAgents) {
-        for (SimpleAgent agent : generatedAgents) {
-            for (String environmentIdentifier : agentConfiguration.getEnvironments()) {
-                Environment environment = allEnvironments.get(environmentIdentifier);
-                if (environment != null) {
-                    environment.addAgent(agent.getIdentifier());
-                } else {
-                    log.error("Cannot find Environment identified by {} in the Simulation configuration", environmentIdentifier);
-                }
+    private void addInEnvironments(Map<String, Environment> allEnvironments, AgentConfiguration agentConfiguration, SimpleAgent agent) {
+        for (String environmentIdentifier : agentConfiguration.getEnvironments()) {
+            Environment environment = allEnvironments.get(environmentIdentifier);
+            if (environment != null) {
+                environment.addAgent(agent.getIdentifier());
+            } else {
+                log.error("Cannot find Environment identified by {} in the Simulation configuration", environmentIdentifier);
             }
         }
     }

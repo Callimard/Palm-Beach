@@ -283,7 +283,15 @@ public class SimpleAgent implements EventCatcher {
         }
     }
 
-    private void addProtocol(Protocol protocol) {
+    /**
+     * Add the specified {@link Protocol} to the agent. The add is done onl if there is not already an added {@code Protocol} with the same class.
+     *
+     * <strong>WARNINGS!</strong> it is very important the specified instance of {@code Protocol} added is only added to only one agent and that it
+     * is just the agent which add the {@code Protocol} which use it and there is no concurrency uses.
+     *
+     * @param protocol the protocol to add
+     */
+    public void addProtocol(Protocol protocol) {
         if (protocols.putIfAbsent(protocol.getClass(), protocol) == null) {
             // Protocol added
             addObserver(protocol);
@@ -349,7 +357,15 @@ public class SimpleAgent implements EventCatcher {
 
     }
 
-    private void addBehavior(@NonNull Behavior behavior) {
+    /**
+     * Add the specified {@link Behavior} to the agent. The add is done onl if there is not already an added {@code Behavior} with the same class.
+     *
+     * <strong>WARNINGS!</strong> it is very important the specified instance of {@code Behavior} added is only added to only one agent and that it
+     * is just the agent which add the {@code Behavior} which use it and there is no concurrency uses.
+     *
+     * @param behavior the Behavior to add
+     */
+    public void addBehavior(@NonNull Behavior behavior) {
         if (behaviors.putIfAbsent(behavior.getClass(), behavior) == null)
             // Added Behavior
             log.info(identifier + " add the Behavior " + behavior.getClass());
