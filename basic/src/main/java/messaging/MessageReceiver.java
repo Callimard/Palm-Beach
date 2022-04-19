@@ -1,5 +1,6 @@
 package messaging;
 
+import event.Event;
 import scheduler.exception.ForcedWakeUpException;
 
 import java.io.Serializable;
@@ -15,12 +16,26 @@ public interface MessageReceiver {
     boolean hasMessage();
 
     /**
-     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessageSender} is a FIFO
-     * list of {@code Message}. First message received is the first message returns by this method.
+     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessageSender} is a
+     * FIFO list of {@code Message}. First message received is the first message returns by this method.
      *
      * @return the next message to read. Never returns null.
      *
      * @throws ForcedWakeUpException if the Thread is interrupted after or during the wait
      */
-    Message<Serializable> nextMessage() throws ForcedWakeUpException;
+    Message<? extends Serializable> nextMessage() throws ForcedWakeUpException;
+
+    // Inner classes.
+
+    class MessageReceptionEvent extends Event<Message<? extends Serializable>> {
+        public MessageReceptionEvent(Message<? extends Serializable> message) {
+            super(message);
+        }
+    }
+
+    class MessageDeliveryEvent extends Event<Message<? extends Serializable>> {
+        public MessageDeliveryEvent(Message<? extends Serializable> content) {
+            super(content);
+        }
+    }
 }

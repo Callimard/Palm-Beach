@@ -1,7 +1,6 @@
 package environment.network;
 
 import agent.SimpleAgent;
-import agent.protocol.Protocol;
 import common.Context;
 import common.SimpleContext;
 import environment.Environment;
@@ -15,9 +14,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Simulate a {@code Network}. A {@code Network} represents connection between several {@link SimpleAgent}. Via the {@code Network} it is
- * possible to send {@link Event} and it is the {@code Network} which manage if yse or not, the source agent can reach the target agent and therefore
- * if yes or not the {@code Event} can be sent.
+ * Simulate a {@code Network}. A {@code Network} represents connection between several {@link SimpleAgent}. Via the {@code Network} it is possible to
+ * send {@link Event} and it is the {@code Network} which manage if yse or not, the source agent can reach the target agent and therefore if yes or
+ * not the {@code Event} can be sent.
  * <p>
  * All {@code Network} subclasses must have this constructor:
  * <pre>
@@ -82,8 +81,8 @@ public abstract class Network implements Environment.EnvironmentObserver {
 
     /**
      * Sends the {@link Event} from the source to the target. First check if from the source, the target is reachable with the method {@link
-     * #hasConnection(SimpleAgent.AgentIdentifier, SimpleAgent.AgentIdentifier)}. If it is the case, simulate sending with the
-     * method {@link #simulateSending(SimpleAgent.AgentIdentifier, SimpleAgent.AgentIdentifier, Event)}.
+     * #hasConnection(SimpleAgent.AgentIdentifier, SimpleAgent.AgentIdentifier)}. If it is the case, simulate sending with the method {@link
+     * #simulateSending(SimpleAgent.AgentIdentifier, SimpleAgent.AgentIdentifier, Event)}.
      *
      * @param source the source agent
      * @param target the target agent
@@ -94,12 +93,12 @@ public abstract class Network implements Environment.EnvironmentObserver {
         if (hasConnection(source, target))
             simulateSending(source, target, event);
         else
-            log.info("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
+            log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
     }
 
     /**
-     * Verifies if from the source, the target agent is reachable. The order is important and this function is not commutative. It means
-     * that if it is true for {@code source -> target}, it can be false for {@code target -> source}.
+     * Verifies if from the source, the target agent is reachable. The order is important and this function is not commutative. It means that if it is
+     * true for {@code source -> target}, it can be false for {@code target -> source}.
      *
      * @param source the source agent
      * @param target the target agent
@@ -111,9 +110,9 @@ public abstract class Network implements Environment.EnvironmentObserver {
     /**
      * Simulate the sending of the {@link Event} from the source to the target.
      *
-     * @param source        the source agent
-     * @param target        the target agent
-     * @param event the event
+     * @param source the source agent
+     * @param target the target agent
+     * @param event  the event
      */
     protected abstract void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event);
 }

@@ -19,6 +19,6 @@ public interface MessageSender {
      *
      * @throws NullPointerException if message, target or network is null
      */
-    void sendMessage(@NonNull Message<Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network);
+    void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network);
 
 }

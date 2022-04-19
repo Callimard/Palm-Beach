@@ -14,13 +14,13 @@ import java.util.List;
 
 import static simulation.PalmBeachSimulation.scheduler;
 
-public abstract class MessageProtocol extends Protocol implements MessageReceiver {
+public abstract class MessageProtocol extends Protocol implements Messenger {
 
     // Variables.
 
     private final List<Executor.Condition> messageReceptionListener;
 
-    private final Deque<Message<Serializable>> receivedMessages;
+    private final Deque<Message<? extends Serializable>> receivedMessages;
 
     // Constructors.
 
@@ -32,6 +32,21 @@ public abstract class MessageProtocol extends Protocol implements MessageReceive
 
     // Methods.
 
+    @Override
+    public void agentStarted() {
+        // Nothing
+    }
+
+    @Override
+    public void agentStopped() {
+        // Nothing
+    }
+
+    @Override
+    public void agentKilled() {
+        // Nothing
+    }
+
     /**
      * Receive the specified {@link Message}. This method is not obligated to call directly the method {@link #deliver(Message)}. The reception of a
      * {@code Message} is just here to get in memory that a {@code Message} has been received, but maybe it must wait other message reception before
@@ -39,7 +54,7 @@ public abstract class MessageProtocol extends Protocol implements MessageReceive
      *
      * @param message the Message to receive
      */
-    protected abstract void receive(@NonNull Message<Serializable> message);
+    protected abstract void receive(@NonNull Message<? extends Serializable> message);
 
     /**
      * Deliver the specified {@link Message}. This method must normally call the method {@link #offerMessage(Message)} which will add the {@code
@@ -47,14 +62,14 @@ public abstract class MessageProtocol extends Protocol implements MessageReceive
      *
      * @param message the Message to deliver
      */
-    protected abstract void deliver(@NonNull Message<Serializable> message);
+    protected abstract void deliver(@NonNull Message<? extends Serializable> message);
 
     /**
      * Offer in the deque {@link #receivedMessages} the specified {@link Message}. The call of this method wakeup all message reception listeners.
      *
      * @param message the Message to offer in the deque {@link #receivedMessages}
      */
-    protected void offerMessage(@NonNull Message<Serializable> message) {
+    protected void offerMessage(@NonNull Message<? extends Serializable> message) {
         receivedMessages.offer(message);
         notifyMessageDeliver();
     }
@@ -89,7 +104,7 @@ public abstract class MessageProtocol extends Protocol implements MessageReceive
     }
 
     @Override
-    public Message<Serializable> nextMessage() throws ForcedWakeUpException {
+    public Message<? extends Serializable> nextMessage() throws ForcedWakeUpException {
         waitMessageReception();
         return receivedMessages.pollFirst();
     }

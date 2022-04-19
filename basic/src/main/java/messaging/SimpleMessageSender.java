@@ -1,6 +1,7 @@
 package messaging;
 
 import agent.SimpleAgent;
+import agent.exception.AgentNotStartedException;
 import common.Context;
 import environment.network.Network;
 import event.Event;
@@ -24,21 +25,6 @@ public class SimpleMessageSender extends MessageProtocol implements Messenger {
     // Methods.
 
     @Override
-    public void agentStarted() {
-        // Nothing
-    }
-
-    @Override
-    public void agentStopped() {
-        // Nothing
-    }
-
-    @Override
-    public void agentKilled() {
-        // Nothing
-    }
-
-    @Override
     protected ProtocolManipulator defaultProtocolManipulator() {
         return new DefaultProtocolManipulator(this);
     }
@@ -49,13 +35,14 @@ public class SimpleMessageSender extends MessageProtocol implements Messenger {
     }
 
     @Override
-    protected void receive(@NonNull Message<Serializable> message) {
+    protected void receive(@NonNull Message<? extends Serializable> message) {
         deliver(message);
     }
 
     @Override
-    protected void deliver(@NonNull Message<Serializable> message) {
+    protected void deliver(@NonNull Message<? extends Serializable> message) {
         offerMessage(message);
+        getAgent().processEvent(new MessageDeliveryEvent(message));
     }
 
     @Override
@@ -63,11 +50,18 @@ public class SimpleMessageSender extends MessageProtocol implements Messenger {
         return event instanceof MessageReceptionEvent;
     }
 
+    /**
+     * @param message the message to send
+     * @param target  the target of the message
+     * @param network the network across which the message will be sent
+     *
+     * @throws AgentNotStartedException if the Agent is not in STARTED state
+     */
     @Override
-    public void sendMessage(@NonNull Message<Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
+    public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
         if (getAgent().isStarted())
             network.send(message.getSender(), target, new MessageReceptionEvent(message));
         else
-            log.info("Cannot send Message {}, agent {} is not started", message, getAgent());
+            throw new AgentNotStartedException("Cannot send Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
     }
 }
