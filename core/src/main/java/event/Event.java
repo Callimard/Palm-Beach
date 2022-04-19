@@ -1,9 +1,6 @@
 package event;
 
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import lombok.*;
 
 import java.io.Serializable;
 
@@ -14,10 +11,9 @@ import java.io.Serializable;
  */
 @EqualsAndHashCode
 @ToString
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class Event<T extends Serializable> implements Serializable {
 
     @Getter
     private final T content;
-
 }

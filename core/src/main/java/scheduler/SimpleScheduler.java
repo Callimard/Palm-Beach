@@ -23,6 +23,10 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static common.validation.Validate.min;
 
+/**
+ * Discrete time {@link Scheduler}. Time use is not real time but "time step". When a step is finish, the scheduler pass directly to the next step
+ * without waiting any time.
+ */
 @ToString
 @Slf4j
 public class SimpleScheduler implements Scheduler {

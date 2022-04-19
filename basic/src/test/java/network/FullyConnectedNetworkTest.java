@@ -18,6 +18,7 @@ import simulation.PalmBeachSimulation;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.Mockito.when;
 
 @Nested
@@ -125,8 +126,13 @@ public class FullyConnectedNetworkTest {
         }
 
         private void waitSimulationEnd() throws InterruptedException {
-            while (!PalmBeachSimulation.isEnded())
+            int counter = 0;
+            while (!PalmBeachSimulation.isEnded()) {
                 PalmBeachSimulation.waitSimulationEnd(500L);
+                counter++;
+                if (counter > 5)
+                    fail("Too much wait End Simulation");
+            }
         }
 
         // Inner classes.
