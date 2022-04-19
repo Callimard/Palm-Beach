@@ -250,4 +250,14 @@ public class ProtocolTest {
         }
     }
 
+    public static class ProtocolWithDependencies extends BasicProtocol {
+
+        @Setter
+        private BasicProtocol basicProtocol;
+
+        public ProtocolWithDependencies(@NonNull SimpleAgent agent, Context context) {
+            super(agent, context);
+        }
+    }
+
 }

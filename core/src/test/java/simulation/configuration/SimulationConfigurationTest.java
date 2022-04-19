@@ -1,5 +1,7 @@
 package simulation.configuration;
 
+import agent.SimpleAgent;
+import agent.protocol.ProtocolTest;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import junit.PalmBeachTest;
