@@ -3,6 +3,7 @@ package messaging;
 import agent.SimpleAgent;
 import agent.protocol.Protocol;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import common.Context;
 import lombok.NonNull;
 import scheduler.exception.ForcedWakeUpException;
@@ -11,6 +12,7 @@ import scheduler.executor.Executor;
 import java.io.Serializable;
 import java.util.Deque;
 import java.util.List;
+import java.util.Set;
 
 import static simulation.PalmBeachSimulation.scheduler;
 
@@ -22,12 +24,15 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
 
     private final Deque<Message<? extends Serializable>> receivedMessages;
 
+    private final Set<MessageReceiverObserver> observers;
+
     // Constructors.
 
     protected MessageProtocol(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
         this.messageReceptionListener = Lists.newLinkedList();
         this.receivedMessages = Lists.newLinkedList();
+        this.observers = Sets.newHashSet();
     }
 
     // Methods.
@@ -59,6 +64,9 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     /**
      * Deliver the specified {@link Message}. This method must normally call the method {@link #offerMessage(Message)} which will add the {@code
      * Message} in the received message deque and wake up all message reception listeners.
+     * <p>
+     * <strong>This method must notify {@link MessageReceiver.MessageReceiverObserver} by call the call back method
+     * {@link #notifyMessageDelivery(Message)}</strong>
      *
      * @param message the Message to deliver
      */
@@ -95,6 +103,18 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
         messageReceptionListener.clear();
         for (Executor.Condition condition : conditions) {
             condition.wakeup();
+        }
+    }
+
+    @Override
+    public void addObserver(MessageReceiverObserver observer) {
+        observers.add(observer);
+    }
+
+    protected void notifyMessageDelivery(Message<? extends Serializable> msg) {
+        for (MessageReceiverObserver observer : observers) {
+            if (observer.interestedBy(msg))
+                observer.messageDelivery(this, msg);
         }
     }
 
