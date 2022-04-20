@@ -7,22 +7,17 @@ import common.Context;
 import environment.network.Network;
 import event.Event;
 import lombok.NonNull;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import messaging.Message;
-import messaging.MessageProtocol;
-import messaging.MessageSender;
-import messaging.Messenger;
+import messaging.*;
 
 import java.io.Serializable;
 import java.util.Set;
 
 @Slf4j
-public class SimpleBroadcast extends MessageProtocol implements Broadcaster {
+public class SimpleBroadcast extends MessageProtocol implements Broadcaster, MessageReceiver.MessageReceiverObserver {
 
     // Variables.
 
-    @Setter
     private Messenger messenger;
 
     // Constructors.
@@ -41,6 +36,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster {
     @Override
     protected void deliver(@NonNull Message<? extends Serializable> message) {
         offerMessage(message);
+        notifyMessageDelivery(message);
     }
 
     /**
@@ -54,7 +50,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster {
         if (getAgent().isStarted()) {
             Set<SimpleAgent.AgentIdentifier> agents = network.getEnvironment().evolvingAgents();
             for (SimpleAgent.AgentIdentifier agent : agents) {
-                messenger.sendMessage(new Message<>(getAgent().getIdentifier(), message), agent, network);
+                messenger.sendMessage(new SimpleBroadcastMessage(getAgent().getIdentifier(), message), agent, network);
             }
         } else
             throw new AgentNotStartedException("Cannot broadcast Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
@@ -75,9 +71,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster {
 
     @Override
     public void processEvent(Event<?> event) {
-        MessageDeliveryEvent deliveryEvent = (MessageDeliveryEvent) event;
-        Message<? extends Serializable> msg = deliveryEvent.getContent();
-        receive((Message<? extends Serializable>) msg.getContent());
+        // Nothing
     }
 
     /**
@@ -90,6 +84,34 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster {
      */
     @Override
     public boolean canProcessEvent(Event<?> event) {
-        return event instanceof MessageDeliveryEvent;
+        return false;
+    }
+
+    @Override
+    public void messageDelivery(MessageReceiver msgReceiver, Message<? extends Serializable> msg) {
+        if (msgReceiver != null && msgReceiver.equals(messenger)) {
+            SimpleBroadcastMessage broadcastMessage = (SimpleBroadcastMessage) msg;
+            receive(broadcastMessage.getContent());
+        }
+    }
+
+    @Override
+    public boolean interestedBy(Message<? extends Serializable> msg) {
+        return msg instanceof SimpleBroadcastMessage;
+    }
+// Setters.
+
+    public void setMessenger(@NonNull Messenger messenger) {
+        this.messenger = messenger;
+        this.messenger.addObserver(this);
+    }
+
+    // Inner classes.
+
+    private static class SimpleBroadcastMessage extends Message<Message<? extends Serializable>> {
+
+        public SimpleBroadcastMessage(SimpleAgent.@NonNull AgentIdentifier sender, Message<? extends Serializable> content) {
+            super(sender, content);
+        }
     }
 }

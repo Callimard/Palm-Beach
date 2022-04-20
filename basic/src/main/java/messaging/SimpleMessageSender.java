@@ -14,7 +14,7 @@ import java.io.Serializable;
  * Protocol used to send and receive {@link Message}.
  */
 @Slf4j
-public class SimpleMessageSender extends MessageProtocol implements Messenger {
+public class SimpleMessageSender extends MessageProtocol {
 
     // Constructors.
 
@@ -42,7 +42,7 @@ public class SimpleMessageSender extends MessageProtocol implements Messenger {
     @Override
     protected void deliver(@NonNull Message<? extends Serializable> message) {
         offerMessage(message);
-        getAgent().processEvent(new MessageDeliveryEvent(message));
+        notifyMessageDelivery(message);
     }
 
     @Override

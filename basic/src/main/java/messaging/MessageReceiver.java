@@ -8,6 +8,13 @@ import java.io.Serializable;
 public interface MessageReceiver {
 
     /**
+     * Add the specified {@link MessageReceiverObserver}.
+     *
+     * @param observer the observer
+     */
+    void addObserver(MessageReceiverObserver observer);
+
+    /**
      * Returns true if the {@link Messenger} has {@link Message} to read. If this method returns false, therefore the call of the method {@link
      * #nextMessage()} will block the execution until a {@code Message} is received.
      *
@@ -33,9 +40,23 @@ public interface MessageReceiver {
         }
     }
 
-    class MessageDeliveryEvent extends Event<Message<? extends Serializable>> {
-        public MessageDeliveryEvent(Message<? extends Serializable> content) {
-            super(content);
-        }
+    interface MessageReceiverObserver {
+
+        /**
+         * Call back method call when a {@link Message} has been delivered by the specified {@link MessageReceiver}.
+         *
+         * @param msgReceiver the {@code MessageReceiver} which has delivered the message
+         * @param msg         the {@code Message} delivered
+         */
+        void messageDelivery(MessageReceiver msgReceiver, Message<? extends Serializable> msg);
+
+        /**
+         * This method ask to the {@link MessageReceiverObserver} is
+         *
+         * @param msg the message to verify
+         *
+         * @return true if the {@code MessageReceiverObserver} can be interested in the {@code Message} , else false.
+         */
+        boolean interestedBy(Message<? extends Serializable> msg);
     }
 }
