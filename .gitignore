@@ -1,1 +1,9 @@
-.idea
+/.idea
+/target/
+
+/core/core.iml
+/palm-beach.iml
+/core/target
+
+/basic/basic.iml
+/basic/target
