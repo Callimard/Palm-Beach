@@ -1,5 +1,6 @@
 package network;
 
+import agent.AgentProcessEventExecutable;
 import agent.SimpleAgent;
 import common.Context;
 import common.validation.Validate;
@@ -69,7 +70,7 @@ public class FullyConnectedNetwork extends Network {
      */
     @Override
     protected void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event) {
-        PalmBeachSimulation.scheduler().scheduleExecutable(() -> PalmBeachSimulation.getAgent(target).processEvent(event),
+        PalmBeachSimulation.scheduler().scheduleExecutable(new AgentProcessEventExecutable(PalmBeachSimulation.getAgent(target), event),
                                                            r.nextLong(minDelay(), maxDelay() + 1L),
                                                            Scheduler.ScheduleMode.ONCE, Scheduler.IGNORED, Scheduler.IGNORED);
     }
