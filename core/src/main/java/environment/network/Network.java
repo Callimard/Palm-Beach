@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import simulation.PalmBeachSimulation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -90,10 +91,13 @@ public abstract class Network implements Environment.EnvironmentObserver {
      */
     public final synchronized void send(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
                                         @NonNull Event<?> event) {
-        if (hasConnection(source, target))
-            simulateSending(source, target, event);
-        else
-            log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
+        if (PalmBeachSimulation.getAgent(source).isStarted()) {
+            if (hasConnection(source, target))
+                simulateSending(source, target, event);
+            else
+                log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
+        } else
+            log.debug("Agent source is not STARTED -> cannot send via the Network {}", this);
     }
 
     /**

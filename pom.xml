@@ -25,7 +25,7 @@
     </modules>
 
     <properties>
-        <palm-beach.version>1.0.1-SNAPSHOT</palm-beach.version>
+        <palm-beach.version>1.1.0-SNAPSHOT</palm-beach.version>
 
         <sonar.language>java</sonar.language>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
