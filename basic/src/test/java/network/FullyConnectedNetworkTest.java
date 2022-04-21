@@ -68,6 +68,25 @@ public class FullyConnectedNetworkTest {
     }
 
     @Nested
+    @DisplayName("FullyConnectedNetwork agentDirectConnections()")
+    @Tag("agentDirectConnections")
+    class AgentDirectConnections {
+
+        @Test
+        @DisplayName("agentDirectConnections() returns all agent in the Network Environment")
+        void returnsAllAgents(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1) {
+            Environment env = new Environment("envName", null);
+            env.addAgent(a0);
+            env.addAgent(a1);
+
+            FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", env, null);
+
+            assertThat(network.agentDirectConnections(a0)).containsAll(env.evolvingAgents());
+            assertThat(network.agentDirectConnections(a1)).containsAll(env.evolvingAgents());
+        }
+    }
+
+    @Nested
     @DisplayName("FullyConnectedNetwork send()")
     @Tag("send")
     @PalmBeachSimulationTest
@@ -75,7 +94,7 @@ public class FullyConnectedNetworkTest {
 
         @Test
         @DisplayName("send() throws IllegalArgumentException if minDelay is greater or equal to maxDelay - 1")
-        void wrongDelay(@Mock SimpleAgent.AgentIdentifier i0,@Mock SimpleAgent.AgentIdentifier i1,
+        void wrongDelay(@Mock SimpleAgent.AgentIdentifier i0, @Mock SimpleAgent.AgentIdentifier i1,
                         @Mock Event<?> event) {
             SimpleAgent a0 = new SimpleAgent(i0, null);
             SimpleAgent a1 = new SimpleAgent(i1, null);

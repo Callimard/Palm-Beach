@@ -1,6 +1,7 @@
 package environment.network;
 
 import agent.SimpleAgent;
+import com.google.common.collect.Sets;
 import common.Context;
 import environment.Environment;
 import event.Event;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import simulation.PalmBeachSimulation;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 
@@ -208,6 +210,11 @@ public class NetworkTest {
         @Override
         public void environmentRemoveAgent(SimpleAgent.AgentIdentifier removedAgent) {
             // Nothing
+        }
+
+        @Override
+        public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.AgentIdentifier agent) {
+            return Sets.newHashSet(agent);
         }
     }
 }

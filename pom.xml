@@ -25,8 +25,8 @@
     </modules>
 
     <properties>
-        <palm-beach.version>1.1.1-SNAPSHOT</palm-beach.version>
-
+        <palm-beach.version>1.2.0-SNAPSHOT</palm-beach.version>
+        <maven.deploy.skip>true</maven.deploy.skip>
         <sonar.language>java</sonar.language>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
