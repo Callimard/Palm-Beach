@@ -26,8 +26,8 @@ import java.util.Vector;
  * {@code SimpleAgent} is manage by the Simulation. In that way it is more simple to manipulate agent because {@link SimpleAgent.AgentIdentifier} is
  * immutable. To simplify, in the documentation of {@code Environment}, agent means {@code AgentIdentifier}.
  * <p>
- * An {@code Environment} can also have {@link Network} which simulate connections between agent in the {@code Environment}. A {@code Network}
- * also simulate {@link Event} sending between agents.
+ * An {@code Environment} can also have {@link Network} which simulate connections between agent in the {@code Environment}. A {@code Network} also
+ * simulate {@link Event} sending between agents.
  * <p>
  * {@code Environment} sub classes must have at least this constructor:
  * <pre>
@@ -87,11 +87,11 @@ public class Environment {
             observers.add(observer);
     }
 
-    protected void notifyAgentAdded(SimpleAgent.AgentIdentifier addedAgent) {
+    protected synchronized void notifyAgentAdded(SimpleAgent.AgentIdentifier addedAgent) {
         observers.forEach(o -> o.environmentAddAgent(addedAgent));
     }
 
-    protected void notifyAgentRemoved(SimpleAgent.AgentIdentifier removedAgent) {
+    protected synchronized void notifyAgentRemoved(SimpleAgent.AgentIdentifier removedAgent) {
         observers.forEach(o -> o.environmentRemoveAgent(removedAgent));
     }
 

@@ -193,12 +193,12 @@ public class NetworkTest {
         }
 
         @Override
-        public boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target) {
+        public boolean hasConnection(SimpleAgent.@NonNull AgentIdentifier source, SimpleAgent.@NonNull AgentIdentifier target) {
             return hasConnectionSupplier == null || hasConnectionSupplier.get();
         }
 
         @Override
-        protected void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event) {
+        protected void simulateSending(SimpleAgent.@NonNull AgentIdentifier source, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Event<?> event) {
             sendingCounter++;
         }
 
@@ -213,7 +213,7 @@ public class NetworkTest {
         }
 
         @Override
-        public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.AgentIdentifier agent) {
+        public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.@NonNull AgentIdentifier agent) {
             return Sets.newHashSet(agent);
         }
     }
