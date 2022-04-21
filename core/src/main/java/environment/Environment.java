@@ -155,7 +155,7 @@ public class Environment {
     }
 
     /**
-     * @return the current set of evolving agent, never returns null.
+     * @return a copy of the current set of evolving agent, never returns null.
      */
     public Set<SimpleAgent.AgentIdentifier> evolvingAgents() {
         return Sets.newHashSet(agents);

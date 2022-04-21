@@ -12,6 +12,7 @@ import scheduler.Scheduler;
 import simulation.PalmBeachSimulation;
 
 import java.util.Random;
+import java.util.Set;
 
 public class FullyConnectedNetwork extends Network {
 
@@ -56,6 +57,11 @@ public class FullyConnectedNetwork extends Network {
     @Override
     public boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target) {
         return getEnvironment().agentIsEvolving(source) && getEnvironment().agentIsEvolving(target);
+    }
+
+    @Override
+    public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.AgentIdentifier agent) {
+        return getEnvironment().evolvingAgents();
     }
 
     /**

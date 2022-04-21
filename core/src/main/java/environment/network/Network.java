@@ -13,6 +13,7 @@ import simulation.PalmBeachSimulation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Set;
 
 /**
  * Simulate a {@code Network}. A {@code Network} represents connection between several {@link SimpleAgent}. Via the {@code Network} it is possible to
@@ -110,6 +111,14 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @return true if from the source, the target agent is reachable, else false.
      */
     public abstract boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target);
+
+    /**
+     * @param agent the agent to verify the connection
+     *
+     * @return a set which contains all {@link SimpleAgent.AgentIdentifier} directly connected to the specified agent. The set is never null and
+     * contains at least the specified agent itself.
+     */
+    public abstract Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.AgentIdentifier agent);
 
     /**
      * Simulate the sending of the {@link Event} from the source to the target.
