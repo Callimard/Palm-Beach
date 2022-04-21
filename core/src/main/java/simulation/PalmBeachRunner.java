@@ -4,6 +4,7 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
 import simulation.configuration.SimulationConfiguration;
+import simulation.exception.RunSimulationErrorException;
 
 import static simulation.configuration.SimulationConfiguration.DEFAULT_SIMULATION_CONFIG_NAME;
 
@@ -15,10 +16,16 @@ public class PalmBeachRunner {
 
     public static final long SIMULATION_WAIT_END_TIMEOUT = 500L;
 
-    public static void main(String[] args) {
-        Config mainConfig = getMainConfig(args);
-        createAndStartSimulation(mainConfig);
-        waitSimulationEnd();
+    public static void main(String[] args) throws RunSimulationErrorException {
+        try {
+            Config mainConfig = getMainConfig(args);
+            createAndStartSimulation(mainConfig);
+            waitSimulationEnd();
+            log.info("END MAIN THREAD");
+        } catch (RunSimulationErrorException e) {
+            log.error("Cannot run Palm Beach Simulation cause to an Error", e);
+            throw e;
+        }
     }
 
     private static Config getMainConfig(String[] args) {
@@ -31,7 +38,7 @@ public class PalmBeachRunner {
         return mainConfig;
     }
 
-    private static void createAndStartSimulation(Config mainConfig) {
+    private static void createAndStartSimulation(Config mainConfig) throws RunSimulationErrorException {
         try {
             SimulationConfiguration simulationConfiguration = new SimulationConfiguration(mainConfig);
             PalmBeachSimulation palmBeachSimulation = simulationConfiguration.generate();
@@ -39,7 +46,7 @@ public class PalmBeachRunner {
             PalmBeachSimulation.setSingletonInstance(palmBeachSimulation);
             PalmBeachSimulation.start();
         } catch (Exception e) {
-            log.error("Cannot run Palm Beach Simulation cause to an Error", e);
+            throw new RunSimulationErrorException(e);
         }
     }
 

@@ -9,10 +9,7 @@ import common.SimpleContext;
 import environment.Environment;
 import event.Event;
 import event.EventCatcher;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import simulation.configuration.BehaviorConfiguration;
 import simulation.configuration.ProtocolConfiguration;
@@ -499,6 +496,7 @@ public class SimpleAgent implements EventCatcher {
     /**
      * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code SimpleAgent} with its name and its unique id.
      */
+    @EqualsAndHashCode(callSuper = false)
     @ToString
     @Getter
     @AllArgsConstructor
@@ -517,18 +515,6 @@ public class SimpleAgent implements EventCatcher {
         private final long uniqueId;
 
         // Methods.
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof SimpleAgentIdentifier that)) return false;
-            return uniqueId == that.uniqueId && agentName.equals(that.agentName);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(agentName, uniqueId);
-        }
 
         /**
          * Generate the next unique id for a {@link SimpleAgent}. If this method is always used to generate {@code SimpleAgent} identifier unique id,

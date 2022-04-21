@@ -13,8 +13,18 @@ import messaging.*;
 import java.io.Serializable;
 import java.util.Set;
 
+/**
+ * Simple broadcast protocol. This algorithm try to broadcast to all {@link SimpleAgent} the specified {@link Message}.
+ * <p>
+ * However, this type of broadcast does not guaranty that all correct agent will receive the {@code Message}. Indeed, if the agent crash during the
+ * broadcast, the broadcast will not be done to all agents in the {@link Network}.
+ * <p>
+ * In addition to this, if the {@code Network} is not fully connected or the {@link Messenger} use by the {@code BestEffortBroadcast} is not able to
+ * send {@code Message} to agent which is not directly connected to the source agent, the {@code Message} will only be received by agent directly
+ * connected to the agent sender.
+ */
 @Slf4j
-public class SimpleBroadcast extends MessageProtocol implements Broadcaster, MessageReceiver.MessageReceiverObserver {
+public class BestEffortBroadcast extends MessageProtocol implements Broadcaster, MessageReceiver.MessageReceiverObserver {
 
     // Variables.
 
@@ -22,7 +32,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
 
     // Constructors.
 
-    public SimpleBroadcast(@NonNull SimpleAgent agent, Context context) {
+    public BestEffortBroadcast(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
     }
 
@@ -30,13 +40,8 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
 
     @Override
     protected void receive(@NonNull Message<? extends Serializable> message) {
-        deliver(message);
-    }
-
-    @Override
-    protected void deliver(@NonNull Message<? extends Serializable> message) {
-        offerMessage(message);
-        notifyMessageDelivery(message);
+        BebMessage broadcastMessage = (BebMessage) message;
+        deliver(broadcastMessage.getContent());
     }
 
     /**
@@ -50,7 +55,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
         if (getAgent().isStarted()) {
             Set<SimpleAgent.AgentIdentifier> agents = network.getEnvironment().evolvingAgents();
             for (SimpleAgent.AgentIdentifier agent : agents) {
-                messenger.sendMessage(new SimpleBroadcastMessage(getAgent().getIdentifier(), message), agent, network);
+                messenger.sendMessage(new BebMessage(getAgent().getIdentifier(), message), agent, network);
             }
         } else
             throw new AgentNotStartedException("Cannot broadcast Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
@@ -60,7 +65,7 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
      * @throws UnsupportedOperationException Broadcast protocol does not send message, use {@link #broadcastMessage(Message, Network)}
      */
     @Override
-    public void sendMessage(@NonNull Message<? extends Serializable> message, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Network network) {
+    public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
         throw new UnsupportedOperationException("Broadcast protocol cannot send message");
     }
 
@@ -88,18 +93,18 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
     }
 
     @Override
-    public void messageDelivery(MessageReceiver msgReceiver, Message<? extends Serializable> msg) {
-        if (msgReceiver != null && msgReceiver.equals(messenger)) {
-            SimpleBroadcastMessage broadcastMessage = (SimpleBroadcastMessage) msg;
-            receive(broadcastMessage.getContent());
+    public void messageDelivery(@NonNull MessageReceiver msgReceiver, Message<? extends Serializable> msg) {
+        if (msgReceiver.equals(messenger)) {
+            receive(msg);
         }
     }
 
     @Override
     public boolean interestedBy(Message<? extends Serializable> msg) {
-        return msg instanceof SimpleBroadcastMessage;
+        return msg instanceof BebMessage;
     }
-// Setters.
+
+    // Setters.
 
     public void setMessenger(@NonNull Messenger messenger) {
         this.messenger = messenger;
@@ -108,9 +113,9 @@ public class SimpleBroadcast extends MessageProtocol implements Broadcaster, Mes
 
     // Inner classes.
 
-    private static class SimpleBroadcastMessage extends Message<Message<? extends Serializable>> {
+    private static class BebMessage extends Message<Message<? extends Serializable>> {
 
-        public SimpleBroadcastMessage(SimpleAgent.@NonNull AgentIdentifier sender, Message<? extends Serializable> content) {
+        public BebMessage(@NonNull SimpleAgent.AgentIdentifier sender, Message<? extends Serializable> content) {
             super(sender, content);
         }
     }

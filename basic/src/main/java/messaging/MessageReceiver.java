@@ -1,6 +1,7 @@
 package messaging;
 
 import event.Event;
+import lombok.NonNull;
 import scheduler.exception.ForcedWakeUpException;
 
 import java.io.Serializable;
@@ -47,8 +48,10 @@ public interface MessageReceiver {
          *
          * @param msgReceiver the {@code MessageReceiver} which has delivered the message
          * @param msg         the {@code Message} delivered
+         *
+         * @throws NullPointerException if msgReceiver is null
          */
-        void messageDelivery(MessageReceiver msgReceiver, Message<? extends Serializable> msg);
+        void messageDelivery(@NonNull MessageReceiver msgReceiver, Message<? extends Serializable> msg);
 
         /**
          * This method ask to the {@link MessageReceiverObserver} is

@@ -75,11 +75,10 @@ public class FullyConnectedNetworkTest {
 
         @Test
         @DisplayName("send() throws IllegalArgumentException if minDelay is greater or equal to maxDelay - 1")
-        void wrongDelay(@Mock SimpleAgent a0, @Mock SimpleAgent.AgentIdentifier i0,
-                        @Mock SimpleAgent a1, @Mock SimpleAgent.AgentIdentifier i1,
+        void wrongDelay(@Mock SimpleAgent.AgentIdentifier i0,@Mock SimpleAgent.AgentIdentifier i1,
                         @Mock Event<?> event) {
-            when(a0.getIdentifier()).thenReturn(i0);
-            when(a1.getIdentifier()).thenReturn(i1);
+            SimpleAgent a0 = new SimpleAgent(i0, null);
+            SimpleAgent a1 = new SimpleAgent(i1, null);
 
             Environment environment = new Environment("envName", null);
             prepareAgentInSimulation(environment, a0, i0, a1, i1);
@@ -95,9 +94,9 @@ public class FullyConnectedNetworkTest {
 
         @Test
         @DisplayName("send() does not throws exception and schedule the process Event at the specified time")
-        void sendIsCorrect(@Mock SimpleAgent a0, @Mock SimpleAgent.AgentIdentifier i0, @Mock SimpleAgent.AgentIdentifier i1, @Mock Event<?> event)
+        void sendIsCorrect(@Mock SimpleAgent.AgentIdentifier i0, @Mock SimpleAgent.AgentIdentifier i1, @Mock Event<?> event)
                 throws InterruptedException {
-            when(a0.getIdentifier()).thenReturn(i0);
+            SimpleAgent a0 = new SimpleAgent(i0, null);
 
             Environment environment = new Environment("envName", null);
             Agent a1 = new Agent(i1, null);
@@ -107,7 +106,6 @@ public class FullyConnectedNetworkTest {
             FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", environment, null);
 
             network.send(i0, i1, event);
-            a1.start();
             PalmBeachSimulation.start();
 
             waitSimulationEnd();
@@ -123,6 +121,9 @@ public class FullyConnectedNetworkTest {
 
             PalmBeachSimulation.addAgent(a0);
             PalmBeachSimulation.addAgent(a1);
+
+            a0.start();
+            a1.start();
         }
 
         private void waitSimulationEnd() throws InterruptedException {

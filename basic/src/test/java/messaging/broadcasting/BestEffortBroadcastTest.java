@@ -27,13 +27,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Nested
-@DisplayName("SimpleBroadcast tests")
-@Tag("SimpleBroadcast")
+@DisplayName("BestEffortBroadcast tests")
+@Tag("BestEffortBroadcast")
 @PalmBeachTest
-public class SimpleBroadcastTest {
+public class BestEffortBroadcastTest {
 
     @Nested
-    @DisplayName("SimpleBroadcast sendMessage()")
+    @DisplayName("BestEffortBroadcast sendMessage()")
     @Tag("sendMessage")
     class SendMessage {
 
@@ -41,13 +41,13 @@ public class SimpleBroadcastTest {
         @DisplayName("sendMessage() throws UnsupportedOperationException")
         void unsupportedOperation(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock SimpleAgent.AgentIdentifier target,
                                   @Mock Network network) {
-            SimpleBroadcast broadcast = new SimpleBroadcast(agent, null);
+            BestEffortBroadcast broadcast = new BestEffortBroadcast(agent, null);
             assertThrows(UnsupportedOperationException.class, () -> broadcast.sendMessage(message, target, network));
         }
     }
 
     @Nested
-    @DisplayName("SimpleBroadcast broadcastMessage()")
+    @DisplayName("BestEffortBroadcast broadcastMessage()")
     @Tag("broadcastMessage")
     @PalmBeachSimulationTest
     class BroadcastMessage {
@@ -55,7 +55,7 @@ public class SimpleBroadcastTest {
         @Test
         @DisplayName("broadcastMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
         void withNotStartedAgent(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock Network network) {
-            SimpleBroadcast broadcast = new SimpleBroadcast(agent, null);
+            BestEffortBroadcast broadcast = new BestEffortBroadcast(agent, null);
             assertThrows(AgentNotStartedException.class, () -> broadcast.broadcastMessage(message, network));
         }
 
@@ -68,19 +68,19 @@ public class SimpleBroadcastTest {
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
             SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
-            SimpleBroadcast b0 = new SimpleBroadcast(a0, null);
+            BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
             SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
-            SimpleBroadcast b1 = new SimpleBroadcast(a1, null);
+            BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
             SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
-            SimpleBroadcast b2 = new SimpleBroadcast(a2, null);
+            BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);
             a2.addProtocol(b2);
@@ -119,7 +119,7 @@ public class SimpleBroadcastTest {
     }
 
     @Nested
-    @DisplayName("SimpleBroadcast nextMessage()")
+    @DisplayName("BestEffortBroadcast nextMessage()")
     @Tag("nextMessage")
     @PalmBeachSimulationTest
     class NextMessage {
@@ -134,19 +134,19 @@ public class SimpleBroadcastTest {
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
             SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
-            SimpleBroadcast b0 = new SimpleBroadcast(a0, null);
+            BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
             SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
-            SimpleBroadcast b1 = new SimpleBroadcast(a1, null);
+            BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
             SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
-            SimpleBroadcast b2 = new SimpleBroadcast(a2, null);
+            BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);
             a2.addProtocol(b2);

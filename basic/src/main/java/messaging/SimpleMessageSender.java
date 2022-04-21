@@ -11,7 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.Serializable;
 
 /**
- * Protocol used to send and receive {@link Message}.
+ * Protocol used to send and receive {@link Message}. This protocol can only send message to agent which are directly connected.
  */
 @Slf4j
 public class SimpleMessageSender extends MessageProtocol {
@@ -37,12 +37,6 @@ public class SimpleMessageSender extends MessageProtocol {
     @Override
     protected void receive(@NonNull Message<? extends Serializable> message) {
         deliver(message);
-    }
-
-    @Override
-    protected void deliver(@NonNull Message<? extends Serializable> message) {
-        offerMessage(message);
-        notifyMessageDelivery(message);
     }
 
     @Override

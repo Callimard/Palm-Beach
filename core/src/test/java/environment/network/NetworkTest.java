@@ -4,6 +4,7 @@ import agent.SimpleAgent;
 import common.Context;
 import environment.Environment;
 import event.Event;
+import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import lombok.Getter;
 import lombok.NonNull;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import simulation.PalmBeachSimulation;
 
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -117,12 +119,36 @@ public class NetworkTest {
     @Nested
     @DisplayName("Network send()")
     @Tag("send")
+    @PalmBeachSimulationTest
     class Send {
 
         @Test
-        @DisplayName("send() do nothing if source and target are not connected")
+        @DisplayName("send() do nothing if the source is not stared even they are connected")
+        void notStartedSource(@Mock SimpleAgent.AgentIdentifier source, @Mock SimpleAgent.AgentIdentifier target,
+                              @Mock Environment environment, @Mock Event<?> event) {
+            SimpleAgent aSource = new SimpleAgent(source, null);
+            SimpleAgent aTarget = new SimpleAgent(target, null);
+
+            PalmBeachSimulation.addAgent(aSource);
+            PalmBeachSimulation.addAgent(aTarget);
+
+            BasicNetwork network = new BasicNetwork("name", environment, null);
+            network.setHasConnectionSupplier(() -> true);
+            network.send(source, target, event);
+
+            assertThat(network.getSendingCounter()).isEqualByComparingTo(0);
+        }
+
+        @Test
+        @DisplayName("send() do nothing if source and target are not connected but source is started")
         void notConnectedAgent(@Mock SimpleAgent.AgentIdentifier source, @Mock SimpleAgent.AgentIdentifier target,
                                @Mock Environment environment, @Mock Event<?> event) {
+            SimpleAgent aSource = new SimpleAgent(source, null);
+            SimpleAgent aTarget = new SimpleAgent(target, null);
+
+            PalmBeachSimulation.addAgent(aSource);
+            PalmBeachSimulation.addAgent(aTarget);
+
             BasicNetwork network = new BasicNetwork("name", environment, null);
             network.setHasConnectionSupplier(() -> false);
             network.send(source, target, event);
@@ -131,9 +157,17 @@ public class NetworkTest {
         }
 
         @Test
-        @DisplayName("send() call simulateSending() one times if source and target are connected")
+        @DisplayName("send() call simulateSending() one times if source and target are connected and source is started")
         void connectedAgent(@Mock SimpleAgent.AgentIdentifier source, @Mock SimpleAgent.AgentIdentifier target,
                             @Mock Environment environment, @Mock Event<?> event) {
+            SimpleAgent aSource = new SimpleAgent(source, null);
+            SimpleAgent aTarget = new SimpleAgent(target, null);
+
+            PalmBeachSimulation.addAgent(aSource);
+            PalmBeachSimulation.addAgent(aTarget);
+
+            aSource.start();
+
             BasicNetwork network = new BasicNetwork("name", environment, null);
             network.setHasConnectionSupplier(() -> true);
             network.send(source, target, event);
