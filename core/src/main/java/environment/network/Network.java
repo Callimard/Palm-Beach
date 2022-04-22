@@ -7,12 +7,14 @@ import environment.Environment;
 import event.Event;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import simulation.PalmBeachSimulation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -123,10 +125,14 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * contains at least the specified agent itself.
      *
      * @throws NotInNetworkException if the agent is not in network
-     *
-     * @throws NullPointerException if agent is null
+     * @throws NullPointerException  if agent is null
      */
     public abstract Set<SimpleAgent.AgentIdentifier> agentDirectConnections(@NonNull SimpleAgent.AgentIdentifier agent);
+
+    /**
+     * @return the set of all {@link Connection}, never returns null.
+     */
+    public abstract Set<Connection> allConnections();
 
     /**
      * Simulate the sending of the {@link Event} from the source to the target.
@@ -139,6 +145,70 @@ public abstract class Network implements Environment.EnvironmentObserver {
      */
     protected abstract void simulateSending(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
                                             @NonNull Event<?> event);
+
+    // Inner classes.
+
+    @ToString
+    @RequiredArgsConstructor
+    public abstract static class Connection {
+
+        // Variables.
+
+        @NonNull
+        @Getter
+        private final SimpleAgent.AgentIdentifier a0;
+
+        @Getter
+        private final SimpleAgent.AgentIdentifier a1;
+
+        // Constructors.
+
+        protected Connection(@NonNull SimpleAgent.AgentIdentifier a0) {
+            this(a0, null);
+        }
+
+        // Methods.
+
+        @Override
+        public abstract boolean equals(Object o);
+
+        @Override
+        public abstract int hashCode();
+
+        public boolean isSelfConnection() {
+            return a0.equals(a1) || a1 == null;
+        }
+    }
+
+    public static class NonOrientedConnection extends Connection {
+
+        // Constructors.
+
+        public NonOrientedConnection(@NonNull SimpleAgent.AgentIdentifier a0, SimpleAgent.AgentIdentifier a1) {
+            super(a0, a1);
+        }
+
+        // Methods.
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof NonOrientedConnection that)) return false;
+            return getA0().equals(that.getA0()) && Objects.equals(getA1(), that.getA1()) ||
+                    getA0().equals(that.getA1()) && getA1().equals(that.getA0());
+        }
+
+        @Override
+        public int hashCode() {
+            int h0 = Objects.hash(getA0());
+            int h1 = Objects.hash(getA1());
+
+            if (h0 < h1)
+                return Objects.hash(getA0(), getA1());
+            else
+                return Objects.hash(getA1(), getA0());
+        }
+    }
 
     // Exceptions.
 

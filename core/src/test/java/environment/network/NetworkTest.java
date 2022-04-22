@@ -32,6 +32,77 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class NetworkTest {
 
     @Nested
+    @DisplayName("Network NonOrientedConnection tests")
+    @Tag("NonOrientedConnection")
+    class NonOrientedConnectionTest {
+
+        @Nested
+        @DisplayName("NonOrientedConnection isSelfConnection()")
+        @Tag("isSelfConnection")
+        class IsSelfConnection {
+
+            @Test
+            @DisplayName("isSelfConnection() returns true with null or equal a1")
+            void withNullOrEqualAgentOne(@Mock SimpleAgent.AgentIdentifier a0) {
+                Network.NonOrientedConnection c0 = new Network.NonOrientedConnection(a0, null);
+                Network.NonOrientedConnection c1 = new Network.NonOrientedConnection(a0, a0);
+
+                assertThat(c0.isSelfConnection()).isTrue();
+                assertThat(c1.isSelfConnection()).isTrue();
+            }
+        }
+
+        @Nested
+        @DisplayName("NonOrientedConnection equals()")
+        @Tag("equals")
+        class Equals {
+
+            @Test
+            @DisplayName("equals() returns true with two equal connections")
+            void withSameAgents(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1) {
+                Network.NonOrientedConnection c0 = new Network.NonOrientedConnection(a0, a1);
+                Network.NonOrientedConnection c1 = new Network.NonOrientedConnection(a0, a1);
+
+                assertThat(c0).isEqualTo(c1);
+            }
+
+            @Test
+            @DisplayName("equals() returns true with two connection with equals a0 and a1 reversed")
+            void withReversedConnection(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1) {
+                Network.NonOrientedConnection c0 = new Network.NonOrientedConnection(a0, a1);
+                Network.NonOrientedConnection c1 = new Network.NonOrientedConnection(a1, a0);
+
+                assertThat(c0).isEqualTo(c1);
+            }
+
+            @Test
+            @DisplayName("equals() returns false with connection with different agens")
+            void withDifferentAgent(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1,
+                                    @Mock SimpleAgent.AgentIdentifier a2) {
+                Network.NonOrientedConnection c0 = new Network.NonOrientedConnection(a0, a1);
+                Network.NonOrientedConnection c1 = new Network.NonOrientedConnection(a0, a2);
+
+                assertThat(c0).isNotEqualTo(c1);
+            }
+        }
+
+        @Nested
+        @DisplayName("NonOrientedConnection hashCode()")
+        @Tag("hashCode")
+        class HashCode {
+
+            @Test
+            @DisplayName("hashCode() returns same value for equals connection")
+            void withEqualsConnections(@Mock SimpleAgent.AgentIdentifier a0, @Mock SimpleAgent.AgentIdentifier a1) {
+                Network.NonOrientedConnection c0 = new Network.NonOrientedConnection(a0, a1);
+                Network.NonOrientedConnection c1 = new Network.NonOrientedConnection(a1, a0);
+
+                assertThat(c0.hashCode()).isEqualByComparingTo(c1.hashCode());
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("Network constructor")
     @Tag("constructor")
     class Constructor {
@@ -198,7 +269,8 @@ public class NetworkTest {
         }
 
         @Override
-        protected void simulateSending(SimpleAgent.@NonNull AgentIdentifier source, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Event<?> event) {
+        protected void simulateSending(SimpleAgent.@NonNull AgentIdentifier source, SimpleAgent.@NonNull AgentIdentifier target,
+                                       @NonNull Event<?> event) {
             sendingCounter++;
         }
 
@@ -210,6 +282,11 @@ public class NetworkTest {
         @Override
         public void environmentRemoveAgent(SimpleAgent.AgentIdentifier removedAgent) {
             // Nothing
+        }
+
+        @Override
+        public Set<Connection> allConnections() {
+            return Sets.newHashSet();
         }
 
         @Override
