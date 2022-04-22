@@ -1,12 +1,15 @@
 package network;
 
 import agent.SimpleAgent;
+import com.google.common.collect.Sets;
 import common.Context;
 import environment.Environment;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Set;
 
+@Slf4j
 public class FullyConnectedNetwork extends NetworkWithDelay {
 
     // Constructors.
@@ -46,5 +49,21 @@ public class FullyConnectedNetwork extends NetworkWithDelay {
             return getEnvironment().evolvingAgents();
         else
             throw new NotInNetworkException("Agent " + agent + " is not in the Network " + this);
+    }
+
+    @Override
+    public Set<Connection> allConnections() {
+        Set<SimpleAgent.AgentIdentifier> alreadySeen = Sets.newHashSet();
+        Set<Connection> allConnections = Sets.newHashSet();
+        for (SimpleAgent.AgentIdentifier a0 : getEnvironment().evolvingAgents()) {
+            for (SimpleAgent.AgentIdentifier a1 : getEnvironment().evolvingAgents()) {
+                if (!alreadySeen.contains(a1)) {
+                    Connection connection = new NonOrientedConnection(a0, a1);
+                    allConnections.add(connection);
+                }
+            }
+            alreadySeen.add(a0);
+        }
+        return allConnections;
     }
 }

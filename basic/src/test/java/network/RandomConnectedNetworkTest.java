@@ -8,6 +8,7 @@ import common.SimpleContext;
 import environment.Environment;
 import environment.network.Network;
 import junit.PalmBeachTest;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -185,6 +186,29 @@ public class RandomConnectedNetworkTest {
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", env, null);
 
             assertThrows(Network.NotInNetworkException.class, () -> network.agentDirectConnections(i0));
+        }
+    }
+
+    @Nested
+    @DisplayName("RandomConnectedNetwork allConnections()")
+    @Tag("allConnections")
+    class AllConnections {
+
+        @ParameterizedTest
+        @ValueSource(ints = {5, 50, 75, 150, 900})
+        @DisplayName("allConnections() returns all connections")
+        void returnsAllConnections(int n) {
+            Environment environment = new Environment("env", null);
+            RandomConnectedNetwork network = new RandomConnectedNetwork("net", environment, null);
+            for (int i = 0; i < n; i++) {
+                environment.addAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i));
+            }
+
+            int nbCon = network.connectionNumber();
+
+            Set<Network.Connection> allConnections = network.allConnections();
+            assertThat(allConnections.stream().filter(Network.Connection::isSelfConnection)).hasSize(n);
+            assertThat(allConnections).isNotNull().hasSize((((nbCon + 1) * (nbCon + 2)) / 2) + (n - (nbCon + 1)) * (nbCon + 1));
         }
     }
 

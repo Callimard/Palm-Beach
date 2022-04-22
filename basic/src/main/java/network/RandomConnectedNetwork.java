@@ -10,7 +10,6 @@ import environment.Environment;
 import environment.network.Network;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
-import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -97,6 +96,25 @@ public class RandomConnectedNetwork extends NetworkWithDelay {
             return connectedAgent;
         } else
             throw new NotInNetworkException("Agent " + agent + " is not in the Network " + this);
+    }
+
+    @Override
+    public Set<Connection> allConnections() {
+        Set<SimpleAgent.AgentIdentifier> alreadySeen = Sets.newHashSet();
+        Set<Connection> allConnections = Sets.newHashSet();
+
+        for (SimpleAgent.AgentIdentifier a0 : mainConnectionGroup.agents) {
+            Set<SimpleAgent.AgentIdentifier> connectedAgents = mainConnectionGroup.connections.get(a0);
+            for (SimpleAgent.AgentIdentifier a1 : connectedAgents) {
+                if (!alreadySeen.contains(a1)) {
+                    allConnections.add(new NonOrientedConnection(a0, a1));
+                }
+            }
+            allConnections.add(new NonOrientedConnection(a0, a0));
+            alreadySeen.add(a0);
+        }
+
+        return allConnections;
     }
 
     // Getters and setters.

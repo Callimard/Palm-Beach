@@ -10,6 +10,7 @@ import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -19,6 +20,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import simulation.PalmBeachSimulation;
 
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,6 +31,7 @@ import static org.mockito.Mockito.when;
 @DisplayName("FullyConnectedNetwork tests")
 @Tag("FullyConnectedNetwork")
 @PalmBeachTest
+@Slf4j
 public class FullyConnectedNetworkTest {
 
     @Nested
@@ -132,6 +135,29 @@ public class FullyConnectedNetworkTest {
             FullyConnectedNetwork network = new FullyConnectedNetwork("net", env, null);
 
             assertThrows(Network.NotInNetworkException.class, () -> network.agentDirectConnections(i0));
+        }
+    }
+
+    @Nested
+    @DisplayName("FullyConnectedNetwork allConnections()")
+    @Tag("allConnections")
+    class AllConnections {
+
+        @ParameterizedTest
+        @ValueSource(ints = {1, 2, 3, 5, 50, 75, 150})
+        @DisplayName("allConnections() returns all connections")
+        void returnsAllConnections(int n) {
+            Environment environment = new Environment("env", null);
+            FullyConnectedNetwork network = new FullyConnectedNetwork("net", environment, null);
+            for (int i = 0; i < n; i++) {
+                environment.addAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i));
+            }
+
+            long l1 = System.currentTimeMillis();
+            Set<Network.Connection> allConnections = network.allConnections();
+            log.info("Time = {} ms", System.currentTimeMillis() - l1);
+
+            assertThat(allConnections).isNotNull().hasSize(((n * (n + 1)) / 2));
         }
     }
 
