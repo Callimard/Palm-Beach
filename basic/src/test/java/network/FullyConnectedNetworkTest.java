@@ -4,6 +4,7 @@ import agent.SimpleAgent;
 import common.Context;
 import common.SimpleContext;
 import environment.Environment;
+import environment.network.Network;
 import event.Event;
 import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
@@ -13,12 +14,15 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import simulation.PalmBeachSimulation;
 
+import java.util.concurrent.atomic.AtomicReference;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
 @Nested
@@ -26,6 +30,42 @@ import static org.mockito.Mockito.when;
 @Tag("FullyConnectedNetwork")
 @PalmBeachTest
 public class FullyConnectedNetworkTest {
+
+    @Nested
+    @DisplayName("FullyConnectedNetwork constructor()")
+    @Tag("constructor")
+    class Constructor {
+
+        @ParameterizedTest
+        @ValueSource(longs = {-16516, -6135, -1, 0})
+        @DisplayName("constructor() throws IllegalArgumentException if the maxDelay set in context is less than 1")
+        void withWrongMinDelay(long minDelay, @Mock Environment environment) {
+            Context context = new SimpleContext();
+            context.map(FullyConnectedNetwork.MIN_SENDING_DELAY, minDelay);
+
+            assertThrows(IllegalArgumentException.class, () -> new FullyConnectedNetwork("FullyConnectedNetwork", environment, context));
+        }
+
+        @ParameterizedTest
+        @ValueSource(longs = {-16516, -6135, -1, 0})
+        @DisplayName("constructor() throws IllegalArgumentException if the maxDelay set in context is less than 1")
+        void withWrongMaxDelay(long maxDelay, @Mock Environment environment) {
+            Context context = new SimpleContext();
+            context.map(FullyConnectedNetwork.MAX_SENDING_DELAY, maxDelay);
+
+            assertThrows(IllegalArgumentException.class, () -> new FullyConnectedNetwork("FullyConnectedNetwork", environment, context));
+        }
+
+        @Test
+        @DisplayName("constructor() does not throw exception and set default value with null context")
+        void withNullContext(@Mock Environment environment) {
+            AtomicReference<FullyConnectedNetwork> network = new AtomicReference<>();
+
+            assertDoesNotThrow(() -> network.set(new FullyConnectedNetwork("FullyConnectedNetwork", environment, null)));
+            assertThat(network.get().minDelay()).isEqualTo(FullyConnectedNetwork.DEFAULT_MIN_DELAY);
+            assertThat(network.get().maxDelay()).isEqualTo(FullyConnectedNetwork.DEFAULT_MAX_DELAY);
+        }
+    }
 
     @Nested
     @DisplayName("FullyConnectedNetwork hasConnection()")
@@ -83,6 +123,15 @@ public class FullyConnectedNetworkTest {
 
             assertThat(network.agentDirectConnections(a0)).containsAll(env.evolvingAgents());
             assertThat(network.agentDirectConnections(a1)).containsAll(env.evolvingAgents());
+        }
+
+        @Test
+        @DisplayName("agentDirectConnections() throws NotInNetworkException if agent is not in network")
+        void throwsException(@Mock SimpleAgent.AgentIdentifier i0) {
+            Environment env = new Environment("env", null);
+            FullyConnectedNetwork network = new FullyConnectedNetwork("net", env, null);
+
+            assertThrows(Network.NotInNetworkException.class, () -> network.agentDirectConnections(i0));
         }
     }
 
@@ -187,17 +236,6 @@ public class FullyConnectedNetworkTest {
         }
 
         @Test
-        @DisplayName("minDelay() throws IllegalArgumentException if the minDelay set in context is less than 1")
-        void withWrongValue(@Mock Environment environment) {
-            Context context = new SimpleContext();
-            context.map(FullyConnectedNetwork.MIN_SENDING_DELAY, -1L);
-
-            FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", environment, context);
-
-            assertThrows(IllegalArgumentException.class, network::minDelay);
-        }
-
-        @Test
         @DisplayName("minDelay() returns the value set in the context")
         void withContext(@Mock Environment environment) {
             long minDelay = 188L;
@@ -239,17 +277,6 @@ public class FullyConnectedNetworkTest {
             FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", environment, null);
 
             assertThat(network.maxDelay()).isEqualTo(FullyConnectedNetwork.DEFAULT_MAX_DELAY);
-        }
-
-        @Test
-        @DisplayName("maxDelay() throws IllegalArgumentException if the maxDelay set in context is less than 1")
-        void withWrongValue(@Mock Environment environment) {
-            Context context = new SimpleContext();
-            context.map(FullyConnectedNetwork.MAX_SENDING_DELAY, -1L);
-
-            FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", environment, context);
-
-            assertThrows(IllegalArgumentException.class, network::maxDelay);
         }
 
         @Test

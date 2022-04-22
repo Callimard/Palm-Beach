@@ -70,7 +70,7 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @throws InvocationTargetException if the constructor has thrown an exception
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
-     * @throws NullPointerException      if networkClass or networkName is null
+     * @throws NullPointerException      if networkClass, networkName or environment is null
      */
     public static Network initiateNetwork(@NonNull Class<? extends Network> networkClass,
                                           @NonNull String networkName,
@@ -89,6 +89,8 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param source the source agent
      * @param target the target agent
      * @param event  the event to send
+     *
+     * @throws NullPointerException if source, target or event is null
      */
     public final synchronized void send(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
                                         @NonNull Event<?> event) {
@@ -109,16 +111,22 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param target the target agent
      *
      * @return true if from the source, the target agent is reachable, else false.
+     *
+     * @throws NullPointerException if source or target is null
      */
-    public abstract boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target);
+    public abstract boolean hasConnection(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target);
 
     /**
      * @param agent the agent to verify the connection
      *
      * @return a set which contains all {@link SimpleAgent.AgentIdentifier} directly connected to the specified agent. The set is never null and
      * contains at least the specified agent itself.
+     *
+     * @throws NotInNetworkException if the agent is not in network
+     *
+     * @throws NullPointerException if agent is null
      */
-    public abstract Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.AgentIdentifier agent);
+    public abstract Set<SimpleAgent.AgentIdentifier> agentDirectConnections(@NonNull SimpleAgent.AgentIdentifier agent);
 
     /**
      * Simulate the sending of the {@link Event} from the source to the target.
@@ -126,6 +134,17 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param source the source agent
      * @param target the target agent
      * @param event  the event
+     *
+     * @throws NullPointerException if source, target or event is null
      */
-    protected abstract void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event);
+    protected abstract void simulateSending(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
+                                            @NonNull Event<?> event);
+
+    // Exceptions.
+
+    public static class NotInNetworkException extends RuntimeException {
+        public NotInNetworkException(String s) {
+            super(s);
+        }
+    }
 }
