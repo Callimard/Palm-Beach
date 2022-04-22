@@ -30,6 +30,30 @@ public interface Context {
      */
     Object getValue(String key);
 
+    default void setInt(String key, int value) {
+        map(key, value);
+    }
+
+    default int getInt(String key) {
+        return (int) getValue(key);
+    }
+
+    default void setLong(String key, long value) {
+        map(key, value);
+    }
+
+    default long getLong(String key) {
+        return (long) getValue(key);
+    }
+
+    default void setString(String key, String value) {
+        map(key, value);
+    }
+
+    default String getString(String key) {
+        return (String) getValue(key);
+    }
+
     /**
      * @return true if there is no mapping value on the context.
      */
