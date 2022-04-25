@@ -10,7 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>basic</artifactId>
-    <version>${palm-beach.version}</version>
+    <version>${palm-beach.basic.version}</version>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -22,7 +22,7 @@
         <dependency>
             <groupId>org.palm-beach</groupId>
             <artifactId>core</artifactId>
-            <version>${palm-beach.version}</version>
+            <version>${palm-beach.core.version}</version>
         </dependency>
     </dependencies>
 

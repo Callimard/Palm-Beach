@@ -23,12 +23,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import static junit.PalmBeachSimulationTestExtension.waitSimulationEnd;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 @Nested
 @DisplayName("SimpleMessageSender tests")
 @Tag("SimpleMessageSender")
 @PalmBeachTest
-public class SimpleMessageSenderTest {
+public class SimpleMessengerTest {
 
     @Nested
     @DisplayName("SimpleMessageSender sendMessage()")
@@ -40,7 +41,11 @@ public class SimpleMessageSenderTest {
         @DisplayName("sendMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
         void withNotStartedAgent(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock SimpleAgent.AgentIdentifier target,
                                  @Mock Network network) {
-            SimpleMessageSender messageSender = new SimpleMessageSender(agent, null);
+            when(agent.getIdentifier()).thenReturn(target);
+            when(agent.isStarted()).thenReturn(false);
+            PalmBeachSimulation.addAgent(agent);
+
+            SimpleMessenger messageSender = new SimpleMessenger(agent, null);
             assertThrows(AgentNotStartedException.class, () -> messageSender.sendMessage(message, target, network));
         }
 
@@ -51,10 +56,10 @@ public class SimpleMessageSenderTest {
             SimpleAgent a0 = new SimpleAgent(i0, null);
             SimpleAgent a1 = new SimpleAgent(i1, null);
 
-            SimpleMessageSender s0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger s0 = new SimpleMessenger(a0, null);
             a0.addProtocol(s0);
 
-            SimpleMessageSender s1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger s1 = new SimpleMessenger(a1, null);
             a1.addProtocol(s1);
 
             PalmBeachSimulation.addAgent(a0);
@@ -95,10 +100,10 @@ public class SimpleMessageSenderTest {
             SimpleAgent a0 = new SimpleAgent(i0, null);
             SimpleAgent a1 = new SimpleAgent(i1, null);
 
-            SimpleMessageSender s0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger s0 = new SimpleMessenger(a0, null);
             a0.addProtocol(s0);
 
-            SimpleMessageSender s1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger s1 = new SimpleMessenger(a1, null);
             a1.addProtocol(s1);
 
             PalmBeachSimulation.addAgent(a0);

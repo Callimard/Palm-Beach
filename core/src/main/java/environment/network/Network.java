@@ -1,6 +1,7 @@
 package environment.network;
 
 import agent.SimpleAgent;
+import agent.exception.AgentNotStartedException;
 import common.Context;
 import common.SimpleContext;
 import environment.Environment;
@@ -102,7 +103,7 @@ public abstract class Network implements Environment.EnvironmentObserver {
             else
                 log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
         } else
-            log.debug("Agent source is not STARTED -> cannot send via the Network {}", this);
+            throw new AgentNotStartedException("Cannot send Message, Agent " + source + " is not in STARTED state");
     }
 
     /**
@@ -127,7 +128,7 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @throws NotInNetworkException if the agent is not in network
      * @throws NullPointerException  if agent is null
      */
-    public abstract Set<SimpleAgent.AgentIdentifier> agentDirectConnections(@NonNull SimpleAgent.AgentIdentifier agent);
+    public abstract Set<SimpleAgent.AgentIdentifier> directNeighbors(@NonNull SimpleAgent.AgentIdentifier agent);
 
     /**
      * @return the set of all {@link Connection}, never returns null.

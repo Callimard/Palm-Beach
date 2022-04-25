@@ -124,8 +124,8 @@ public class FullyConnectedNetworkTest {
 
             FullyConnectedNetwork network = new FullyConnectedNetwork("FullyConnectedNetwork", env, null);
 
-            assertThat(network.agentDirectConnections(a0)).containsAll(env.evolvingAgents());
-            assertThat(network.agentDirectConnections(a1)).containsAll(env.evolvingAgents());
+            assertThat(network.directNeighbors(a0)).containsAll(env.evolvingAgents());
+            assertThat(network.directNeighbors(a1)).containsAll(env.evolvingAgents());
         }
 
         @Test
@@ -134,7 +134,7 @@ public class FullyConnectedNetworkTest {
             Environment env = new Environment("env", null);
             FullyConnectedNetwork network = new FullyConnectedNetwork("net", env, null);
 
-            assertThrows(Network.NotInNetworkException.class, () -> network.agentDirectConnections(i0));
+            assertThrows(Network.NotInNetworkException.class, () -> network.directNeighbors(i0));
         }
     }
 
