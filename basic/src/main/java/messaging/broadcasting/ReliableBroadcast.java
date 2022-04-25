@@ -1,7 +1,6 @@
 package messaging.broadcasting;
 
 import agent.SimpleAgent;
-import agent.exception.AgentNotStartedException;
 import com.google.common.collect.Sets;
 import common.Context;
 import environment.network.Network;
@@ -42,11 +41,11 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
 
     @Override
     protected void receive(@NonNull Message<? extends Serializable> message) {
-        ReliableBroadcastMessage bebMsg = (ReliableBroadcastMessage) message;
-        if (!alreadyReceived(bebMsg)) {
-            bebMsgReceived.add(bebMsg);
-            broadcaster.broadcastMessage(bebMsg, bebMsg.network);
-            deliver(bebMsg.getContent());
+        ReliableBroadcastMessage rbMsg = (ReliableBroadcastMessage) message;
+        if (!alreadyReceived(rbMsg)) {
+            bebMsgReceived.add(rbMsg);
+            broadcaster.broadcastMessage(rbMsg, rbMsg.groupMembership, rbMsg.network);
+            deliver(rbMsg.getContent());
         }
     }
 
@@ -67,11 +66,11 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
     }
 
     @Override
-    public void broadcastMessage(@NonNull Message<? extends Serializable> message, Network network) {
-        if (getAgent().isStarted()) {
-            broadcaster.broadcastMessage(new ReliableBroadcastMessage(getAgent().getIdentifier(), msgId++, network, message), network);
-        } else
-            throw new AgentNotStartedException("Cannot broadcast Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
+    public void broadcastMessage(@NonNull Message<? extends Serializable> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
+                                 @NonNull Network network) {
+        broadcaster.broadcastMessage(
+                new ReliableBroadcastMessage(getAgent().getIdentifier(), msgId++, Sets.newHashSet(groupMembership), network, message),
+                groupMembership, network);
     }
 
     @Override
@@ -120,12 +119,16 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
 
         private final long id;
 
+        private final Set<SimpleAgent.AgentIdentifier> groupMembership;
+
         private final transient Network network;
 
-        public ReliableBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, long id, @NonNull Network network,
+        public ReliableBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, long id,
+                                        @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership, @NonNull Network network,
                                         Message<? extends Serializable> content) {
             super(sender, content);
             this.id = id;
+            this.groupMembership = groupMembership;
             this.network = network;
         }
     }

@@ -2,11 +2,13 @@ package messaging.broadcasting;
 
 import agent.SimpleAgent;
 import agent.exception.AgentNotStartedException;
+import com.google.common.collect.Sets;
 import environment.Environment;
 import environment.network.Network;
 import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import messaging.Message;
+import messaging.Messenger;
 import messaging.SimpleMessenger;
 import network.FullyConnectedNetwork;
 import org.junit.jupiter.api.DisplayName;
@@ -20,6 +22,7 @@ import simulation.PalmBeachSimulation;
 import test_tools.SupplierExecutable;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.PalmBeachSimulationTestExtension.waitSimulationEnd;
@@ -54,9 +57,21 @@ public class ReliableBroadcastTest {
 
         @Test
         @DisplayName("broadcastMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
-        void withNotStartedAgent(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock Network network) {
-            ReliableBroadcast broadcast = new ReliableBroadcast(agent, null);
-            assertThrows(AgentNotStartedException.class, () -> broadcast.broadcastMessage(message, network));
+        void withNotStartedAgent() {
+            SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier("Agent", 0), null);
+            Message<String> message = new Message<>(agent.getIdentifier(), "Hello");
+            Environment env = new Environment("env", null);
+            Network network = new FullyConnectedNetwork("net", env, null);
+            Messenger messenger = new SimpleMessenger(agent, null);
+            BestEffortBroadcast broadcaster = new BestEffortBroadcast(agent, null);
+            broadcaster.setMessenger(messenger);
+
+            PalmBeachSimulation.addAgent(agent);
+
+            ReliableBroadcast rb = new ReliableBroadcast(agent, null);
+            rb.setBroadcaster(broadcaster);
+            Set<SimpleAgent.AgentIdentifier> groupMembership = Sets.newHashSet();
+            assertThrows(AgentNotStartedException.class, () -> rb.broadcastMessage(message, groupMembership, network));
         }
 
         @Test
@@ -112,7 +127,7 @@ public class ReliableBroadcastTest {
             a2.start();
 
             Message<String> mString = new Message<>(i0, "msg");
-            rb0.broadcastMessage(mString, network);
+            rb0.broadcastMessage(mString, env.evolvingAgents(), network);
 
             PalmBeachSimulation.start();
 
@@ -194,7 +209,8 @@ public class ReliableBroadcastTest {
             SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) rb2.nextMessage()));
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception1, Scheduler.NEXT_STEP);
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception2, Scheduler.NEXT_STEP + 50L);
-            PalmBeachSimulation.scheduler().scheduleOnce(() -> rb0.broadcastMessage(mString, network), Scheduler.NEXT_STEP + 255L);
+            PalmBeachSimulation.scheduler().scheduleOnce(() -> rb0.broadcastMessage(mString, env.evolvingAgents(), network),
+                                                         Scheduler.NEXT_STEP + 255L);
 
             PalmBeachSimulation.start();
 

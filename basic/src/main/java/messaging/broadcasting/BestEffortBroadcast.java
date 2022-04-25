@@ -1,7 +1,6 @@
 package messaging.broadcasting;
 
 import agent.SimpleAgent;
-import agent.exception.AgentNotStartedException;
 import agent.protocol.Protocol;
 import common.Context;
 import environment.network.Network;
@@ -44,25 +43,17 @@ public class BestEffortBroadcast extends MessageProtocol implements Broadcaster,
         deliver(broadcastMessage.getContent());
     }
 
-    /**
-     * @param message the message to broadcast
-     * @param network the network across the message is broadcast
-     *
-     * @throws AgentNotStartedException if the Agent is not in the STARTED state
-     */
     @Override
-    public void broadcastMessage(@NonNull Message<? extends Serializable> message, Network network) {
-        if (getAgent().isStarted()) {
-            Set<SimpleAgent.AgentIdentifier> agents = network.getEnvironment().evolvingAgents();
-            for (SimpleAgent.AgentIdentifier agent : agents) {
-                messenger.sendMessage(new BebMessage(getAgent().getIdentifier(), message), agent, network);
-            }
-        } else
-            throw new AgentNotStartedException("Cannot broadcast Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
+    public void broadcastMessage(@NonNull Message<? extends Serializable> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
+                                 @NonNull Network network) {
+        groupMembership.add(getAgent().getIdentifier());
+        for (SimpleAgent.AgentIdentifier agent : groupMembership) {
+            messenger.sendMessage(new BebMessage(getAgent().getIdentifier(), message), agent, network);
+        }
     }
 
     /**
-     * @throws UnsupportedOperationException Broadcast protocol does not send message, use {@link #broadcastMessage(Message, Network)}
+     * @throws UnsupportedOperationException Broadcast protocol does not send message, use {@link #broadcastMessage(Message, Set, Network)}
      */
     @Override
     public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
