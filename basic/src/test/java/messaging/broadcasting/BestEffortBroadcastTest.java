@@ -2,12 +2,14 @@ package messaging.broadcasting;
 
 import agent.SimpleAgent;
 import agent.exception.AgentNotStartedException;
+import com.google.common.collect.Sets;
 import environment.Environment;
 import environment.network.Network;
 import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import messaging.Message;
-import messaging.SimpleMessageSender;
+import messaging.Messenger;
+import messaging.SimpleMessenger;
 import network.FullyConnectedNetwork;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,6 +22,7 @@ import simulation.PalmBeachSimulation;
 import test_tools.SupplierExecutable;
 
 import java.io.Serializable;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static junit.PalmBeachSimulationTestExtension.waitSimulationEnd;
@@ -27,13 +30,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Nested
-@DisplayName("SimpleBroadcast tests")
-@Tag("SimpleBroadcast")
+@DisplayName("BestEffortBroadcast tests")
+@Tag("BestEffortBroadcast")
 @PalmBeachTest
-public class SimpleBroadcastTest {
+public class BestEffortBroadcastTest {
 
     @Nested
-    @DisplayName("SimpleBroadcast sendMessage()")
+    @DisplayName("BestEffortBroadcast sendMessage()")
     @Tag("sendMessage")
     class SendMessage {
 
@@ -41,22 +44,32 @@ public class SimpleBroadcastTest {
         @DisplayName("sendMessage() throws UnsupportedOperationException")
         void unsupportedOperation(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock SimpleAgent.AgentIdentifier target,
                                   @Mock Network network) {
-            SimpleBroadcast broadcast = new SimpleBroadcast(agent, null);
+            BestEffortBroadcast broadcast = new BestEffortBroadcast(agent, null);
             assertThrows(UnsupportedOperationException.class, () -> broadcast.sendMessage(message, target, network));
         }
     }
 
     @Nested
-    @DisplayName("SimpleBroadcast broadcastMessage()")
+    @DisplayName("BestEffortBroadcast broadcastMessage()")
     @Tag("broadcastMessage")
     @PalmBeachSimulationTest
     class BroadcastMessage {
 
         @Test
         @DisplayName("broadcastMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
-        void withNotStartedAgent(@Mock SimpleAgent agent, @Mock Message<? extends Serializable> message, @Mock Network network) {
-            SimpleBroadcast broadcast = new SimpleBroadcast(agent, null);
-            assertThrows(AgentNotStartedException.class, () -> broadcast.broadcastMessage(message, network));
+        void withNotStartedAgent() {
+            SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier("Agent", 0), null);
+            Message<String> message = new Message<>(agent.getIdentifier(), "Hello");
+            Environment env = new Environment("env", null);
+            Network network = new FullyConnectedNetwork("net", env, null);
+            Messenger messenger = new SimpleMessenger(agent, null);
+
+            PalmBeachSimulation.addAgent(agent);
+
+            BestEffortBroadcast broadcast = new BestEffortBroadcast(agent, null);
+            broadcast.setMessenger(messenger);
+            Set<SimpleAgent.AgentIdentifier> groupMembership = Sets.newHashSet();
+            assertThrows(AgentNotStartedException.class, () -> broadcast.broadcastMessage(message, groupMembership, network));
         }
 
         @Test
@@ -67,20 +80,20 @@ public class SimpleBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
-            SimpleBroadcast b0 = new SimpleBroadcast(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
+            BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
-            SimpleBroadcast b1 = new SimpleBroadcast(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
+            BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
-            SimpleBroadcast b2 = new SimpleBroadcast(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
+            BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);
             a2.addProtocol(b2);
@@ -103,7 +116,7 @@ public class SimpleBroadcastTest {
             a2.start();
 
             Message<String> mString = new Message<>(i0, "msg");
-            b0.broadcastMessage(mString, network);
+            b0.broadcastMessage(mString, env.evolvingAgents(), network);
 
             PalmBeachSimulation.start();
 
@@ -119,7 +132,7 @@ public class SimpleBroadcastTest {
     }
 
     @Nested
-    @DisplayName("SimpleBroadcast nextMessage()")
+    @DisplayName("BestEffortBroadcast nextMessage()")
     @Tag("nextMessage")
     @PalmBeachSimulationTest
     class NextMessage {
@@ -133,20 +146,20 @@ public class SimpleBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
-            SimpleBroadcast b0 = new SimpleBroadcast(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
+            BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
-            SimpleBroadcast b1 = new SimpleBroadcast(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
+            BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
-            SimpleBroadcast b2 = new SimpleBroadcast(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
+            BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);
             a2.addProtocol(b2);
@@ -176,7 +189,8 @@ public class SimpleBroadcastTest {
             SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) b2.nextMessage()));
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception1, Scheduler.NEXT_STEP);
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception2, Scheduler.NEXT_STEP + 50L);
-            PalmBeachSimulation.scheduler().scheduleOnce(() -> b0.broadcastMessage(mString, network), Scheduler.NEXT_STEP + 255L);
+            PalmBeachSimulation.scheduler().scheduleOnce(() -> b0.broadcastMessage(mString, env.evolvingAgents(), network),
+                                                         Scheduler.NEXT_STEP + 255L);
 
             PalmBeachSimulation.start();
 

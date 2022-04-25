@@ -67,3 +67,5 @@ deploy-artifact-job:
   when: on_success
   only:
     - master
+    - develop
+

@@ -9,10 +9,7 @@ import common.SimpleContext;
 import environment.Environment;
 import event.Event;
 import event.EventCatcher;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NonNull;
-import lombok.ToString;
+import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import simulation.configuration.BehaviorConfiguration;
 import simulation.configuration.ProtocolConfiguration;
@@ -23,8 +20,9 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Vector;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * An {@code Agent} of the simulation. An {@code Agent} can be the abstraction of a machine, a processus or even a thread.
@@ -54,8 +52,7 @@ public class SimpleAgent implements EventCatcher {
     private final Map<Class<? extends Protocol>, Protocol> protocols;
     private final Map<Class<? extends Behavior>, Behavior> behaviors;
 
-    @Getter
-    private AgentState state;
+    private final AtomicReference<AgentState> state;
 
     private final List<AgentObserver> observers;
 
@@ -79,7 +76,7 @@ public class SimpleAgent implements EventCatcher {
         this.protocols = Maps.newConcurrentMap();
         this.behaviors = Maps.newConcurrentMap();
 
-        this.state = AgentState.CREATED;
+        this.state = new AtomicReference<>(AgentState.CREATED);
 
         this.observers = new Vector<>();
 
@@ -129,21 +126,12 @@ public class SimpleAgent implements EventCatcher {
      * @throws AgentCannotBeStartedException if the {@code SimpleAgent} is not in a correct state
      * @see AgentState
      */
-    public final synchronized void start() {
-        if (canBeStarted()) {
-            setStarted();
+    public final void start() {
+        if (state.compareAndSet(AgentState.CREATED, AgentState.STARTED) || state.compareAndSet(AgentState.STOPPED, AgentState.STARTED)) {
             onStart();
             log.info(this.identifier + " started");
         } else
             throw new AgentCannotBeStartedException(this);
-    }
-
-    private boolean canBeStarted() {
-        return state.equals(AgentState.CREATED) || state.equals(AgentState.STOPPED);
-    }
-
-    private void setStarted() {
-        state = AgentState.STARTED;
     }
 
     protected void onStart() {
@@ -159,29 +147,20 @@ public class SimpleAgent implements EventCatcher {
     /**
      * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#STARTED}
      */
-    public synchronized boolean isStarted() {
-        return state.equals(AgentState.STARTED);
+    public boolean isStarted() {
+        return state.get().equals(AgentState.STARTED);
     }
 
     /**
      * Stop the {@link SimpleAgent}. This method stop the {@code SimpleAgent} only if it is in the state {@link AgentState#STARTED}, else throws an
      * exception.
      */
-    public final synchronized void stop() {
-        if (canBeStopped()) {
-            setStopped();
+    public final void stop() {
+        if (state.compareAndSet(AgentState.STARTED, AgentState.STOPPED)) {
             onStop();
             log.info(this.identifier + " stopped");
         } else
             throw new AgentCannotBeStoppedException(this);
-    }
-
-    private boolean canBeStopped() {
-        return state.equals(AgentState.STARTED);
-    }
-
-    private void setStopped() {
-        state = AgentState.STOPPED;
     }
 
     protected void onStop() {
@@ -197,8 +176,8 @@ public class SimpleAgent implements EventCatcher {
     /**
      * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#STOPPED}
      */
-    public synchronized boolean isStopped() {
-        return state.equals(AgentState.STOPPED);
+    public boolean isStopped() {
+        return state.get().equals(AgentState.STOPPED);
     }
 
     /**
@@ -207,21 +186,14 @@ public class SimpleAgent implements EventCatcher {
      *
      * <strong>If a {@code SimpleAgent} is killed, it cannot be started or stopped anymore.</strong>
      */
-    public final synchronized void kill() {
-        if (canBeKilled()) {
-            setKilled();
+    public final void kill() {
+        if (state.compareAndSet(AgentState.CREATED, AgentState.KILLED)
+                || state.compareAndSet(AgentState.STARTED, AgentState.KILLED)
+                || state.compareAndSet(AgentState.STOPPED, AgentState.KILLED)) {
             onKill();
             log.info(this.identifier + " killed");
         } else
             throw new AgentCannotBeKilledException(this);
-    }
-
-    private boolean canBeKilled() {
-        return state.equals(AgentState.CREATED) || state.equals(AgentState.STARTED) || state.equals(AgentState.STOPPED);
-    }
-
-    private void setKilled() {
-        state = AgentState.KILLED;
     }
 
     private void onKill() {
@@ -237,8 +209,8 @@ public class SimpleAgent implements EventCatcher {
     /**
      * @return true if the current state of the {@link SimpleAgent} is {@link AgentState#KILLED}
      */
-    public synchronized boolean isKilled() {
-        return state.equals(AgentState.KILLED);
+    public boolean isKilled() {
+        return state.get().equals(AgentState.KILLED);
     }
 
     /**
@@ -465,6 +437,12 @@ public class SimpleAgent implements EventCatcher {
         return false;
     }
 
+    // Getters.
+
+    public AgentState getState() {
+        return state.get();
+    }
+
     // Inner classes.
 
     /**
@@ -499,6 +477,7 @@ public class SimpleAgent implements EventCatcher {
     /**
      * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code SimpleAgent} with its name and its unique id.
      */
+    @EqualsAndHashCode(callSuper = false)
     @ToString
     @Getter
     @AllArgsConstructor
@@ -509,7 +488,7 @@ public class SimpleAgent implements EventCatcher {
         /**
          * Counter to generate unique id.
          */
-        private static long currentId = 0L;
+        private static final AtomicLong currentId = new AtomicLong(0L);
 
         // Variables.
 
@@ -518,26 +497,14 @@ public class SimpleAgent implements EventCatcher {
 
         // Methods.
 
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (!(o instanceof SimpleAgentIdentifier that)) return false;
-            return uniqueId == that.uniqueId && agentName.equals(that.agentName);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(agentName, uniqueId);
-        }
-
         /**
          * Generate the next unique id for a {@link SimpleAgent}. If this method is always used to generate {@code SimpleAgent} identifier unique id,
          * it is guaranty that each {@code SimpleAgent} will have different id.
          *
          * @return the next generated unique id.
          */
-        public static synchronized long nextId() {
-            return currentId++;
+        public static long nextId() {
+            return currentId.getAndIncrement();
         }
     }
 

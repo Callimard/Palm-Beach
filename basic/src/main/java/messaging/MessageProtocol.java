@@ -20,7 +20,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
 
     // Variables.
 
-    private final List<Executor.Condition> messageReceptionListener;
+    private final List<Executor.Condition> messageReceptionCondition;
 
     private final Deque<Message<? extends Serializable>> receivedMessages;
 
@@ -30,7 +30,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
 
     protected MessageProtocol(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
-        this.messageReceptionListener = Lists.newLinkedList();
+        this.messageReceptionCondition = Lists.newLinkedList();
         this.receivedMessages = Lists.newLinkedList();
         this.observers = Sets.newHashSet();
     }
@@ -70,7 +70,10 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
      *
      * @param message the Message to deliver
      */
-    protected abstract void deliver(@NonNull Message<? extends Serializable> message);
+    protected void deliver(@NonNull Message<? extends Serializable> message) {
+        offerMessage(message);
+        notifyMessageDelivery(message);
+    }
 
     /**
      * Offer in the deque {@link #receivedMessages} the specified {@link Message}. The call of this method wakeup all message reception listeners.
@@ -79,7 +82,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
      */
     protected void offerMessage(@NonNull Message<? extends Serializable> message) {
         receivedMessages.offer(message);
-        notifyMessageDeliver();
+        wakeupOnDeliveryMessage();
     }
 
     /**
@@ -90,7 +93,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     protected void waitMessageReception() throws ForcedWakeUpException {
         while (!hasMessage()) {
             Executor.Condition condition = scheduler().generateCondition();
-            messageReceptionListener.add(condition);
+            messageReceptionCondition.add(condition);
             scheduler().await(condition);
         }
     }
@@ -98,9 +101,9 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     /**
      * Wakeup and clear all {@link Executor.Condition} which where waiting for the message reception.
      */
-    private void notifyMessageDeliver() {
-        List<Executor.Condition> conditions = Lists.newLinkedList(messageReceptionListener);
-        messageReceptionListener.clear();
+    private void wakeupOnDeliveryMessage() {
+        List<Executor.Condition> conditions = Lists.newLinkedList(messageReceptionCondition);
+        messageReceptionCondition.clear();
         for (Executor.Condition condition : conditions) {
             condition.wakeup();
         }

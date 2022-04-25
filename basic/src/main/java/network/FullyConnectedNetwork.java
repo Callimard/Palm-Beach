@@ -1,30 +1,16 @@
 package network;
 
 import agent.SimpleAgent;
+import com.google.common.collect.Sets;
 import common.Context;
-import common.validation.Validate;
 import environment.Environment;
-import environment.network.Network;
-import event.Event;
 import lombok.NonNull;
-import scheduler.Scheduler;
-import simulation.PalmBeachSimulation;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.Random;
+import java.util.Set;
 
-public class FullyConnectedNetwork extends Network {
-
-    // Constants.
-
-    public static final String MIN_SENDING_DELAY = "minDelay";
-    public static final String MAX_SENDING_DELAY = "maxDelay";
-
-    public static final long DEFAULT_MIN_DELAY = 50L;
-    public static final long DEFAULT_MAX_DELAY = 100L;
-
-    // Variables.
-
-    private final Random r = new Random();
+@Slf4j
+public class FullyConnectedNetwork extends NetworkWithDelay {
 
     // Constructors.
 
@@ -53,72 +39,31 @@ public class FullyConnectedNetwork extends Network {
      * @return true if both agent are in the environment, else false.
      */
     @Override
-    public boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target) {
+    public boolean hasConnection(SimpleAgent.@NonNull AgentIdentifier source, SimpleAgent.@NonNull AgentIdentifier target) {
         return getEnvironment().agentIsEvolving(source) && getEnvironment().agentIsEvolving(target);
     }
 
-    /**
-     * Just schedule the call of the method {@link SimpleAgent#processEvent(Event)} of the specified target. The sending delay is randomly chosen
-     * between {@link #minDelay()} and {@link #maxDelay()}
-     *
-     * @param source the source agent
-     * @param target the target agent
-     * @param event  the event
-     *
-     * @throws IllegalArgumentException if minDelay is greater or equal to maxDelay - 1
-     */
     @Override
-    protected void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event) {
-        PalmBeachSimulation.scheduler().scheduleExecutable(() -> PalmBeachSimulation.getAgent(target).processEvent(event),
-                                                           r.nextLong(minDelay(), maxDelay() + 1L),
-                                                           Scheduler.ScheduleMode.ONCE, Scheduler.IGNORED, Scheduler.IGNORED);
+    public Set<SimpleAgent.AgentIdentifier> directNeighbors(SimpleAgent.@NonNull AgentIdentifier agent) {
+        if (getEnvironment().agentIsEvolving(agent))
+            return getEnvironment().evolvingAgents();
+        else
+            throw new NotInNetworkException("Agent " + agent + " is not in the Network " + this);
     }
 
-    /**
-     * @return the minDelay set inf the context, else {@link #DEFAULT_MIN_DELAY}
-     */
-    public long minDelay() {
-        if (getContext().getValue(MIN_SENDING_DELAY) != null) {
-            long minDelay = (long) getContext().getValue(MIN_SENDING_DELAY);
-            Validate.min(minDelay, Scheduler.NEXT_STEP, "Min delay cannot be less than 1");
-            return minDelay;
-        } else
-            return DEFAULT_MIN_DELAY;
-    }
-
-    /**
-     * Set in the context the min sending delay
-     *
-     * @param minDelay the minDelay
-     *
-     * @throws IllegalArgumentException if minDelay is less than 1
-     */
-    public void minDelay(long minDelay) {
-        Validate.min(minDelay, Scheduler.NEXT_STEP, "Min delay cannot be less than 1");
-        getContext().map(MIN_SENDING_DELAY, minDelay);
-    }
-
-    /**
-     * @return the maxDelay set inf the context, else {@link #DEFAULT_MAX_DELAY}
-     */
-    public long maxDelay() {
-        if (getContext().getValue(MAX_SENDING_DELAY) != null) {
-            long maxDelay = (long) getContext().getValue(MAX_SENDING_DELAY);
-            Validate.min(maxDelay, Scheduler.NEXT_STEP, "Max delay cannot be less than 1");
-            return maxDelay;
-        } else
-            return DEFAULT_MAX_DELAY;
-    }
-
-    /**
-     * Set in the context the max sending delay
-     *
-     * @param maxDelay the max sending delay
-     *
-     * @throws IllegalArgumentException if maxDelay is less than 1
-     */
-    public void maxDelay(long maxDelay) {
-        Validate.min(maxDelay, Scheduler.NEXT_STEP, "Max delay cannot be less than 1");
-        getContext().map(MAX_SENDING_DELAY, maxDelay);
+    @Override
+    public Set<Connection> allConnections() {
+        Set<SimpleAgent.AgentIdentifier> alreadySeen = Sets.newHashSet();
+        Set<Connection> allConnections = Sets.newHashSet();
+        for (SimpleAgent.AgentIdentifier a0 : getEnvironment().evolvingAgents()) {
+            for (SimpleAgent.AgentIdentifier a1 : getEnvironment().evolvingAgents()) {
+                if (!alreadySeen.contains(a1)) {
+                    Connection connection = new NonOrientedConnection(a0, a1);
+                    allConnections.add(connection);
+                }
+            }
+            alreadySeen.add(a0);
+        }
+        return allConnections;
     }
 }

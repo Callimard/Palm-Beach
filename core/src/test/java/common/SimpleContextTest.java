@@ -1,10 +1,10 @@
 package common;
 
+import junit.PalmBeachTest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import junit.PalmBeachTest;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -95,6 +95,66 @@ public class SimpleContextTest {
             context.map("key", "value");
 
             assertThat(context.getValue("key")).isNotNull();
+        }
+    }
+
+    @Nested
+    @DisplayName("SimpleContext get() set()")
+    @Tag("getAndSet")
+    class GetAndSet {
+
+        @Test
+        @DisplayName("setInt()")
+        void setInt() {
+            SimpleContext context = new SimpleContext();
+
+            context.setInt("key", 1);
+            assertThat(context.getInt("key")).isEqualTo(1);
+        }
+
+        @Test
+        @DisplayName("getInt() throws ClassCastException if key is not a int")
+        void getInt() {
+            SimpleContext context = new SimpleContext();
+
+            context.setString("key", "test");
+            assertThrows(ClassCastException.class, () -> context.getInt("key"));
+        }
+
+        @Test
+        @DisplayName("setLong()")
+        void setLong() {
+            SimpleContext context = new SimpleContext();
+
+            context.setLong("key", 1L);
+            assertThat(context.getLong("key")).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("getLong() throws ClassCastException if key is not a long")
+        void getLong() {
+            SimpleContext context = new SimpleContext();
+
+            context.setString("key", "test");
+            assertThrows(ClassCastException.class, () -> context.getLong("key"));
+        }
+
+        @Test
+        @DisplayName("setString()")
+        void setString() {
+            SimpleContext context = new SimpleContext();
+
+            context.setString("key", "test");
+            assertThat(context.getString("key")).isEqualTo("test");
+        }
+
+        @Test
+        @DisplayName("getString() throws ClassCastException if key is not a String")
+        void getString() {
+            SimpleContext context = new SimpleContext();
+
+            context.setLong("key", 1L);
+            assertThrows(ClassCastException.class, () -> context.getString("key"));
         }
     }
 

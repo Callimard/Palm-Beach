@@ -1,6 +1,6 @@
 package messaging;
 
-import event.Event;
+import lombok.NonNull;
 import scheduler.exception.ForcedWakeUpException;
 
 import java.io.Serializable;
@@ -23,7 +23,7 @@ public interface MessageReceiver {
     boolean hasMessage();
 
     /**
-     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessageSender} is a
+     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessenger} is a
      * FIFO list of {@code Message}. First message received is the first message returns by this method.
      *
      * @return the next message to read. Never returns null.
@@ -34,12 +34,6 @@ public interface MessageReceiver {
 
     // Inner classes.
 
-    class MessageReceptionEvent extends Event<Message<? extends Serializable>> {
-        public MessageReceptionEvent(Message<? extends Serializable> message) {
-            super(message);
-        }
-    }
-
     interface MessageReceiverObserver {
 
         /**
@@ -47,8 +41,10 @@ public interface MessageReceiver {
          *
          * @param msgReceiver the {@code MessageReceiver} which has delivered the message
          * @param msg         the {@code Message} delivered
+         *
+         * @throws NullPointerException if msgReceiver is null
          */
-        void messageDelivery(MessageReceiver msgReceiver, Message<? extends Serializable> msg);
+        void messageDelivery(@NonNull MessageReceiver msgReceiver, Message<? extends Serializable> msg);
 
         /**
          * This method ask to the {@link MessageReceiverObserver} is

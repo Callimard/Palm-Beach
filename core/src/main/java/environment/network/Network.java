@@ -1,17 +1,22 @@
 package environment.network;
 
 import agent.SimpleAgent;
+import agent.exception.AgentNotStartedException;
 import common.Context;
 import common.SimpleContext;
 import environment.Environment;
 import event.Event;
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import simulation.PalmBeachSimulation;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * Simulate a {@code Network}. A {@code Network} represents connection between several {@link SimpleAgent}. Via the {@code Network} it is possible to
@@ -68,7 +73,7 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @throws InvocationTargetException if the constructor has thrown an exception
      * @throws InstantiationException    if the instantiation failed
      * @throws IllegalAccessException    if the construct is not accessible
-     * @throws NullPointerException      if networkClass or networkName is null
+     * @throws NullPointerException      if networkClass, networkName or environment is null
      */
     public static Network initiateNetwork(@NonNull Class<? extends Network> networkClass,
                                           @NonNull String networkName,
@@ -87,13 +92,18 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param source the source agent
      * @param target the target agent
      * @param event  the event to send
+     *
+     * @throws NullPointerException if source, target or event is null
      */
     public final synchronized void send(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
                                         @NonNull Event<?> event) {
-        if (hasConnection(source, target))
-            simulateSending(source, target, event);
-        else
-            log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
+        if (PalmBeachSimulation.getAgent(source).isStarted()) {
+            if (hasConnection(source, target))
+                simulateSending(source, target, event);
+            else
+                log.debug("Agent source " + source + " is not connected to target " + target + " by the Network " + this);
+        } else
+            throw new AgentNotStartedException("Cannot send Message, Agent " + source + " is not in STARTED state");
     }
 
     /**
@@ -104,8 +114,26 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param target the target agent
      *
      * @return true if from the source, the target agent is reachable, else false.
+     *
+     * @throws NullPointerException if source or target is null
      */
-    public abstract boolean hasConnection(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target);
+    public abstract boolean hasConnection(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target);
+
+    /**
+     * @param agent the agent to verify the connection
+     *
+     * @return a set which contains all {@link SimpleAgent.AgentIdentifier} directly connected to the specified agent. The set is never null and
+     * contains at least the specified agent itself.
+     *
+     * @throws NotInNetworkException if the agent is not in network
+     * @throws NullPointerException  if agent is null
+     */
+    public abstract Set<SimpleAgent.AgentIdentifier> directNeighbors(@NonNull SimpleAgent.AgentIdentifier agent);
+
+    /**
+     * @return the set of all {@link Connection}, never returns null.
+     */
+    public abstract Set<Connection> allConnections();
 
     /**
      * Simulate the sending of the {@link Event} from the source to the target.
@@ -113,6 +141,81 @@ public abstract class Network implements Environment.EnvironmentObserver {
      * @param source the source agent
      * @param target the target agent
      * @param event  the event
+     *
+     * @throws NullPointerException if source, target or event is null
      */
-    protected abstract void simulateSending(SimpleAgent.AgentIdentifier source, SimpleAgent.AgentIdentifier target, Event<?> event);
+    protected abstract void simulateSending(@NonNull SimpleAgent.AgentIdentifier source, @NonNull SimpleAgent.AgentIdentifier target,
+                                            @NonNull Event<?> event);
+
+    // Inner classes.
+
+    @ToString
+    @RequiredArgsConstructor
+    public abstract static class Connection {
+
+        // Variables.
+
+        @NonNull
+        @Getter
+        private final SimpleAgent.AgentIdentifier a0;
+
+        @Getter
+        private final SimpleAgent.AgentIdentifier a1;
+
+        // Constructors.
+
+        protected Connection(@NonNull SimpleAgent.AgentIdentifier a0) {
+            this(a0, null);
+        }
+
+        // Methods.
+
+        @Override
+        public abstract boolean equals(Object o);
+
+        @Override
+        public abstract int hashCode();
+
+        public boolean isSelfConnection() {
+            return a0.equals(a1) || a1 == null;
+        }
+    }
+
+    public static class NonOrientedConnection extends Connection {
+
+        // Constructors.
+
+        public NonOrientedConnection(@NonNull SimpleAgent.AgentIdentifier a0, SimpleAgent.AgentIdentifier a1) {
+            super(a0, a1);
+        }
+
+        // Methods.
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (!(o instanceof NonOrientedConnection that)) return false;
+            return getA0().equals(that.getA0()) && Objects.equals(getA1(), that.getA1()) ||
+                    getA0().equals(that.getA1()) && getA1().equals(that.getA0());
+        }
+
+        @Override
+        public int hashCode() {
+            int h0 = Objects.hash(getA0());
+            int h1 = Objects.hash(getA1());
+
+            if (h0 < h1)
+                return Objects.hash(getA0(), getA1());
+            else
+                return Objects.hash(getA1(), getA0());
+        }
+    }
+
+    // Exceptions.
+
+    public static class NotInNetworkException extends RuntimeException {
+        public NotInNetworkException(String s) {
+            super(s);
+        }
+    }
 }

@@ -11,14 +11,14 @@ import lombok.extern.slf4j.Slf4j;
 import java.io.Serializable;
 
 /**
- * Protocol used to send and receive {@link Message}.
+ * Protocol used to send and receive {@link Message}. This protocol can only send message to agent which are directly connected.
  */
 @Slf4j
-public class SimpleMessageSender extends MessageProtocol {
+public class SimpleMessenger extends MessageProtocol {
 
     // Constructors.
 
-    public SimpleMessageSender(@NonNull SimpleAgent agent, Context context) {
+    public SimpleMessenger(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
     }
 
@@ -31,7 +31,7 @@ public class SimpleMessageSender extends MessageProtocol {
 
     @Override
     public void processEvent(Event<?> event) {
-        receive(((MessageReceptionEvent) event).getContent());
+        receive(((SimpleMessageReception) event).getContent());
     }
 
     @Override
@@ -40,14 +40,8 @@ public class SimpleMessageSender extends MessageProtocol {
     }
 
     @Override
-    protected void deliver(@NonNull Message<? extends Serializable> message) {
-        offerMessage(message);
-        notifyMessageDelivery(message);
-    }
-
-    @Override
     public boolean canProcessEvent(Event<?> event) {
-        return event instanceof MessageReceptionEvent;
+        return event instanceof SimpleMessageReception;
     }
 
     /**
@@ -59,9 +53,12 @@ public class SimpleMessageSender extends MessageProtocol {
      */
     @Override
     public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
-        if (getAgent().isStarted())
-            network.send(message.getSender(), target, new MessageReceptionEvent(message));
-        else
-            throw new AgentNotStartedException("Cannot send Message, Agent " + getAgent().getIdentifier() + " is not in STARTED state");
+        network.send(getAgent().getIdentifier(), target, new SimpleMessageReception(message));
+    }
+
+    public static class SimpleMessageReception extends Event<Message<? extends Serializable>> {
+        public SimpleMessageReception(@NonNull Message<? extends Serializable> msg) {
+            super(msg);
+        }
     }
 }
