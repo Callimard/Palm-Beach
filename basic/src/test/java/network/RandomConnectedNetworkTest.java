@@ -8,7 +8,6 @@ import common.SimpleContext;
 import environment.Environment;
 import environment.network.Network;
 import junit.PalmBeachTest;
-import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
@@ -126,8 +125,8 @@ public class RandomConnectedNetworkTest {
             }
 
             for (SimpleAgent.AgentIdentifier agent : agents) {
-                assertThat(network.agentDirectConnections(agent)).contains(agent);
-                assertThat(network.agentDirectConnections(agent).size()).isGreaterThanOrEqualTo(connectionNumber + 1);
+                assertThat(network.directNeighbors(agent)).contains(agent);
+                assertThat(network.directNeighbors(agent).size()).isGreaterThanOrEqualTo(connectionNumber + 1);
             }
         }
     }
@@ -155,7 +154,7 @@ public class RandomConnectedNetworkTest {
             Random random = new Random();
             int index = random.nextInt(agents.size());
             SimpleAgent.AgentIdentifier agent = agents.get(index);
-            Set<SimpleAgent.AgentIdentifier> connectedAgents = network.agentDirectConnections(agent);
+            Set<SimpleAgent.AgentIdentifier> connectedAgents = network.directNeighbors(agent);
             for (SimpleAgent.AgentIdentifier cAgent : connectedAgents) {
                 assertThat(network.hasConnection(agent, cAgent)).isTrue();
                 assertThat(network.hasConnection(cAgent, agent)).isTrue();
@@ -169,7 +168,7 @@ public class RandomConnectedNetworkTest {
                 assertThat(network.hasConnection(cAgent, agent)).isFalse();
 
                 if (cAgent != agent)
-                    assertThat(network.agentDirectConnections(cAgent)).doesNotContain(agent);
+                    assertThat(network.directNeighbors(cAgent)).doesNotContain(agent);
             }
         }
     }
@@ -185,7 +184,7 @@ public class RandomConnectedNetworkTest {
             Environment env = new Environment("env", null);
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", env, null);
 
-            assertThrows(Network.NotInNetworkException.class, () -> network.agentDirectConnections(i0));
+            assertThrows(Network.NotInNetworkException.class, () -> network.directNeighbors(i0));
         }
     }
 

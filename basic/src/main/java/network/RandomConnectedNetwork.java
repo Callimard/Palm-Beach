@@ -89,7 +89,7 @@ public class RandomConnectedNetwork extends NetworkWithDelay {
     }
 
     @Override
-    public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(@NonNull SimpleAgent.AgentIdentifier agent) {
+    public Set<SimpleAgent.AgentIdentifier> directNeighbors(@NonNull SimpleAgent.AgentIdentifier agent) {
         if (mainConnectionGroup.contains(agent)) {
             Set<SimpleAgent.AgentIdentifier> connectedAgent = Sets.newHashSet(mainConnectionGroup.connections.get(agent));
             connectedAgent.add(agent);

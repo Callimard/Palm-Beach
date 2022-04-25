@@ -7,7 +7,7 @@ import environment.network.Network;
 import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import messaging.Message;
-import messaging.SimpleMessageSender;
+import messaging.SimpleMessenger;
 import network.FullyConnectedNetwork;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -67,19 +67,19 @@ public class BestEffortBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
             BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
             BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
             BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);
@@ -133,19 +133,19 @@ public class BestEffortBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
             BestEffortBroadcast b0 = new BestEffortBroadcast(a0, null);
             b0.setMessenger(m0);
             a0.addProtocol(m0);
             a0.addProtocol(b0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
             BestEffortBroadcast b1 = new BestEffortBroadcast(a1, null);
             b1.setMessenger(m1);
             a1.addProtocol(m1);
             a1.addProtocol(b1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
             BestEffortBroadcast b2 = new BestEffortBroadcast(a2, null);
             b2.setMessenger(m2);
             a2.addProtocol(m2);

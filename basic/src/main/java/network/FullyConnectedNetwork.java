@@ -44,7 +44,7 @@ public class FullyConnectedNetwork extends NetworkWithDelay {
     }
 
     @Override
-    public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.@NonNull AgentIdentifier agent) {
+    public Set<SimpleAgent.AgentIdentifier> directNeighbors(SimpleAgent.@NonNull AgentIdentifier agent) {
         if (getEnvironment().agentIsEvolving(agent))
             return getEnvironment().evolvingAgents();
         else

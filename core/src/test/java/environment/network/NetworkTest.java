@@ -1,6 +1,7 @@
 package environment.network;
 
 import agent.SimpleAgent;
+import agent.exception.AgentNotStartedException;
 import com.google.common.collect.Sets;
 import common.Context;
 import environment.Environment;
@@ -196,7 +197,7 @@ public class NetworkTest {
     class Send {
 
         @Test
-        @DisplayName("send() do nothing if the source is not stared even they are connected")
+        @DisplayName("send() throws AgentNotStartedException if source is not started")
         void notStartedSource(@Mock SimpleAgent.AgentIdentifier source, @Mock SimpleAgent.AgentIdentifier target,
                               @Mock Environment environment, @Mock Event<?> event) {
             SimpleAgent aSource = new SimpleAgent(source, null);
@@ -207,8 +208,7 @@ public class NetworkTest {
 
             BasicNetwork network = new BasicNetwork("name", environment, null);
             network.setHasConnectionSupplier(() -> true);
-            network.send(source, target, event);
-
+            assertThrows(AgentNotStartedException.class, () -> network.send(source, target, event));
             assertThat(network.getSendingCounter()).isEqualByComparingTo(0);
         }
 
@@ -221,6 +221,7 @@ public class NetworkTest {
 
             PalmBeachSimulation.addAgent(aSource);
             PalmBeachSimulation.addAgent(aTarget);
+            aSource.start();
 
             BasicNetwork network = new BasicNetwork("name", environment, null);
             network.setHasConnectionSupplier(() -> false);
@@ -290,7 +291,7 @@ public class NetworkTest {
         }
 
         @Override
-        public Set<SimpleAgent.AgentIdentifier> agentDirectConnections(SimpleAgent.@NonNull AgentIdentifier agent) {
+        public Set<SimpleAgent.AgentIdentifier> directNeighbors(SimpleAgent.@NonNull AgentIdentifier agent) {
             return Sets.newHashSet(agent);
         }
     }

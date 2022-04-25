@@ -7,7 +7,7 @@ import environment.network.Network;
 import junit.PalmBeachSimulationTest;
 import junit.PalmBeachTest;
 import messaging.Message;
-import messaging.SimpleMessageSender;
+import messaging.SimpleMessenger;
 import network.FullyConnectedNetwork;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -67,7 +67,7 @@ public class ReliableBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
             BestEffortBroadcast bb0 = new BestEffortBroadcast(a0, null);
             bb0.setMessenger(m0);
             ReliableBroadcast rb0 = new ReliableBroadcast(a0, null);
@@ -76,7 +76,7 @@ public class ReliableBroadcastTest {
             a0.addProtocol(bb0);
             a0.addProtocol(rb0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
             BestEffortBroadcast bb1 = new BestEffortBroadcast(a1, null);
             bb1.setMessenger(m1);
             ReliableBroadcast rb1 = new ReliableBroadcast(a1, null);
@@ -85,7 +85,7 @@ public class ReliableBroadcastTest {
             a1.addProtocol(bb1);
             a1.addProtocol(rb1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
             BestEffortBroadcast bb2 = new BestEffortBroadcast(a2, null);
             bb2.setMessenger(m2);
             ReliableBroadcast rb2 = new ReliableBroadcast(a2, null);
@@ -142,7 +142,7 @@ public class ReliableBroadcastTest {
             SimpleAgent a1 = new SimpleAgent(i1, null);
             SimpleAgent a2 = new SimpleAgent(i2, null);
 
-            SimpleMessageSender m0 = new SimpleMessageSender(a0, null);
+            SimpleMessenger m0 = new SimpleMessenger(a0, null);
             BestEffortBroadcast bb0 = new BestEffortBroadcast(a0, null);
             bb0.setMessenger(m0);
             ReliableBroadcast rb0 = new ReliableBroadcast(a0, null);
@@ -151,7 +151,7 @@ public class ReliableBroadcastTest {
             a0.addProtocol(bb0);
             a0.addProtocol(rb0);
 
-            SimpleMessageSender m1 = new SimpleMessageSender(a1, null);
+            SimpleMessenger m1 = new SimpleMessenger(a1, null);
             BestEffortBroadcast bb1 = new BestEffortBroadcast(a1, null);
             bb1.setMessenger(m1);
             ReliableBroadcast rb1 = new ReliableBroadcast(a1, null);
@@ -160,7 +160,7 @@ public class ReliableBroadcastTest {
             a1.addProtocol(bb1);
             a1.addProtocol(rb1);
 
-            SimpleMessageSender m2 = new SimpleMessageSender(a2, null);
+            SimpleMessenger m2 = new SimpleMessenger(a2, null);
             BestEffortBroadcast bb2 = new BestEffortBroadcast(a2, null);
             bb2.setMessenger(m2);
             ReliableBroadcast rb2 = new ReliableBroadcast(a2, null);

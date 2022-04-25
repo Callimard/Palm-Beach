@@ -1,6 +1,5 @@
 package messaging;
 
-import event.Event;
 import lombok.NonNull;
 import scheduler.exception.ForcedWakeUpException;
 
@@ -24,7 +23,7 @@ public interface MessageReceiver {
     boolean hasMessage();
 
     /**
-     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessageSender} is a
+     * Wait until a new message is received. After that, returns and remove the next {@link Message} to read. The {@link SimpleMessenger} is a
      * FIFO list of {@code Message}. First message received is the first message returns by this method.
      *
      * @return the next message to read. Never returns null.
@@ -34,12 +33,6 @@ public interface MessageReceiver {
     Message<? extends Serializable> nextMessage() throws ForcedWakeUpException;
 
     // Inner classes.
-
-    class MessageReceptionEvent extends Event<Message<? extends Serializable>> {
-        public MessageReceptionEvent(Message<? extends Serializable> message) {
-            super(message);
-        }
-    }
 
     interface MessageReceiverObserver {
 
