@@ -3,14 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>root</artifactId>
-        <groupId>org.palm-beach</groupId>
-        <version>2.0.0</version>
+        <artifactId>palmbeach</artifactId>
+        <groupId>org.paradise.palmbeach</groupId>
+        <version>3.0.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>basic</artifactId>
-    <version>${palm-beach.basic.version}</version>
+    <version>${paradise.palmbeach.basic.version}</version>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
@@ -20,9 +20,15 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.palm-beach</groupId>
+            <groupId>org.paradise.palmbeach</groupId>
             <artifactId>core</artifactId>
-            <version>${palm-beach.core.version}</version>
+            <version>${paradise.palmbeach.core.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.paradise.palmbeach</groupId>
+            <artifactId>utils</artifactId>
+            <version>${paradise.palmbeach.utils.version}</version>
         </dependency>
     </dependencies>
 </project>
