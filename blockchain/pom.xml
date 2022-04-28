@@ -3,14 +3,14 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>root</artifactId>
-        <groupId>org.palm-beach</groupId>
+        <artifactId>palmbeach</artifactId>
+        <groupId>org.paradise.palmbeach</groupId>
         <version>dev-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>blockchain</artifactId>
-    <version>${palm-beach.blockchain.version}</version>
+    <version>${paradise.palmbeach.blockchain.version}</version>
 
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
@@ -19,9 +19,9 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.palm-beach</groupId>
-            <artifactId>core</artifactId>
-            <version>${palm-beach.core.version}</version>
+            <groupId>org.paradise.palmbeach</groupId>
+            <artifactId>utils</artifactId>
+            <version>${paradise.palmbeach.utils.version}</version>
         </dependency>
     </dependencies>
 
