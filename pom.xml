@@ -7,11 +7,11 @@
     <distributionManagement>
         <snapshotRepository>
             <id>nexus-snapshots</id>
-            <url>https://nexus.sealandblock.fr:443/repository/Palm-Beach-SNAPSHOT/</url>
+            <url>https://nexus.sealandblock.fr:443/repository/Paradise-SNAPSHOT/</url>
         </snapshotRepository>
         <repository>
             <id>nexus-releases</id>
-            <url>https://nexus.sealandblock.fr:443/repository/Palm-Beach-RELEASE/</url>
+            <url>https://nexus.sealandblock.fr:443/repository/Paradise/</url>
         </repository>
     </distributionManagement>
 
