@@ -15,20 +15,22 @@
         </repository>
     </distributionManagement>
 
-    <groupId>org.palm-beach</groupId>
-    <artifactId>root</artifactId>
+    <groupId>org.paradise.palmbeach</groupId>
+    <artifactId>palmbeach</artifactId>
     <packaging>pom</packaging>
     <version>dev-SNAPSHOT</version>
     <modules>
         <module>core</module>
         <module>basic</module>
         <module>blockchain</module>
+        <module>utils</module>
     </modules>
 
     <properties>
-        <palm-beach.core.version>3.0.0-SNAPSHOT</palm-beach.core.version>
-        <palm-beach.basic.version>3.0.0-SNAPSHOT</palm-beach.basic.version>
-        <palm-beach.blockchain.version>1.0.0-SNAPSHOT</palm-beach.blockchain.version>
+        <paradise.palmbeach.core.version>4.0.0-SNAPSHOT</paradise.palmbeach.core.version>
+        <paradise.palmbeach.basic.version>4.0.0-SNAPSHOT</paradise.palmbeach.basic.version>
+        <paradise.palmbeach.blockchain.version>2.0.0-SNAPSHOT</paradise.palmbeach.blockchain.version>
+        <paradise.palmbeach.utils.version>1.0.0-SNAPSHOT</paradise.palmbeach.utils.version>
         <maven.deploy.skip>false</maven.deploy.skip>
         <sonar.language>java</sonar.language>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>

@@ -3,18 +3,26 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>root</artifactId>
-        <groupId>org.palm-beach</groupId>
+        <artifactId>palmbeach</artifactId>
+        <groupId>org.paradise.palmbeach</groupId>
         <version>dev-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>core</artifactId>
-    <version>${palm-beach.core.version}</version>
+    <version>${paradise.palmbeach.core.version}</version>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
     </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.paradise.palmbeach</groupId>
+            <artifactId>utils</artifactId>
+            <version>${paradise.palmbeach.utils.version}</version>
+        </dependency>
+    </dependencies>
 </project>
