@@ -71,8 +71,8 @@ public class PulsingMessengerIT {
 
             waitSimulationEnd();
 
-            assertThat(pmReceiver.hasMessage()).isTrue();
-            assertThat(pmReceiver.nextMessage()).isNotNull().isSameAs(msg);
+            assertThat(pmReceiver.hasContent()).isTrue();
+            assertThat(pmReceiver.nextContent()).isNotNull().isSameAs(msg);
         }
 
         @RepeatedTest(5)
@@ -111,8 +111,8 @@ public class PulsingMessengerIT {
 
             waitSimulationEnd();
 
-            assertThat(pmReceiver.hasMessage()).isTrue();
-            assertThat(pmReceiver.nextMessage()).isNotNull().isSameAs(msg);
+            assertThat(pmReceiver.hasContent()).isTrue();
+            assertThat(pmReceiver.nextContent()).isNotNull().isSameAs(msg);
         }
 
         private boolean directlyConnected(SimpleAgent.AgentIdentifier sender, SimpleAgent.AgentIdentifier receiver, Network network) {

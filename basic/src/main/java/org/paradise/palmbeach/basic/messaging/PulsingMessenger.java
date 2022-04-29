@@ -1,16 +1,15 @@
 package org.paradise.palmbeach.basic.messaging;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
 import com.google.common.collect.Sets;
-import org.paradise.palmbeach.utils.context.Context;
-import org.paradise.palmbeach.core.environment.network.Network;
-import org.paradise.palmbeach.core.event.Event;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.environment.network.Network;
+import org.paradise.palmbeach.core.event.Event;
+import org.paradise.palmbeach.utils.context.Context;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -23,7 +22,7 @@ import java.util.Set;
  * This algorithm can be crash fault tolerant, but it only depends on the network form.
  */
 @Slf4j
-public class PulsingMessenger extends MessageProtocol {
+public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMessage> {
 
     // Variables.
 
@@ -40,12 +39,11 @@ public class PulsingMessenger extends MessageProtocol {
     // Methods.
 
     @Override
-    protected void receive(@NonNull Message<? extends Serializable> message) {
-        PulseMessage pulseMsg = (PulseMessage) message;
+    protected void receive(@NonNull PulseMessage pulseMsg) {
         if (!alreadyReceived.contains(pulseMsg)) {
             alreadyReceived.add(pulseMsg);
             if (pulseMsg.getReceiver().equals(getAgent().getIdentifier())) {
-                deliver(pulseMsg.getContent());
+                deliver(pulseMsg);
             } else {
                 pulse(pulseMsg);
             }
@@ -66,7 +64,7 @@ public class PulsingMessenger extends MessageProtocol {
     }
 
     @Override
-    public void sendMessage(@NonNull Message<? extends Serializable> message, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Network network) {
+    public void sendMessage(@NonNull Message<?> message, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Network network) {
         Set<SimpleAgent.AgentIdentifier> directNeighbors = network.directNeighbors(getAgent().getIdentifier());
         directNeighbors.remove(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier neighbor : directNeighbors) {
@@ -93,13 +91,13 @@ public class PulsingMessenger extends MessageProtocol {
     // Inner classes.
 
     @EqualsAndHashCode(callSuper = true)
-    public static class PulseMessage extends Message<Message<? extends Serializable>> {
+    public static class PulseMessage extends MessageEncapsuler {
 
         // Variables.
 
         @NonNull
         @Getter
-        private final transient Network network;
+        private final Network network;
 
         @NonNull
         @Getter
@@ -108,8 +106,8 @@ public class PulsingMessenger extends MessageProtocol {
         // Constructors.
 
         public PulseMessage(@NonNull SimpleAgent.AgentIdentifier sender, @NonNull SimpleAgent.AgentIdentifier receiver, @NonNull Network network,
-                            Message<? extends Serializable> content) {
-            super(sender, content);
+                            Message<?> msg) {
+            super(sender, msg);
             this.receiver = receiver;
             this.network = network;
         }
