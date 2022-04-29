@@ -2,8 +2,6 @@ package org.paradise.palmbeach.core.event;
 
 import lombok.*;
 
-import java.io.Serializable;
-
 /**
  * Represents an {@code Event} that can occurred in the Simulation and can be treats by an {@link EventCatcher}.
  *
@@ -12,7 +10,7 @@ import java.io.Serializable;
 @EqualsAndHashCode
 @ToString
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
-public abstract class Event<T extends Serializable> implements Serializable {
+public abstract class Event<T> {
 
     @Getter
     private final T content;

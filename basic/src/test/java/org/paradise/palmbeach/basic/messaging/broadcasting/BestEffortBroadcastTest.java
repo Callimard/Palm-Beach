@@ -122,12 +122,12 @@ public class BestEffortBroadcastTest {
 
             waitSimulationEnd();
 
-            assertThat(b0.hasMessage()).isTrue();
-            assertThat(b0.nextMessage()).isNotNull().isSameAs(mString);
-            assertThat(b1.hasMessage()).isTrue();
-            assertThat(b1.nextMessage()).isNotNull().isSameAs(mString);
-            assertThat(b2.hasMessage()).isTrue();
-            assertThat(b2.nextMessage()).isNotNull().isSameAs(mString);
+            assertThat(b0.hasContent()).isTrue();
+            assertThat(b0.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(b1.hasContent()).isTrue();
+            assertThat(b1.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(b2.hasContent()).isTrue();
+            assertThat(b2.nextContent()).isNotNull().isSameAs(mString);
         }
     }
 
@@ -185,8 +185,8 @@ public class BestEffortBroadcastTest {
             final AtomicReference<Message<String>> receivedMsg1 = new AtomicReference<>();
             final AtomicReference<Message<String>> receivedMsg2 = new AtomicReference<>();
             //noinspection unchecked
-            SupplierExecutable waitMessageReception1 = new SupplierExecutable(() -> receivedMsg1.set((Message<String>) b1.nextMessage()));
-            SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) b2.nextMessage()));
+            SupplierExecutable waitMessageReception1 = new SupplierExecutable(() -> receivedMsg1.set((Message<String>) b1.nextContent()));
+            SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) b2.nextContent()));
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception1, Scheduler.NEXT_STEP);
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception2, Scheduler.NEXT_STEP + 50L);
             PalmBeachSimulation.scheduler().scheduleOnce(() -> b0.broadcastMessage(mString, env.evolvingAgents(), network),

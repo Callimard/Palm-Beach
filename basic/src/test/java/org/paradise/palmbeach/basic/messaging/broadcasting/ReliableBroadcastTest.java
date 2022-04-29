@@ -133,12 +133,12 @@ public class ReliableBroadcastTest {
 
             waitSimulationEnd();
 
-            assertThat(rb0.hasMessage()).isTrue();
-            assertThat(rb0.nextMessage()).isNotNull().isSameAs(mString);
-            assertThat(rb1.hasMessage()).isTrue();
-            assertThat(rb1.nextMessage()).isNotNull().isSameAs(mString);
-            assertThat(rb2.hasMessage()).isTrue();
-            assertThat(rb2.nextMessage()).isNotNull().isSameAs(mString);
+            assertThat(rb0.hasContent()).isTrue();
+            assertThat(rb0.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(rb1.hasContent()).isTrue();
+            assertThat(rb1.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(rb2.hasContent()).isTrue();
+            assertThat(rb2.nextContent()).isNotNull().isSameAs(mString);
         }
     }
 
@@ -205,8 +205,8 @@ public class ReliableBroadcastTest {
             final AtomicReference<Message<String>> receivedMsg1 = new AtomicReference<>();
             final AtomicReference<Message<String>> receivedMsg2 = new AtomicReference<>();
             //noinspection unchecked
-            SupplierExecutable waitMessageReception1 = new SupplierExecutable(() -> receivedMsg1.set((Message<String>) rb1.nextMessage()));
-            SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) rb2.nextMessage()));
+            SupplierExecutable waitMessageReception1 = new SupplierExecutable(() -> receivedMsg1.set((Message<String>) rb1.nextContent()));
+            SupplierExecutable waitMessageReception2 = new SupplierExecutable(() -> receivedMsg2.set((Message<String>) rb2.nextContent()));
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception1, Scheduler.NEXT_STEP);
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception2, Scheduler.NEXT_STEP + 50L);
             PalmBeachSimulation.scheduler().scheduleOnce(() -> rb0.broadcastMessage(mString, env.evolvingAgents(), network),

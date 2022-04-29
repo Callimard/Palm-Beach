@@ -1,28 +1,27 @@
 package org.paradise.palmbeach.basic.messaging;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
-import org.paradise.palmbeach.core.agent.protocol.Protocol;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.paradise.palmbeach.utils.context.Context;
 import lombok.NonNull;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.agent.protocol.Protocol;
 import org.paradise.palmbeach.core.scheduler.exception.ForcedWakeUpException;
 import org.paradise.palmbeach.core.scheduler.executor.Executor;
+import org.paradise.palmbeach.utils.context.Context;
 
-import java.io.Serializable;
 import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 
 import static org.paradise.palmbeach.core.simulation.PalmBeachSimulation.scheduler;
 
-public abstract class MessageProtocol extends Protocol implements Messenger {
+public abstract class MessageProtocol<T extends MessageEncapsuler> extends Protocol implements Messenger {
 
     // Variables.
 
     private final List<Executor.Condition> messageReceptionCondition;
 
-    private final Deque<Message<? extends Serializable>> receivedMessages;
+    private final Deque<Object> contentReceived;
 
     private final Set<MessageReceiverObserver> observers;
 
@@ -31,7 +30,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     protected MessageProtocol(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
         this.messageReceptionCondition = Lists.newLinkedList();
-        this.receivedMessages = Lists.newLinkedList();
+        this.contentReceived = Lists.newLinkedList();
         this.observers = Sets.newHashSet();
     }
 
@@ -53,13 +52,13 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     }
 
     /**
-     * Receive the specified {@link Message}. This method is not obligated to call directly the method {@link #deliver(Message)}. The reception of a
-     * {@code Message} is just here to get in memory that a {@code Message} has been received, but maybe it must wait other message reception before
-     * trigger the message delivering.
+     * Receive the specified {@link Message}. This method is not obligated to call directly the method {@link #deliver(MessageEncapsuler)}. The
+     * reception of a {@code Message} is just here to get in memory that a {@code Message} has been received, but maybe it must wait other message
+     * reception before trigger the message delivering.
      *
      * @param message the Message to receive
      */
-    protected abstract void receive(@NonNull Message<? extends Serializable> message);
+    protected abstract void receive(@NonNull T message);
 
     /**
      * Deliver the specified {@link Message}. This method must normally call the method {@link #offerMessage(Message)} which will add the {@code
@@ -70,18 +69,18 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
      *
      * @param message the Message to deliver
      */
-    protected void deliver(@NonNull Message<? extends Serializable> message) {
-        offerMessage(message);
-        notifyMessageDelivery(message);
+    protected void deliver(@NonNull T message) {
+        offerMessage(message.getContent());
+        notifyMessageDelivery(message.getContent());
     }
 
     /**
-     * Offer in the deque {@link #receivedMessages} the specified {@link Message}. The call of this method wakeup all message reception listeners.
+     * Offer in the deque {@link #contentReceived} the specified {@link Message}. The call of this method wakeup all message reception listeners.
      *
-     * @param message the Message to offer in the deque {@link #receivedMessages}
+     * @param message the Message to offer in the deque {@link #contentReceived}
      */
-    protected void offerMessage(@NonNull Message<? extends Serializable> message) {
-        receivedMessages.offer(message);
+    protected void offerMessage(@NonNull Message<?> message) {
+        contentReceived.offer(message);
         wakeupOnDeliveryMessage();
     }
 
@@ -91,7 +90,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
      * @throws ForcedWakeUpException if the Thread is interrupted after or during the wait
      */
     protected void waitMessageReception() throws ForcedWakeUpException {
-        while (!hasMessage()) {
+        while (!hasContent()) {
             Executor.Condition condition = scheduler().generateCondition();
             messageReceptionCondition.add(condition);
             scheduler().await(condition);
@@ -114,7 +113,7 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
         observers.add(observer);
     }
 
-    protected void notifyMessageDelivery(Message<? extends Serializable> msg) {
+    protected void notifyMessageDelivery(Message<?> msg) {
         for (MessageReceiverObserver observer : observers) {
             if (observer.interestedBy(msg))
                 observer.messageDelivery(this, msg);
@@ -122,13 +121,13 @@ public abstract class MessageProtocol extends Protocol implements Messenger {
     }
 
     @Override
-    public boolean hasMessage() {
-        return !receivedMessages.isEmpty();
+    public boolean hasContent() {
+        return !contentReceived.isEmpty();
     }
 
     @Override
-    public Message<? extends Serializable> nextMessage() throws ForcedWakeUpException {
+    public Object nextContent() throws ForcedWakeUpException {
         waitMessageReception();
-        return receivedMessages.pollFirst();
+        return contentReceived.pollFirst();
     }
 }

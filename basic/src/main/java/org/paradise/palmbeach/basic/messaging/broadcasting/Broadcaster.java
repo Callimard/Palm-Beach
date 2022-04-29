@@ -1,12 +1,11 @@
 package org.paradise.palmbeach.basic.messaging.broadcasting;
 
+import lombok.NonNull;
 import org.paradise.palmbeach.basic.messaging.Message;
 import org.paradise.palmbeach.basic.messaging.MessageReceiver;
 import org.paradise.palmbeach.core.agent.SimpleAgent;
 import org.paradise.palmbeach.core.environment.network.Network;
-import lombok.NonNull;
 
-import java.io.Serializable;
 import java.util.Set;
 
 public interface Broadcaster extends MessageReceiver {
@@ -20,7 +19,7 @@ public interface Broadcaster extends MessageReceiver {
      * @param groupMembership the group of member for which the message will be broadcast
      * @param network         the network across the message is broadcast
      */
-    void broadcastMessage(@NonNull Message<? extends Serializable> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
+    void broadcastMessage(@NonNull Message<?> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
                           @NonNull Network network);
 
 }
