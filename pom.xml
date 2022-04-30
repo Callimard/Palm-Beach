@@ -18,7 +18,7 @@
     <groupId>org.paradise.palmbeach</groupId>
     <artifactId>palmbeach</artifactId>
     <packaging>pom</packaging>
-    <version>3.0.0</version>
+    <version>1.0.0</version>
     <modules>
         <module>core</module>
         <module>basic</module>
@@ -27,11 +27,10 @@
     </modules>
 
     <properties>
-        <paradise.palmbeach.core.version>4.0.0</paradise.palmbeach.core.version>
-        <paradise.palmbeach.basic.version>4.0.0</paradise.palmbeach.basic.version>
-        <paradise.palmbeach.blockchain.version>2.0.0</paradise.palmbeach.blockchain.version>
+        <paradise.palmbeach.core.version>1.0.0</paradise.palmbeach.core.version>
+        <paradise.palmbeach.basic.version>1.0.0</paradise.palmbeach.basic.version>
+        <paradise.palmbeach.blockchain.version>1.0.0</paradise.palmbeach.blockchain.version>
         <paradise.palmbeach.utils.version>1.0.0</paradise.palmbeach.utils.version>
-        <maven.deploy.skip>false</maven.deploy.skip>
         <sonar.language>java</sonar.language>
         <sonar.java.coveragePlugin>jacoco</sonar.java.coveragePlugin>
         <sonar.dynamicAnalysis>reuseReports</sonar.dynamicAnalysis>
@@ -189,6 +188,17 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>3.0.0-M2</version>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
                     </execution>
                 </executions>
             </plugin>

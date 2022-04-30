@@ -83,8 +83,8 @@ public class SimpleMessengerTest {
 
             waitSimulationEnd();
 
-            assertThat(s1.hasMessage()).isTrue();
-            assertThat(s1.nextMessage()).isNotNull().isSameAs(mString);
+            assertThat(s1.hasContent()).isTrue();
+            assertThat(s1.nextContent()).isNotNull().isSameAs(mString);
         }
     }
 
@@ -123,7 +123,7 @@ public class SimpleMessengerTest {
             final Message<String> mString = new Message<>(i0, "msg");
             final AtomicReference<Message<String>> receivedMsg = new AtomicReference<>();
             //noinspection unchecked
-            SupplierExecutable waitMessageReception = new SupplierExecutable(() -> receivedMsg.set((Message<String>) s1.nextMessage()));
+            SupplierExecutable waitMessageReception = new SupplierExecutable(() -> receivedMsg.set((Message<String>) s1.nextContent()));
             PalmBeachSimulation.scheduler().scheduleOnce(waitMessageReception, Scheduler.NEXT_STEP);
             PalmBeachSimulation.scheduler().scheduleOnce(() -> s0.sendMessage(mString, i1, network), Scheduler.NEXT_STEP + 50L);
 

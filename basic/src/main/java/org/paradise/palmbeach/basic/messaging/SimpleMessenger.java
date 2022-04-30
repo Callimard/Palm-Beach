@@ -1,20 +1,18 @@
 package org.paradise.palmbeach.basic.messaging;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
-import org.paradise.palmbeach.core.agent.exception.AgentNotStartedException;
-import org.paradise.palmbeach.utils.context.Context;
-import org.paradise.palmbeach.core.environment.network.Network;
-import org.paradise.palmbeach.core.event.Event;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-
-import java.io.Serializable;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.agent.exception.AgentNotStartedException;
+import org.paradise.palmbeach.core.environment.network.Network;
+import org.paradise.palmbeach.core.event.Event;
+import org.paradise.palmbeach.utils.context.Context;
 
 /**
  * Protocol used to send and receive {@link Message}. This protocol can only send message to agent which are directly connected.
  */
 @Slf4j
-public class SimpleMessenger extends MessageProtocol {
+public class SimpleMessenger extends MessageProtocol<SimpleMessenger.SimpleMessage> {
 
     // Constructors.
 
@@ -35,7 +33,7 @@ public class SimpleMessenger extends MessageProtocol {
     }
 
     @Override
-    protected void receive(@NonNull Message<? extends Serializable> message) {
+    protected void receive(@NonNull SimpleMessage message) {
         deliver(message);
     }
 
@@ -52,12 +50,20 @@ public class SimpleMessenger extends MessageProtocol {
      * @throws AgentNotStartedException if the Agent is not in STARTED state
      */
     @Override
-    public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
-        network.send(getAgent().getIdentifier(), target, new SimpleMessageReception(message));
+    public void sendMessage(@NonNull Message<?> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
+        network.send(getAgent().getIdentifier(), target, new SimpleMessageReception(new SimpleMessage(getAgent().getIdentifier(), message)));
     }
 
-    public static class SimpleMessageReception extends Event<Message<? extends Serializable>> {
-        public SimpleMessageReception(@NonNull Message<? extends Serializable> msg) {
+    // Inner classes.
+
+    public static class SimpleMessage extends MessageEncapsuler {
+        public SimpleMessage(SimpleAgent.@NonNull AgentIdentifier sender, Message<?> msg) {
+            super(sender, msg);
+        }
+    }
+
+    public static class SimpleMessageReception extends Event<SimpleMessage> {
+        public SimpleMessageReception(@NonNull SimpleMessage msg) {
             super(msg);
         }
     }

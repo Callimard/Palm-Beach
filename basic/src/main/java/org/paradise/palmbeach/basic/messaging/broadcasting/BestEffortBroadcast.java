@@ -5,11 +5,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.paradise.palmbeach.basic.messaging.*;
 import org.paradise.palmbeach.core.agent.SimpleAgent;
 import org.paradise.palmbeach.core.agent.protocol.Protocol;
-import org.paradise.palmbeach.utils.context.Context;
 import org.paradise.palmbeach.core.environment.network.Network;
 import org.paradise.palmbeach.core.event.Event;
+import org.paradise.palmbeach.utils.context.Context;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -23,7 +22,7 @@ import java.util.Set;
  * connected to the agent sender.
  */
 @Slf4j
-public class BestEffortBroadcast extends MessageProtocol implements Broadcaster, MessageReceiver.MessageReceiverObserver {
+public class BestEffortBroadcast extends MessageProtocol<BestEffortBroadcast.BestEffortBroadcastMessage> implements Broadcaster, MessageReceiver.MessageReceiverObserver {
 
     // Variables.
 
@@ -38,17 +37,16 @@ public class BestEffortBroadcast extends MessageProtocol implements Broadcaster,
     // Methods.
 
     @Override
-    protected void receive(@NonNull Message<? extends Serializable> message) {
-        BebMessage broadcastMessage = (BebMessage) message;
-        deliver(broadcastMessage.getContent());
+    protected void receive(@NonNull BestEffortBroadcast.BestEffortBroadcastMessage bebMessage) {
+        deliver(bebMessage);
     }
 
     @Override
-    public void broadcastMessage(@NonNull Message<? extends Serializable> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
+    public void broadcastMessage(@NonNull Message<?> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
                                  @NonNull Network network) {
         groupMembership.add(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier agent : groupMembership) {
-            messenger.sendMessage(new BebMessage(getAgent().getIdentifier(), message), agent, network);
+            messenger.sendMessage(new BestEffortBroadcastMessage(getAgent().getIdentifier(), message), agent, network);
         }
     }
 
@@ -56,7 +54,7 @@ public class BestEffortBroadcast extends MessageProtocol implements Broadcaster,
      * @throws UnsupportedOperationException Broadcast protocol does not send message, use {@link #broadcastMessage(Message, Set, Network)}
      */
     @Override
-    public void sendMessage(@NonNull Message<? extends Serializable> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
+    public void sendMessage(@NonNull Message<?> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
         throw new UnsupportedOperationException("Broadcast protocol cannot send message");
     }
 
@@ -84,15 +82,15 @@ public class BestEffortBroadcast extends MessageProtocol implements Broadcaster,
     }
 
     @Override
-    public void messageDelivery(@NonNull MessageReceiver msgReceiver, Message<? extends Serializable> msg) {
+    public void messageDelivery(@NonNull MessageReceiver msgReceiver, Object msg) {
         if (msgReceiver.equals(messenger)) {
-            receive(msg);
+            receive((BestEffortBroadcastMessage) msg);
         }
     }
 
     @Override
-    public boolean interestedBy(Message<? extends Serializable> msg) {
-        return msg instanceof BebMessage;
+    public boolean interestedBy(Object msg) {
+        return msg instanceof BestEffortBroadcastMessage;
     }
 
     // Setters.
@@ -104,10 +102,10 @@ public class BestEffortBroadcast extends MessageProtocol implements Broadcaster,
 
     // Inner classes.
 
-    private static class BebMessage extends Message<Message<? extends Serializable>> {
+    public static class BestEffortBroadcastMessage extends MessageEncapsuler {
 
-        public BebMessage(@NonNull SimpleAgent.AgentIdentifier sender, Message<? extends Serializable> content) {
-            super(sender, content);
+        public BestEffortBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, Message<?> msg) {
+            super(sender, msg);
         }
     }
 }

@@ -1,18 +1,18 @@
 package org.paradise.palmbeach.basic.messaging.broadcasting;
 
-import org.paradise.palmbeach.basic.messaging.Message;
-import org.paradise.palmbeach.basic.messaging.MessageProtocol;
-import org.paradise.palmbeach.basic.messaging.MessageReceiver;
-import org.paradise.palmbeach.core.agent.SimpleAgent;
 import com.google.common.collect.Sets;
-import org.paradise.palmbeach.utils.context.Context;
-import org.paradise.palmbeach.core.environment.network.Network;
-import org.paradise.palmbeach.core.event.Event;
 import lombok.EqualsAndHashCode;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.paradise.palmbeach.basic.messaging.Message;
+import org.paradise.palmbeach.basic.messaging.MessageEncapsuler;
+import org.paradise.palmbeach.basic.messaging.MessageProtocol;
+import org.paradise.palmbeach.basic.messaging.MessageReceiver;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.environment.network.Network;
+import org.paradise.palmbeach.core.event.Event;
+import org.paradise.palmbeach.utils.context.Context;
 
-import java.io.Serializable;
 import java.util.Set;
 
 /**
@@ -20,7 +20,7 @@ import java.util.Set;
  * finally deliver the {@code Message}.
  */
 @Slf4j
-public class ReliableBroadcast extends MessageProtocol implements Broadcaster, MessageReceiver.MessageReceiverObserver {
+public class ReliableBroadcast extends MessageProtocol<ReliableBroadcast.ReliableBroadcastMessage> implements Broadcaster, MessageReceiver.MessageReceiverObserver {
 
     // Variables.
 
@@ -40,12 +40,11 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
     // Methods.
 
     @Override
-    protected void receive(@NonNull Message<? extends Serializable> message) {
-        ReliableBroadcastMessage rbMsg = (ReliableBroadcastMessage) message;
+    protected void receive(@NonNull ReliableBroadcastMessage rbMsg) {
         if (!alreadyReceived(rbMsg)) {
             bebMsgReceived.add(rbMsg);
             broadcaster.broadcastMessage(rbMsg, rbMsg.groupMembership, rbMsg.network);
-            deliver(rbMsg.getContent());
+            deliver(rbMsg);
         }
     }
 
@@ -61,12 +60,12 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
      * @throws UnsupportedOperationException BestEffortBroadcast cannot send message
      */
     @Override
-    public void sendMessage(@NonNull Message<? extends Serializable> message, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Network network) {
+    public void sendMessage(@NonNull Message<?> message, SimpleAgent.@NonNull AgentIdentifier target, @NonNull Network network) {
         throw new UnsupportedOperationException("BestEffortBroadcast cannot send message");
     }
 
     @Override
-    public void broadcastMessage(@NonNull Message<? extends Serializable> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
+    public void broadcastMessage(@NonNull Message<?> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
                                  @NonNull Network network) {
         broadcaster.broadcastMessage(
                 new ReliableBroadcastMessage(getAgent().getIdentifier(), msgId++, Sets.newHashSet(groupMembership), network, message),
@@ -74,13 +73,13 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
     }
 
     @Override
-    public void messageDelivery(@NonNull MessageReceiver msgReceiver, Message<? extends Serializable> msg) {
+    public void messageDelivery(@NonNull MessageReceiver msgReceiver, Object msg) {
         if (msgReceiver.equals(broadcaster))
-            receive(msg);
+            receive((ReliableBroadcastMessage) msg);
     }
 
     @Override
-    public boolean interestedBy(Message<? extends Serializable> msg) {
+    public boolean interestedBy(Object msg) {
         return msg instanceof ReliableBroadcastMessage;
     }
 
@@ -115,18 +114,18 @@ public class ReliableBroadcast extends MessageProtocol implements Broadcaster, M
     // Inner Classes.
 
     @EqualsAndHashCode(callSuper = true)
-    public static class ReliableBroadcastMessage extends Message<Message<? extends Serializable>> {
+    public static class ReliableBroadcastMessage extends MessageEncapsuler {
 
         private final long id;
 
         private final Set<SimpleAgent.AgentIdentifier> groupMembership;
 
-        private final transient Network network;
+        private final Network network;
 
         public ReliableBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, long id,
                                         @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership, @NonNull Network network,
-                                        Message<? extends Serializable> content) {
-            super(sender, content);
+                                        Message<?> msg) {
+            super(sender, msg);
             this.id = id;
             this.groupMembership = groupMembership;
             this.network = network;
