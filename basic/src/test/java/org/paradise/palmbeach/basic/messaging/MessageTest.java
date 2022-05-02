@@ -25,7 +25,7 @@ public class MessageTest {
         @Test
         @DisplayName("toString() never returns null")
         void neverReturnsNull(@Mock SimpleAgent.AgentIdentifier i0) {
-            Message<String> msg = new Message<>(i0, "msg");
+            Message<String> msg = new Message<>("msg");
             assertThat(msg.toString()).isNotNull();
         }
     }
@@ -38,15 +38,15 @@ public class MessageTest {
         @Test
         @DisplayName("equals() returns true with equal contents")
         void withEqualsContent(@Mock SimpleAgent.AgentIdentifier i0) {
-            Message<String> msg0 = new Message<>(i0, "msg");
-            Message<String> msg1 = new Message<>(i0, "msg");
+            Message<String> msg0 = new Message<>( "msg");
+            Message<String> msg1 = new Message<>("msg");
             assertThat(msg0).isEqualTo(msg1);
         }
 
         @Test
         @DisplayName("hashCode() does not throw Exception")
         void doesNotThrowException(@Mock SimpleAgent.AgentIdentifier i0) {
-            Message<String> msg0 = new Message<>(i0, "msg");
+            Message<String> msg0 = new Message<>("msg");
             assertDoesNotThrow(msg0::hashCode);
         }
     }

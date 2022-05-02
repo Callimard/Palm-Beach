@@ -64,7 +64,7 @@ public class PulsingMessengerIT {
             PulsingMessenger pmSender = sender.getProtocol(PulsingMessenger.class);
             PulsingMessenger pmReceiver = receiver.getProtocol(PulsingMessenger.class);
 
-            Message<String> msg = new Message<>(sender.getIdentifier(), "Hello");
+            Message<String> msg = new Message<>("Hello");
             pmSender.sendMessage(msg, receiver.getIdentifier(), network);
 
             PalmBeachSimulation.start();
@@ -104,7 +104,7 @@ public class PulsingMessengerIT {
             PulsingMessenger pmSender = sender.getProtocol(PulsingMessenger.class);
             PulsingMessenger pmReceiver = receiver.getProtocol(PulsingMessenger.class);
 
-            Message<String> msg = new Message<>(sender.getIdentifier(), "Hello");
+            Message<String> msg = new Message<>("Hello");
             pmSender.sendMessage(msg, receiver.getIdentifier(), network);
 
             PalmBeachSimulation.start();

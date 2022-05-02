@@ -51,14 +51,14 @@ public class SimpleMessenger extends MessageProtocol<SimpleMessenger.SimpleMessa
      */
     @Override
     public void sendMessage(@NonNull Message<?> message, @NonNull SimpleAgent.AgentIdentifier target, @NonNull Network network) {
-        network.send(getAgent().getIdentifier(), target, new SimpleMessageReception(new SimpleMessage(getAgent().getIdentifier(), message)));
+        network.send(getAgent().getIdentifier(), target, new SimpleMessageReception(new SimpleMessage(message)));
     }
 
     // Inner classes.
 
     public static class SimpleMessage extends MessageEncapsuler {
-        public SimpleMessage(SimpleAgent.@NonNull AgentIdentifier sender, Message<?> msg) {
-            super(sender, msg);
+        public SimpleMessage(Message<?> msg) {
+            super(msg);
         }
     }
 

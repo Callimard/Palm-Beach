@@ -68,7 +68,7 @@ public class ReliableBroadcast extends MessageProtocol<ReliableBroadcast.Reliabl
     public void broadcastMessage(@NonNull Message<?> message, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership,
                                  @NonNull Network network) {
         broadcaster.broadcastMessage(
-                new ReliableBroadcastMessage(getAgent().getIdentifier(), msgId++, Sets.newHashSet(groupMembership), network, message),
+                new ReliableBroadcastMessage(msgId++, Sets.newHashSet(groupMembership), network, message),
                 groupMembership, network);
     }
 
@@ -122,10 +122,9 @@ public class ReliableBroadcast extends MessageProtocol<ReliableBroadcast.Reliabl
 
         private final Network network;
 
-        public ReliableBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, long id,
-                                        @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership, @NonNull Network network,
+        public ReliableBroadcastMessage(long id, @NonNull Set<SimpleAgent.AgentIdentifier> groupMembership, @NonNull Network network,
                                         Message<?> msg) {
-            super(sender, msg);
+            super(msg);
             this.id = id;
             this.groupMembership = groupMembership;
             this.network = network;

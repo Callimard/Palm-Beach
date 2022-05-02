@@ -7,8 +7,8 @@ import org.paradise.palmbeach.core.environment.network.Network;
 public interface MessageSender {
 
     /**
-     * Send the {@link Message} to the target across the specified {@link Network}. This method does not guarantee that the target will finally
-     * receive the message. The message reception depend on the {@code Network} disposition.
+     * Sends the {@link Message} from the current agent to the target across the specified {@link Network}. This method does not guarantee that the
+     * target will finally receive the message. The message reception depend on the {@code Network} disposition.
      *
      * @param message the message to send
      * @param target  the target of the message

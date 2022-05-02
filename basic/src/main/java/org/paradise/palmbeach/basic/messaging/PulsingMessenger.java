@@ -11,6 +11,7 @@ import org.paradise.palmbeach.core.event.Event;
 import org.paradise.palmbeach.utils.context.Context;
 
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class is a {@link Messenger} which is able to send {@link Message} to agent even if the {@link Network} is not fully connected but garanties
@@ -68,8 +69,7 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
         Set<SimpleAgent.AgentIdentifier> directNeighbors = network.directNeighbors(getAgent().getIdentifier());
         directNeighbors.remove(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier neighbor : directNeighbors) {
-            network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(new PulseMessage(getAgent().getIdentifier(),
-                                                                                                          target, network, message)));
+            network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(new PulseMessage(target, network, message)));
         }
     }
 
@@ -93,6 +93,10 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
     @EqualsAndHashCode(callSuper = true)
     public static class PulseMessage extends MessageEncapsuler {
 
+        // Static.
+
+        private static final AtomicLong counter = new AtomicLong(0L);
+
         // Variables.
 
         @NonNull
@@ -103,17 +107,21 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
         @Getter
         private final SimpleAgent.AgentIdentifier receiver;
 
+        private final long id; // Indispensable to avoid problem if equal messages are sent
+
         // Constructors.
 
-        public PulseMessage(@NonNull SimpleAgent.AgentIdentifier sender, @NonNull SimpleAgent.AgentIdentifier receiver, @NonNull Network network,
+        public PulseMessage(@NonNull SimpleAgent.AgentIdentifier receiver, @NonNull Network network,
                             Message<?> msg) {
-            super(sender, msg);
+            super(msg);
             this.receiver = receiver;
             this.network = network;
+            this.id = counter.getAndIncrement();
         }
     }
 
     public static class PulseMessageReception extends Event<PulseMessage> {
+
         public PulseMessageReception(@NonNull PulseMessage msg) {
             super(msg);
         }
