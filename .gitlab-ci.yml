@@ -67,9 +67,8 @@ release-deploy:
     paths:
       - "**/*.jar"
   only:
-    - tags
-  except:
-    - ^(?!release\/)
+    variables:
+      - $CI_COMMIT_TAG =~ /^(release\/).*/
   script:
     - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy -Dmaven.deploy.skip=snapshots
 
@@ -80,8 +79,7 @@ snapshot-deploy:
     paths:
       - "**/*.jar"
   only:
-    - tags
-  except:
-    - ^(?!snapshot\/)
+    variables:
+      - $CI_COMMIT_TAG =~ /^(snapshot\/).*/
   script:
     - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy -Dmaven.deploy.skip=releases
