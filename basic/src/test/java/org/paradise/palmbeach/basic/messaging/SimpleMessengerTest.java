@@ -76,7 +76,7 @@ public class SimpleMessengerTest {
             a0.start();
             a1.start();
 
-            Message<String> mString = new Message<>(i0, "msg");
+            Message<String> mString = new Message<>("msg");
             s0.sendMessage(mString, i1, network);
 
             PalmBeachSimulation.start();
@@ -120,7 +120,7 @@ public class SimpleMessengerTest {
             a0.start();
             a1.start();
 
-            final Message<String> mString = new Message<>(i0, "msg");
+            final Message<String> mString = new Message<>("msg");
             final AtomicReference<Message<String>> receivedMsg = new AtomicReference<>();
             //noinspection unchecked
             SupplierExecutable waitMessageReception = new SupplierExecutable(() -> receivedMsg.set((Message<String>) s1.nextContent()));

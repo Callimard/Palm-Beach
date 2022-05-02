@@ -59,7 +59,7 @@ public class ReliableBroadcastTest {
         @DisplayName("broadcastMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
         void withNotStartedAgent() {
             SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier("Agent", 0), null);
-            Message<String> message = new Message<>(agent.getIdentifier(), "Hello");
+            Message<String> message = new Message<>("Hello");
             Environment env = new Environment("env", null);
             Network network = new FullyConnectedNetwork("net", env, null);
             Messenger messenger = new SimpleMessenger(agent, null);
@@ -126,7 +126,7 @@ public class ReliableBroadcastTest {
             a1.start();
             a2.start();
 
-            Message<String> mString = new Message<>(i0, "msg");
+            Message<String> mString = new Message<>("msg");
             rb0.broadcastMessage(mString, env.evolvingAgents(), network);
 
             PalmBeachSimulation.start();
@@ -201,7 +201,7 @@ public class ReliableBroadcastTest {
             a1.start();
             a2.start();
 
-            final Message<String> mString = new Message<>(i0, "msg");
+            final Message<String> mString = new Message<>("msg");
             final AtomicReference<Message<String>> receivedMsg1 = new AtomicReference<>();
             final AtomicReference<Message<String>> receivedMsg2 = new AtomicReference<>();
             //noinspection unchecked

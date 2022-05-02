@@ -46,7 +46,7 @@ public class BestEffortBroadcast extends MessageProtocol<BestEffortBroadcast.Bes
                                  @NonNull Network network) {
         groupMembership.add(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier agent : groupMembership) {
-            messenger.sendMessage(new BestEffortBroadcastMessage(getAgent().getIdentifier(), message), agent, network);
+            messenger.sendMessage(new BestEffortBroadcastMessage(message), agent, network);
         }
     }
 
@@ -104,8 +104,8 @@ public class BestEffortBroadcast extends MessageProtocol<BestEffortBroadcast.Bes
 
     public static class BestEffortBroadcastMessage extends MessageEncapsuler {
 
-        public BestEffortBroadcastMessage(@NonNull SimpleAgent.AgentIdentifier sender, Message<?> msg) {
-            super(sender, msg);
+        public BestEffortBroadcastMessage(Message<?> msg) {
+            super(msg);
         }
     }
 }
