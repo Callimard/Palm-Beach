@@ -1,12 +1,14 @@
 package org.paradise.palmbeach.core.simulation;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import org.paradise.palmbeach.core.environment.Environment;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
+import org.paradise.palmbeach.core.agent.AgentProcessEventExecutable;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.environment.Environment;
+import org.paradise.palmbeach.core.event.Event;
 import org.paradise.palmbeach.core.scheduler.Scheduler;
 import org.paradise.palmbeach.core.simulation.exception.PalmBeachSimulationSingletonAlreadyCreateException;
 
@@ -148,6 +150,18 @@ public class PalmBeachSimulation {
     // Simulation methods.
 
     /**
+     * Schedule one the call of the method {@link SimpleAgent#processEvent(Event)} on the specified {@link SimpleAgent} for the specified {@link
+     * Event}.
+     *
+     * @param agent       the agent which will call the method {@link SimpleAgent#processEvent(Event)}
+     * @param event       the event which will be treated by the specified agent
+     * @param waitingTime the waiting time from the current time before the Event be treated
+     */
+    public static void scheduleEvent(SimpleAgent agent, Event<?> event, long waitingTime) {
+        palmBeachSimulation.scheduler.scheduleOnce(new AgentProcessEventExecutable(agent, event), waitingTime);
+    }
+
+    /**
      * <strong>WARNING!</strong> Very dangerous method, only use for UT and clear the singleton, however, there is no protection of the current
      * Simulation. Therefore, if user calls clear, it must be aware that it can break the execution.
      */
@@ -195,8 +209,8 @@ public class PalmBeachSimulation {
     /**
      * Add the {@link SimpleAgent} in the simulation. Just add it, does not manage if it is evolving or not in some {@link Environment}.
      * <p>
-     * {@code SimpleAgent} are mapped with their {@link SimpleAgent.AgentIdentifier}. Therefore, if there already is a {@code SimpleAgent} with
-     * the same {@code AgentIdentifier} in the Simulation, the specified {@code SimpleAgent} will not be added in the Simulation and the method will
+     * {@code SimpleAgent} are mapped with their {@link SimpleAgent.AgentIdentifier}. Therefore, if there already is a {@code SimpleAgent} with the
+     * same {@code AgentIdentifier} in the Simulation, the specified {@code SimpleAgent} will not be added in the Simulation and the method will
      * return false.
      *
      * @param agent to add

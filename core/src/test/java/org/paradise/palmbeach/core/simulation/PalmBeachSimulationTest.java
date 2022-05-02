@@ -1,11 +1,12 @@
 package org.paradise.palmbeach.core.simulation;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
 import com.google.common.collect.Sets;
-import org.paradise.palmbeach.core.environment.Environment;
-import org.paradise.palmbeach.core.junit.PalmBeachTest;
 import org.junit.jupiter.api.*;
 import org.mockito.Mock;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.environment.Environment;
+import org.paradise.palmbeach.core.event.Event;
+import org.paradise.palmbeach.core.junit.PalmBeachTest;
 import org.paradise.palmbeach.core.scheduler.Scheduler;
 import org.paradise.palmbeach.core.simulation.exception.PalmBeachSimulationSingletonAlreadyCreateException;
 
@@ -175,4 +176,22 @@ public class PalmBeachSimulationTest {
             assertThat(PalmBeachSimulation.addAgent(agent)).isFalse();
         }
     }
+
+    @Nested
+    @DisplayName("PalmBeachSimulation scheduleEvent()")
+    @Tag("scheduleEvent")
+    class ScheduleEvent {
+
+        @Test
+        @DisplayName("scheduleEvent() call scheduleOnce of the scheduler")
+        void callScheduleOnce(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock SimpleAgent agent, @Mock Event<?> event) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+
+            PalmBeachSimulation.scheduleEvent(agent, event, Scheduler.NEXT_STEP);
+
+            verify(scheduler, times(1)).scheduleOnce(any(), eq(Scheduler.NEXT_STEP));
+        }
+
+    }
+
 }
