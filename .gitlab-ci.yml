@@ -66,16 +66,20 @@ release-deploy:
   artifacts:
     paths:
       - "**/*.jar"
+  when: on_success
+  rules:
+    - if: $CI_COMMIT_TAG =~ /^(release\/)*/ && $CI_COMMIT_BRANCH == "master"
   script:
     - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy -Dmaven.deploy.skip=snapshots
-  when: on_success
-  only:
-    - master
 
 snapshot-deploy:
-  needs: [ "compile-job", "test-job", "integration-test-job", "sonarqube-scan-job" ]
   stage: deploy-artifact
+  needs: [ "compile-job", "test-job", "integration-test-job", "sonarqube-scan-job" ]
+  artifacts:
+    paths:
+      - "**/*.jar"
+  when: on_success
   rules:
-    - if: $CI_COMMIT_TAG =~ /-(SNAPSHOT|snapshot)/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG =~ /^(snapshot\/)*/ && $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - mvn $MAVEN_CLI_OPTS -Dmaven.test.skip=true clean deploy -Dmaven.deploy.skip=releases
