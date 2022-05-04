@@ -3,8 +3,14 @@ package org.paradise.palmbeach.core.simulation;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.log4j.BasicConfigurator;
+import org.apache.log4j.PropertyConfigurator;
 import org.paradise.palmbeach.core.simulation.configuration.SimulationConfiguration;
 import org.paradise.palmbeach.core.simulation.exception.RunSimulationErrorException;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * Class used to run any {@link PalmBeachSimulation}
@@ -16,6 +22,7 @@ public class PalmBeachRunner {
 
     public static void main(String[] args) throws RunSimulationErrorException {
         try {
+            loadLoggerConfig();
             Config mainConfig = getMainConfig(args);
             createAndStartSimulation(mainConfig);
             waitSimulationEnd();
@@ -23,6 +30,24 @@ public class PalmBeachRunner {
         } catch (RunSimulationErrorException e) {
             log.error("Cannot run Palm Beach Simulation cause to an Error", e);
             throw e;
+        }
+    }
+
+    private static void loadLoggerConfig() {
+        Properties prop = new Properties();
+        String propFileName = "slf4j.properties";
+
+        InputStream inputStream = PalmBeachRunner.class.getClassLoader().getResourceAsStream(propFileName);
+
+        if (inputStream != null) {
+            try {
+                prop.load(inputStream);
+                PropertyConfigurator.configure(prop);
+            } catch (IOException e) {
+                BasicConfigurator.configure();
+            }
+        } else {
+            BasicConfigurator.configure();
         }
     }
 

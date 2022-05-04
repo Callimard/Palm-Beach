@@ -34,7 +34,7 @@ public class EnvironmentConfiguration extends PalmBeachConfiguration<Environment
 
     public static final String CLASS_PROPERTY = "class";
     public static final String CONTEXT_PROPERTY = "context";
-    public static final String PHYSICAL_NETWORKS_PROPERTY = "Networks";
+    public static final String PHYSICAL_NETWORKS_PROPERTY = "networks";
 
     // Variables.
 
