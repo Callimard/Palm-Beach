@@ -23,7 +23,10 @@ public class PalmBeachRunner {
     public static void main(String[] args) throws RunSimulationErrorException {
         try {
             loadLoggerConfig();
+            displayArgs(args);
             Config mainConfig = getMainConfig(args);
+            log.debug("MainConfig {}", mainConfig);
+            log.info("MainConfig {}", mainConfig);
             createAndStartSimulation(mainConfig);
             waitSimulationEnd();
             log.info("END MAIN THREAD");
@@ -48,6 +51,12 @@ public class PalmBeachRunner {
             }
         } else {
             BasicConfigurator.configure();
+        }
+    }
+
+    private static void displayArgs(String[] args) {
+        for (String arg : args) {
+            log.info("Arg = {}", arg);
         }
     }
 
