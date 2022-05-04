@@ -26,7 +26,6 @@ public class PalmBeachRunner {
             displayArgs(args);
             Config mainConfig = getMainConfig(args);
             log.debug("MainConfig {}", mainConfig);
-            log.info("MainConfig {}", mainConfig);
             createAndStartSimulation(mainConfig);
             waitSimulationEnd();
             log.info("END MAIN THREAD");
@@ -56,7 +55,7 @@ public class PalmBeachRunner {
 
     private static void displayArgs(String[] args) {
         for (String arg : args) {
-            log.info("Arg = {}", arg);
+            log.debug("Arg = {}", arg);
         }
     }
 
