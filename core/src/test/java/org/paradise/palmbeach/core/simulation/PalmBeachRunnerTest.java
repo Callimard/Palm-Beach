@@ -28,19 +28,19 @@ public class PalmBeachRunnerTest {
         @DisplayName("main() throws RunSimulationErrorException if PalmBeachSimulation singleton already set")
         void alreadySetSingleton(@Mock PalmBeachSimulation palmBeachSimulation) {
             PalmBeachSimulation.setSingletonInstance(palmBeachSimulation);
-            assertThrows(RunSimulationErrorException.class, () -> PalmBeachRunner.main(new String[0]));
+            assertThrows(RunSimulationErrorException.class, () -> PalmBeachRunner.launchSimulation(PalmBeachRunner.class, new String[0]));
         }
 
         @Test
         @DisplayName("main() does not throws exception with empty args and use default config file name")
         void withEmptyArgs() {
-            assertDoesNotThrow(() -> PalmBeachRunner.main(new String[0]));
+            assertDoesNotThrow(() -> PalmBeachRunner.launchSimulation(PalmBeachRunner.class, new String[0]));
         }
 
         @Test
         @DisplayName("main() does not throws exception with empty args and use specified arg file")
         void withArgs() {
-            assertDoesNotThrow(() -> PalmBeachRunner.main(new String[]{"configuration"}));
+            assertDoesNotThrow(() -> PalmBeachRunner.launchSimulation(PalmBeachRunner.class, new String[]{"configuration"}));
         }
     }
 }
