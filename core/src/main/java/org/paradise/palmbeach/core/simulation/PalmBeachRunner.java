@@ -68,7 +68,7 @@ public class PalmBeachRunner {
             String configName = args[0];
             mainConfig = ConfigFactory.load(mainClass.getClassLoader(), configName);
         } else
-            mainConfig = ConfigFactory.load(SimulationConfiguration.DEFAULT_SIMULATION_CONFIG_NAME);
+            mainConfig = ConfigFactory.load(mainClass.getClassLoader(), SimulationConfiguration.DEFAULT_SIMULATION_CONFIG_NAME);
         return mainConfig;
     }
 
