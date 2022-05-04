@@ -2,6 +2,8 @@ package org.paradise.palmbeach.core.simulation;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -16,15 +18,16 @@ import java.util.Properties;
  * Class used to run any {@link PalmBeachSimulation}
  */
 @Slf4j
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class PalmBeachRunner {
 
     public static final long SIMULATION_WAIT_END_TIMEOUT = 500L;
 
-    public static void main(String[] args) throws RunSimulationErrorException {
+    public static void launchSimulation(Class<?> mainClass, String[] args) throws RunSimulationErrorException {
         try {
-            loadLoggerConfig();
+            loadLoggerConfig(mainClass);
             displayArgs(args);
-            Config mainConfig = getMainConfig(args);
+            Config mainConfig = getMainConfig(mainClass, args);
             log.debug("MainConfig {}", mainConfig);
             createAndStartSimulation(mainConfig);
             waitSimulationEnd();
@@ -35,11 +38,11 @@ public class PalmBeachRunner {
         }
     }
 
-    private static void loadLoggerConfig() {
+    private static void loadLoggerConfig(Class<?> mainClass) {
         Properties prop = new Properties();
         String propFileName = "slf4j.properties";
 
-        InputStream inputStream = PalmBeachRunner.class.getClassLoader().getResourceAsStream(propFileName);
+        InputStream inputStream = mainClass.getClassLoader().getResourceAsStream(propFileName);
 
         if (inputStream != null) {
             try {
@@ -59,11 +62,11 @@ public class PalmBeachRunner {
         }
     }
 
-    private static Config getMainConfig(String[] args) {
+    private static Config getMainConfig(Class<?> mainClass, String[] args) {
         Config mainConfig;
         if (args.length >= 1) {
             String configName = args[0];
-            mainConfig = ConfigFactory.load(configName);
+            mainConfig = ConfigFactory.load(mainClass.getClassLoader(), configName);
         } else
             mainConfig = ConfigFactory.load(SimulationConfiguration.DEFAULT_SIMULATION_CONFIG_NAME);
         return mainConfig;
