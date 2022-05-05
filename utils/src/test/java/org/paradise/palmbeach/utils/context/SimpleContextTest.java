@@ -133,12 +133,12 @@ public class SimpleContextTest {
         }
 
         @Test
-        @DisplayName("getInt() throws ClassCastException if the value is not an int or a string")
+        @DisplayName("getInt() returns null if the value is not an int or a string")
         void getIntWrongClass() {
             SimpleContext context = new SimpleContext();
 
             context.map("key", new Object());
-            assertThrows(ClassCastException.class, () -> context.getInt("key"));
+            assertThat(context.getInt("key")).isNull();
         }
 
         @Test
@@ -171,12 +171,12 @@ public class SimpleContextTest {
         }
 
         @Test
-        @DisplayName("getLong() throws ClassCastException if the value is not an int or a string")
+        @DisplayName("getLong() returns null if the value is not an int or a string")
         void getLongWrongClass() {
             SimpleContext context = new SimpleContext();
 
             context.map("key", new Object());
-            assertThrows(ClassCastException.class, () -> context.getLong("key"));
+            assertThat(context.getLong("key")).isNull();
         }
 
         @Test

@@ -44,6 +44,7 @@ public class PalmBeachRunner {
             log.info("END MAIN THREAD");
         } catch (RunSimulationErrorException e) {
             log.error("Cannot run Palm Beach Simulation cause to an Error", e);
+            PalmBeachSimulation.killScheduler();
             throw e;
         }
     }
