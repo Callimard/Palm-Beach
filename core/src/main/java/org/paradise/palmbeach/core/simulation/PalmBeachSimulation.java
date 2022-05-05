@@ -177,6 +177,12 @@ public class PalmBeachSimulation {
         return palmBeachSimulation.scheduler;
     }
 
+    public static void killScheduler() {
+        if (palmBeachSimulation != null && palmBeachSimulation.scheduler != null) {
+            palmBeachSimulation.scheduler.kill();
+        }
+    }
+
     /**
      * Add the {@link Environment} in the simulation. {@code Environment} are mapped with their name, therefore, if there already is a {@code
      * Environment} added with the same name, the specified {@code Environment} will not be added and the method will return false.

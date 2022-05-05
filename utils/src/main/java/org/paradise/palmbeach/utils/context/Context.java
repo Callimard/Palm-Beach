@@ -43,8 +43,10 @@ public interface Context {
             Object value = getValue(key);
             if (value instanceof String sInteger) {
                 return Integer.valueOf(sInteger);
+            } else if (value instanceof Number number) {
+                return number.intValue();
             } else {
-                return (Integer) getValue(key);
+                return null;
             }
         }
         return null;
@@ -59,8 +61,10 @@ public interface Context {
             Object value = getValue(key);
             if (value instanceof String sLong) {
                 return Long.valueOf(sLong);
+            } else if (value instanceof Number number) {
+                return number.longValue();
             } else {
-                return (Long) getValue(key);
+                return null;
             }
         }
         return null;
