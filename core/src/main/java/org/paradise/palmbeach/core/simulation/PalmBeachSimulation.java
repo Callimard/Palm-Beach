@@ -36,13 +36,14 @@ public class PalmBeachSimulation {
 
     private final AtomicBoolean started = new AtomicBoolean(false);
 
-    @NonNull
     private final SimulationSetup simulationSetup;
+
+    private final SimulationFinisher simulationFinisher;
 
     @NonNull
     private final Scheduler scheduler;
 
-    private final Scheduler.WaitingSchedulerEndObserver schedulerObserver;
+    private final Scheduler.WaitingSchedulerEndObserver schedulerWaitingEndObserver;
 
     private final Map<String, Environment> environments;
     private final Map<SimpleAgent.AgentIdentifier, SimpleAgent> agents;
@@ -50,14 +51,21 @@ public class PalmBeachSimulation {
 
     // Constructors.
 
-    public PalmBeachSimulation(@NonNull SimulationSetup simulationSetup, @NonNull Scheduler scheduler,
+    public PalmBeachSimulation(@NonNull Scheduler scheduler, Set<Environment> environments, Set<SimpleAgent> agents, Set<Controller> controllers) {
+        this(scheduler, null, null, environments, agents, controllers);
+    }
+
+    public PalmBeachSimulation(@NonNull Scheduler scheduler, SimulationSetup simulationSetup, SimulationFinisher simulationFinisher,
                                Set<Environment> environments, Set<SimpleAgent> agents,
                                Set<Controller> controllers) {
         this.simulationSetup = simulationSetup;
+        this.simulationFinisher = simulationFinisher;
 
         this.scheduler = scheduler;
-        this.schedulerObserver = new Scheduler.WaitingSchedulerEndObserver();
-        this.scheduler.addSchedulerObserver(this.schedulerObserver);
+        this.schedulerWaitingEndObserver = new Scheduler.WaitingSchedulerEndObserver();
+        this.scheduler.addSchedulerObserver(this.schedulerWaitingEndObserver);
+        Scheduler.SchedulerObserver schedulerObserver = new SimulationSchedulerObserver();
+        this.scheduler.addSchedulerObserver(schedulerObserver);
 
         this.environments = Maps.newConcurrentMap();
         fillEnvironments(environments);
@@ -132,8 +140,10 @@ public class PalmBeachSimulation {
     }
 
     private static void setupSimulation() {
-        log.info("Setup simulation with {}", palmBeachSimulation.simulationSetup);
-        palmBeachSimulation.simulationSetup.setupSimulation();
+        if (palmBeachSimulation.simulationSetup != null) {
+            log.info("Setup simulation with {}", palmBeachSimulation.simulationSetup);
+            palmBeachSimulation.simulationSetup.setupSimulation();
+        }
     }
 
     private static void startScheduler() {
@@ -143,7 +153,7 @@ public class PalmBeachSimulation {
 
     public static void waitSimulationEnd(long timeout) throws InterruptedException {
         while (!palmBeachSimulation.scheduler.isKilled()) {
-            palmBeachSimulation.schedulerObserver.waitSchedulerEnd(timeout);
+            palmBeachSimulation.schedulerWaitingEndObserver.waitSchedulerEnd(timeout);
         }
     }
 
@@ -178,6 +188,7 @@ public class PalmBeachSimulation {
     }
 
     public static void killScheduler() {
+        //noinspection ConstantConditions
         if (palmBeachSimulation != null && palmBeachSimulation.scheduler != null) {
             palmBeachSimulation.scheduler.kill();
         }
@@ -242,5 +253,33 @@ public class PalmBeachSimulation {
 
     public static List<SimpleAgent> allAgents() {
         return Lists.newArrayList(palmBeachSimulation.agents.values());
+    }
+
+    // Inner classes.
+
+    private class SimulationSchedulerObserver implements Scheduler.SchedulerObserver {
+
+        @Override
+        public void schedulerStarted() {
+            // Nothing
+        }
+
+        @Override
+        public void schedulerKilled() {
+            if (PalmBeachSimulation.this.simulationFinisher != null) {
+                log.info("Call SimulationFinisher");
+                PalmBeachSimulation.this.simulationFinisher.finishSimulation();
+            }
+        }
+
+        @Override
+        public void schedulerReachEnd() {
+            // Nothing
+        }
+
+        @Override
+        public void noExecutableToExecute() {
+            // Nothing
+        }
     }
 }
