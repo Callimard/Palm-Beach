@@ -1,19 +1,22 @@
 package org.paradise.palmbeach.core.agent;
 
 import com.google.common.collect.Maps;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.paradise.palmbeach.core.agent.behavior.Behavior;
 import org.paradise.palmbeach.core.agent.exception.*;
 import org.paradise.palmbeach.core.agent.protocol.Protocol;
-import org.paradise.palmbeach.utils.context.Context;
-import org.paradise.palmbeach.utils.context.SimpleContext;
 import org.paradise.palmbeach.core.environment.Environment;
 import org.paradise.palmbeach.core.event.Event;
 import org.paradise.palmbeach.core.event.EventCatcher;
 import org.paradise.palmbeach.core.simulation.configuration.BehaviorConfiguration;
 import org.paradise.palmbeach.core.simulation.configuration.ProtocolConfiguration;
 import org.paradise.palmbeach.core.simulation.configuration.exception.GenerationFailedException;
+import org.paradise.palmbeach.utils.context.Context;
+import org.paradise.palmbeach.utils.context.SimpleContext;
 
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
@@ -37,7 +40,6 @@ import java.util.concurrent.atomic.AtomicReference;
  *     }
  * </pre>
  */
-@ToString
 @Slf4j
 public class SimpleAgent implements EventCatcher {
 
@@ -84,6 +86,11 @@ public class SimpleAgent implements EventCatcher {
     }
 
     // Methods.
+
+    @Override
+    public String toString() {
+        return "Agent " + getIdentifier();
+    }
 
     /**
      * Create an instance of the specified {@link SimpleAgent} class. The specified class must have a construct as described in the general doc of
@@ -478,7 +485,6 @@ public class SimpleAgent implements EventCatcher {
      * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code SimpleAgent} with its name and its unique id.
      */
     @EqualsAndHashCode(callSuper = false)
-    @ToString
     @Getter
     @AllArgsConstructor
     public static class SimpleAgentIdentifier extends AgentIdentifier {
@@ -496,6 +502,11 @@ public class SimpleAgent implements EventCatcher {
         private final long uniqueId;
 
         // Methods.
+
+        @Override
+        public String toString() {
+            return "[" + agentName + ", " + uniqueId + "]";
+        }
 
         /**
          * Generate the next unique id for a {@link SimpleAgent}. If this method is always used to generate {@code SimpleAgent} identifier unique id,

@@ -1,15 +1,15 @@
 package org.paradise.palmbeach.basic.network;
 
+import lombok.Getter;
+import lombok.NonNull;
 import org.paradise.palmbeach.core.agent.AgentProcessEventExecutable;
 import org.paradise.palmbeach.core.agent.SimpleAgent;
-import org.paradise.palmbeach.utils.context.Context;
 import org.paradise.palmbeach.core.environment.Environment;
 import org.paradise.palmbeach.core.environment.network.Network;
 import org.paradise.palmbeach.core.event.Event;
-import lombok.Getter;
-import lombok.NonNull;
 import org.paradise.palmbeach.core.scheduler.Scheduler;
 import org.paradise.palmbeach.core.simulation.PalmBeachSimulation;
+import org.paradise.palmbeach.utils.context.Context;
 import org.paradise.palmbeach.utils.validation.Validate;
 
 import java.util.Random;
@@ -79,7 +79,7 @@ public abstract class NetworkWithDelay extends Network {
      */
     public long minDelay() {
         if (getContext().getValue(MIN_SENDING_DELAY) != null) {
-            long minDelay = (long) getContext().getValue(MIN_SENDING_DELAY);
+            long minDelay = getContext().getLong(MIN_SENDING_DELAY);
             Validate.min(minDelay, Scheduler.NEXT_STEP, "Min delay cannot be less than 1");
             return minDelay;
         } else
@@ -95,7 +95,7 @@ public abstract class NetworkWithDelay extends Network {
      */
     public void minDelay(long minDelay) {
         Validate.min(minDelay, Scheduler.NEXT_STEP, "Min delay cannot be less than 1");
-        getContext().map(MIN_SENDING_DELAY, minDelay);
+        getContext().setLong(MIN_SENDING_DELAY, minDelay);
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class NetworkWithDelay extends Network {
      */
     public long maxDelay() {
         if (getContext().getValue(MAX_SENDING_DELAY) != null) {
-            long maxDelay = (long) getContext().getValue(MAX_SENDING_DELAY);
+            long maxDelay = getContext().getLong(MAX_SENDING_DELAY);
             Validate.min(maxDelay, Scheduler.NEXT_STEP, "Max delay cannot be less than 1");
             return maxDelay;
         } else
@@ -119,6 +119,6 @@ public abstract class NetworkWithDelay extends Network {
      */
     public void maxDelay(long maxDelay) {
         Validate.min(maxDelay, Scheduler.NEXT_STEP, "Max delay cannot be less than 1");
-        getContext().map(MAX_SENDING_DELAY, maxDelay);
+        getContext().setLong(MAX_SENDING_DELAY, maxDelay);
     }
 }

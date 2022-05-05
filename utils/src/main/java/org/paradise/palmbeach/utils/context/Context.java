@@ -30,20 +30,40 @@ public interface Context {
      */
     Object getValue(String key);
 
+    default boolean hasValue(String key) {
+        return getValue(key) != null;
+    }
+
     default void setInt(String key, int value) {
         map(key, value);
     }
 
-    default int getInt(String key) {
-        return (int) getValue(key);
+    default Integer getInt(String key) {
+        if (hasValue(key)) {
+            Object value = getValue(key);
+            if (value instanceof String sInteger) {
+                return Integer.valueOf(sInteger);
+            } else {
+                return (Integer) getValue(key);
+            }
+        }
+        return null;
     }
 
     default void setLong(String key, long value) {
         map(key, value);
     }
 
-    default long getLong(String key) {
-        return (long) getValue(key);
+    default Long getLong(String key) {
+        if (hasValue(key)) {
+            Object value = getValue(key);
+            if (value instanceof String sLong) {
+                return Long.valueOf(sLong);
+            } else {
+                return (Long) getValue(key);
+            }
+        }
+        return null;
     }
 
     default void setString(String key, String value) {
