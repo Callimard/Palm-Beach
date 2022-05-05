@@ -113,11 +113,31 @@ public class SimpleContextTest {
         }
 
         @Test
-        @DisplayName("getInt() throws ClassCastException if key is not a int")
+        @DisplayName("getInt() throws NumberFormatException if value is a string which does not represent a number")
         void getInt() {
             SimpleContext context = new SimpleContext();
 
             context.setString("key", "test");
+            assertThrows(NumberFormatException.class, () -> context.getInt("key"));
+        }
+
+        @Test
+        @DisplayName("getInt() does not throw exception with a string which represent a number")
+        void getIntString() {
+            SimpleContext context = new SimpleContext();
+            int n = 464546;
+
+            context.setString("key", String.valueOf(n));
+            assertDoesNotThrow(() -> context.getInt("key"));
+            assertThat(context.getInt("key")).isEqualTo(n);
+        }
+
+        @Test
+        @DisplayName("getInt() throws ClassCastException if the value is not an int or a string")
+        void getIntWrongClass() {
+            SimpleContext context = new SimpleContext();
+
+            context.map("key", new Object());
             assertThrows(ClassCastException.class, () -> context.getInt("key"));
         }
 
@@ -131,11 +151,31 @@ public class SimpleContextTest {
         }
 
         @Test
-        @DisplayName("getLong() throws ClassCastException if key is not a long")
+        @DisplayName("getLong() throws NumberFormatException if value is a string which does not represent a number")
         void getLong() {
             SimpleContext context = new SimpleContext();
 
             context.setString("key", "test");
+            assertThrows(NumberFormatException.class, () -> context.getLong("key"));
+        }
+
+        @Test
+        @DisplayName("getLong() does not throw exception with a string which represent a number")
+        void getLongString() {
+            SimpleContext context = new SimpleContext();
+            long n = 464546L;
+
+            context.setString("key", String.valueOf(n));
+            assertDoesNotThrow(() -> context.getLong("key"));
+            assertThat(context.getLong("key")).isEqualTo(n);
+        }
+
+        @Test
+        @DisplayName("getLong() throws ClassCastException if the value is not an int or a string")
+        void getLongWrongClass() {
+            SimpleContext context = new SimpleContext();
+
+            context.map("key", new Object());
             assertThrows(ClassCastException.class, () -> context.getLong("key"));
         }
 
