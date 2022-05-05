@@ -6,7 +6,6 @@ import org.paradise.palmbeach.core.scheduler.Scheduler;
 import org.paradise.palmbeach.core.scheduler.SimpleScheduler;
 import org.paradise.palmbeach.core.scheduler.executor.multithread.MultiThreadExecutor;
 import org.paradise.palmbeach.core.simulation.PalmBeachSimulation;
-import org.paradise.palmbeach.core.simulation.SimulationSetup;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -17,9 +16,8 @@ public class PalmBeachSimulationTestExtension implements BeforeTestExecutionCall
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) {
         PalmBeachSimulation.clear();
-        SimulationSetup simulationSetup = new BasicSimulationSetup();
         Scheduler scheduler = new SimpleScheduler(SIMULATION_MAX_DURATION, new MultiThreadExecutor(4));
-        PalmBeachSimulation palmBeachSimulation = new PalmBeachSimulation(simulationSetup, scheduler, null, null, null);
+        PalmBeachSimulation palmBeachSimulation = new PalmBeachSimulation(scheduler, null, null, null, null, null);
         PalmBeachSimulation.setSingletonInstance(palmBeachSimulation);
     }
 
@@ -30,16 +28,6 @@ public class PalmBeachSimulationTestExtension implements BeforeTestExecutionCall
             counter++;
             if (counter > 5)
                 fail("Too much wait End Simulation");
-        }
-    }
-
-    // Inner classes.
-
-    private static class BasicSimulationSetup implements SimulationSetup {
-
-        @Override
-        public void setupSimulation() {
-            // Nothing.
         }
     }
 }

@@ -33,15 +33,11 @@ public class PalmBeachSimulationTest {
 
         @SuppressWarnings("ConstantConditions")
         @Test
-        @DisplayName("constructor() throws NullPointerException with null SimulationSetup or null Scheduler")
-        void withNullParameters(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler) {
+        @DisplayName("constructor() throws NullPointerException with null Scheduler")
+        void withNullParameters(@Mock Scheduler scheduler, @Mock SimulationSetup simulationSetup, @Mock SimulationFinisher simulationFinisher) {
             assertThrows(NullPointerException.class,
-                         () -> new PalmBeachSimulation(null, scheduler, null, null, null));
-            assertThrows(NullPointerException.class,
-                         () -> new PalmBeachSimulation(simulationSetup, null, null, null, null));
-            assertThrows(NullPointerException.class,
-                         () -> new PalmBeachSimulation(null, null, null, null, null));
-            assertDoesNotThrow(() -> new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+                         () -> new PalmBeachSimulation(null, simulationSetup, null, null, null, null));
+            assertDoesNotThrow(() -> new PalmBeachSimulation(scheduler, simulationSetup, simulationFinisher, null, null, null));
         }
     }
 
@@ -79,7 +75,7 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("start() start does not throw exception")
-        void doesNotThrowException(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler,
+        void doesNotThrowException(@Mock Scheduler scheduler,
                                    @Mock Environment environment, @Mock SimpleAgent agent,
                                    @Mock SimpleAgent.AgentIdentifier identifier, @Mock Controller controller) {
             when(controller.getScheduleTime()).thenReturn(1);
@@ -90,7 +86,7 @@ public class PalmBeachSimulationTest {
             when(environment.getName()).thenReturn("envName");
             when(agent.getIdentifier()).thenReturn(identifier);
             PalmBeachSimulation.setSingletonInstance(
-                    new PalmBeachSimulation(simulationSetup, scheduler, Sets.newHashSet(environment), Sets.newHashSet(agent),
+                    new PalmBeachSimulation(scheduler, Sets.newHashSet(environment), Sets.newHashSet(agent),
                                             Sets.newHashSet(controller)));
             assertThat(PalmBeachSimulation.isEnded()).isFalse();
             assertDoesNotThrow(PalmBeachSimulation::start);
@@ -108,8 +104,8 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("addEnvironment() throws NullPointerException with null environment")
-        void withNullEnvironment(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler) {
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+        void withNullEnvironment(@Mock Scheduler scheduler) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> PalmBeachSimulation.addEnvironment(null));
@@ -117,9 +113,9 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("addEnvironment() returns true with an never added Environment")
-        void notAlreadyAdded(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock Environment environment) {
+        void notAlreadyAdded(@Mock Scheduler scheduler, @Mock Environment environment) {
             String envName = "envName";
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
             when(environment.getName()).thenReturn(envName);
 
             assertThat(PalmBeachSimulation.addEnvironment(environment)).isTrue();
@@ -129,9 +125,9 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("addEnvironment() returns with already added Environment")
-        void alreadyAdded(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock Environment environment) {
+        void alreadyAdded(@Mock Scheduler scheduler, @Mock Environment environment) {
             String envName = "envName";
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
             when(environment.getName()).thenReturn(envName);
             PalmBeachSimulation.addEnvironment(environment);
 
@@ -146,8 +142,8 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("AddAgent() throws NullPointerException with null SimpleAgent")
-        void withNullEnvironment(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler) {
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+        void withNullEnvironment(@Mock Scheduler scheduler) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
 
             //noinspection ConstantConditions
             assertThrows(NullPointerException.class, () -> PalmBeachSimulation.addAgent(null));
@@ -155,9 +151,8 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("AddAgent() returns true with an never added SimpleAgent")
-        void returnsTrue(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock SimpleAgent agent,
-                         @Mock SimpleAgent.AgentIdentifier identifier) {
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+        void returnsTrue(@Mock Scheduler scheduler, @Mock SimpleAgent agent, @Mock SimpleAgent.AgentIdentifier identifier) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
             when(agent.getIdentifier()).thenReturn(identifier);
 
             assertThat(PalmBeachSimulation.addAgent(agent)).isTrue();
@@ -167,9 +162,8 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("AddAgent() returns with already added SimpleAgent")
-        void alreadyAdded(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock SimpleAgent agent,
-                          @Mock SimpleAgent.AgentIdentifier identifier) {
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+        void alreadyAdded(@Mock Scheduler scheduler, @Mock SimpleAgent agent, @Mock SimpleAgent.AgentIdentifier identifier) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
             when(agent.getIdentifier()).thenReturn(identifier);
             PalmBeachSimulation.addAgent(agent);
 
@@ -184,8 +178,8 @@ public class PalmBeachSimulationTest {
 
         @Test
         @DisplayName("scheduleEvent() call scheduleOnce of the scheduler")
-        void callScheduleOnce(@Mock SimulationSetup simulationSetup, @Mock Scheduler scheduler, @Mock SimpleAgent agent, @Mock Event<?> event) {
-            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(simulationSetup, scheduler, null, null, null));
+        void callScheduleOnce(@Mock Scheduler scheduler, @Mock SimpleAgent agent, @Mock Event<?> event) {
+            PalmBeachSimulation.setSingletonInstance(new PalmBeachSimulation(scheduler, null, null, null));
 
             PalmBeachSimulation.scheduleEvent(agent, event, Scheduler.NEXT_STEP);
 

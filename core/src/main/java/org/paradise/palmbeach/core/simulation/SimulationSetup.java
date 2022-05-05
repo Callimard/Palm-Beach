@@ -7,7 +7,7 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 /**
- * Each {@link PalmBeachSimulation} must have a {@code SimulationSetup} which will set up the simulation and "start" be for example create the first
+ * A {@link PalmBeachSimulation} can have a {@code SimulationSetup} which will set up the simulation and "start" be for example create the first
  * {@link Event}.
  * <p>
  * All {@code SimulationSetup} subclasses must have a default constructor.

@@ -51,12 +51,13 @@ public class SimulationConfigurationTest {
         }
 
         @ParameterizedTest
-        @ValueSource(ints = {-131654, -974, -6346, -1, 0})
+        @ValueSource(longs = {-131654, -974, -6346, -1, 0})
         @DisplayName("constructor() with wrong max duration throws WrongSimulationConfigurationException")
-        void withWrongMaxDuration(int maxDuration, @Mock Config config, @Mock Config simulationConfig) {
+        void withWrongMaxDuration(long maxDuration, @Mock Config config, @Mock Config simulationConfig) {
             when(config.getConfig(SimulationConfiguration.SIMULATION_PROPERTY)).thenReturn(simulationConfig);
             when(simulationConfig.getInt(SimulationConfiguration.THREADS_PROPERTY)).thenReturn(1);
-            when(simulationConfig.getInt(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(maxDuration);
+            when(simulationConfig.hasPath(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(true);
+            when(simulationConfig.getLong(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(maxDuration);
 
             assertThrows(WrongSimulationConfigurationException.class, () -> new SimulationConfiguration(config));
         }
@@ -80,7 +81,8 @@ public class SimulationConfigurationTest {
         void withEmptyName(@Mock Config config, @Mock Config simulationConfig) {
             when(config.getConfig(SimulationConfiguration.SIMULATION_PROPERTY)).thenReturn(simulationConfig);
             when(simulationConfig.getInt(SimulationConfiguration.THREADS_PROPERTY)).thenReturn(1);
-            when(simulationConfig.getInt(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(1);
+            when(simulationConfig.hasPath(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(true);
+            when(simulationConfig.getLong(SimulationConfiguration.MAX_DURATION_PROPERTY)).thenReturn(1L);
 
             assertDoesNotThrow(() -> new SimulationConfiguration(config));
         }

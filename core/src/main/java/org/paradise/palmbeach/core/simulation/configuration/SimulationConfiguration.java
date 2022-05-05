@@ -1,26 +1,27 @@
 package org.paradise.palmbeach.core.simulation.configuration;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
-import org.paradise.palmbeach.core.agent.protocol.Protocol;
 import com.google.common.collect.Maps;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigObject;
-import org.paradise.palmbeach.core.environment.Environment;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
+import org.paradise.palmbeach.core.agent.protocol.Protocol;
+import org.paradise.palmbeach.core.environment.Environment;
 import org.paradise.palmbeach.core.scheduler.Scheduler;
 import org.paradise.palmbeach.core.scheduler.SimpleScheduler;
 import org.paradise.palmbeach.core.scheduler.executor.Executor;
 import org.paradise.palmbeach.core.scheduler.executor.multithread.MultiThreadExecutor;
+import org.paradise.palmbeach.core.simulation.Controller;
+import org.paradise.palmbeach.core.simulation.PalmBeachSimulation;
+import org.paradise.palmbeach.core.simulation.SimulationFinisher;
+import org.paradise.palmbeach.core.simulation.SimulationSetup;
+import org.paradise.palmbeach.core.simulation.configuration.exception.GenerationFailedException;
 import org.paradise.palmbeach.core.simulation.configuration.exception.WrongAgentConfigurationException;
 import org.paradise.palmbeach.core.simulation.configuration.exception.WrongControllerConfigurationException;
 import org.paradise.palmbeach.core.simulation.configuration.exception.WrongSimulationConfigurationException;
-import org.paradise.palmbeach.core.simulation.Controller;
-import org.paradise.palmbeach.core.simulation.PalmBeachSimulation;
-import org.paradise.palmbeach.core.simulation.SimulationSetup;
-import org.paradise.palmbeach.core.simulation.configuration.exception.GenerationFailedException;
 import org.paradise.palmbeach.utils.reflection.ReflectionTools;
 
 import java.beans.IntrospectionException;
@@ -41,8 +42,9 @@ import static java.util.Locale.ENGLISH;
  * # Simulation
  *
  * simulation.threads=4
- * simulation.max-duration=1500
- * simulation.setup-class=simulation.SimulationSetup
+ * simulation.maxDuration=1500
+ * simulation.setupClass=simulation.SimulationSetup
+ * simulation.finisherClass=simulation.SimulationFinisher
  *
  * # Controllers
  *
@@ -118,8 +120,9 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
     public static final String DEFAULT_SIMULATION_CONFIG_NAME = "simulation";
 
     public static final String THREADS_PROPERTY = "threads";
-    public static final String MAX_DURATION_PROPERTY = "max-duration";
-    public static final String SETUP_CLASS_PROPERTY = "setup-class";
+    public static final String MAX_DURATION_PROPERTY = "maxDuration";
+    public static final String SETUP_CLASS_PROPERTY = "setupClass";
+    public static final String FINISHER_CLASS_PROPERTY = "finisherClass";
 
     public static final String SIMULATION_PROPERTY = "simulation";
     public static final String CONTROLLER_PROPERTY = "controller";
@@ -132,8 +135,9 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
     // Variables.
 
     private final int threads;
-    private final int maxDuration;
+    private final long maxDuration;
     private final String setupClass;
+    private final String finisherClass;
 
     private final Set<ControllerConfiguration> controllers;
     private final Map<String, NetworkConfiguration> networks;
@@ -152,11 +156,12 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         if (this.threads < 1)
             throw new WrongSimulationConfigurationException("Threads cannot be less than 1");
 
-        this.maxDuration = simulationConfig.getInt(MAX_DURATION_PROPERTY);
+        this.maxDuration = simulationConfig.hasPath(MAX_DURATION_PROPERTY) ? simulationConfig.getLong(MAX_DURATION_PROPERTY) : Long.MAX_VALUE;
         if (this.maxDuration < 1)
             throw new WrongSimulationConfigurationException("Max duration cannot be less than 1");
 
-        this.setupClass = simulationConfig.getString(SETUP_CLASS_PROPERTY);
+        this.setupClass = simulationConfig.hasPath(SETUP_CLASS_PROPERTY) ? simulationConfig.getString(SETUP_CLASS_PROPERTY) : null;
+        this.finisherClass = simulationConfig.hasPath(FINISHER_CLASS_PROPERTY) ? simulationConfig.getString(FINISHER_CLASS_PROPERTY) : null;
 
         try {
             this.controllers = new HashSet<>();
@@ -244,11 +249,15 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         try {
             Executor executor = new MultiThreadExecutor(threads);
             Scheduler scheduler = new SimpleScheduler(maxDuration, executor);
-            SimulationSetup simulationSetup = SimulationSetup.initiateSimulationSetup(ReflectionTools.extractClass(setupClass));
+            SimulationSetup simulationSetup = setupClass != null ?
+                    SimulationSetup.initiateSimulationSetup(ReflectionTools.extractClass(setupClass)) : null;
+            SimulationFinisher simulationFinisher =
+                    finisherClass != null ? SimulationFinisher.initiateSimulationFinisher(ReflectionTools.extractClass(finisherClass)) : null;
             Set<Controller> allControllers = generateAllControllers();
             Map<String, Environment> allEnvironments = generateAllEnvironments();
             Set<SimpleAgent> allAgents = generateAllAgents(allEnvironments);
-            return new PalmBeachSimulation(simulationSetup, scheduler, new HashSet<>(allEnvironments.values()), allAgents, allControllers);
+            return new PalmBeachSimulation(scheduler, simulationSetup, simulationFinisher, new HashSet<>(allEnvironments.values()), allAgents,
+                                           allControllers);
         } catch (Exception e) {
             throw new GenerationFailedException("Cannot generate PalmBeachSimulation from configuration " + this, e);
         }
