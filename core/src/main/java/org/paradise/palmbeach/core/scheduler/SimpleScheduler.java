@@ -60,7 +60,6 @@ public class SimpleScheduler implements Scheduler {
         this.executables = Maps.newConcurrentMap();
         this.observers = Sets.newConcurrentHashSet();
         this.stepWatcher = new StepWatcher();
-        stepWatcher.setDaemon(true);
         log.info("Scheduler CREATED");
     }
 
@@ -249,6 +248,7 @@ public class SimpleScheduler implements Scheduler {
         public StepWatcher() {
             super();
             this.scheduler = SimpleScheduler.this;
+            this.setName("SIMULATION-STEP-WATCHER");
             log.info("StepWatcher CREATED");
         }
 
