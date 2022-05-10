@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.paradise.palmbeach.utils.junit.ParadiseTest;
+import org.paradise.palmbeach.utils.validation.Validate;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
@@ -113,6 +114,16 @@ public class SimpleContextTest {
         }
 
         @Test
+        @DisplayName("setInt(validator) throws IllegalArgumentException if value is not valid")
+        void setIntNonValidValid() {
+            SimpleContext context = new SimpleContext();
+
+            Validate.Validator<Integer> validator = new Validate.MinIntValidator(1);
+            assertThrows(IllegalArgumentException.class, () -> context.setInt("key", 0, validator));
+            assertDoesNotThrow(() -> context.setInt("key", 0, null));
+        }
+
+        @Test
         @DisplayName("getInt() throws NumberFormatException if value is a string which does not represent a number")
         void getInt() {
             SimpleContext context = new SimpleContext();
@@ -142,12 +153,53 @@ public class SimpleContextTest {
         }
 
         @Test
+        @DisplayName("getInt(default) returns default value if value is not present")
+        void getIntDefaultValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            int defaultValue = 5;
+            int other = 19;
+
+            assertThat(context.getInt(key, defaultValue)).isEqualByComparingTo(defaultValue);
+            context.setInt(key, other);
+            assertThat(context.getInt(key, defaultValue)).isEqualByComparingTo(other);
+        }
+
+        @Test
+        @DisplayName("getInt(validator) throws IllegalArgumentException if the value in the context is not valid")
+        void getIntWithNonValidValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            int nonValid = 0;
+            int valid = 1;
+            int defaultValue = 5;
+            Validate.Validator<Integer> validator = new Validate.MinIntValidator(1);
+
+            context.setInt(key, nonValid);
+            assertThrows(IllegalArgumentException.class, () -> context.getInt(key, defaultValue, validator));
+            context.setInt(key, valid);
+            assertThat(context.getInt(key, defaultValue, validator)).isEqualByComparingTo(valid);
+        }
+
+        @Test
         @DisplayName("setLong()")
         void setLong() {
             SimpleContext context = new SimpleContext();
 
             context.setLong("key", 1L);
             assertThat(context.getLong("key")).isEqualTo(1L);
+        }
+
+        @Test
+        @DisplayName("setLong(validator) throws IllegalArgumentException if value is not valid")
+        void setLongNonValidValid() {
+            SimpleContext context = new SimpleContext();
+
+            Validate.Validator<Long> validator = new Validate.MinLongValidator(1L);
+            assertThrows(IllegalArgumentException.class, () -> context.setLong("key", 0L, validator));
+            assertDoesNotThrow(() -> context.setLong("key", 0L, null));
         }
 
         @Test
@@ -180,6 +232,37 @@ public class SimpleContextTest {
         }
 
         @Test
+        @DisplayName("getLong(default) returns default value if value is not present")
+        void getLongDefaultValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            long defaultValue = 5;
+            long other = 19;
+
+            assertThat(context.getLong(key, defaultValue)).isEqualByComparingTo(defaultValue);
+            context.setLong(key, other);
+            assertThat(context.getLong(key, defaultValue)).isEqualByComparingTo(other);
+        }
+
+        @Test
+        @DisplayName("getLong(validator) throws IllegalArgumentException if the value in the context is not valid")
+        void getLongWithNonValidValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            long nonValid = 0;
+            long valid = 1;
+            long defaultValue = 5;
+            Validate.Validator<Long> validator = new Validate.MinLongValidator(1L);
+
+            context.setLong(key, nonValid);
+            assertThrows(IllegalArgumentException.class, () -> context.getLong(key, defaultValue, validator));
+            context.setLong(key, valid);
+            assertThat(context.getLong(key, defaultValue, validator)).isEqualByComparingTo(valid);
+        }
+
+        @Test
         @DisplayName("setString()")
         void setString() {
             SimpleContext context = new SimpleContext();
@@ -189,12 +272,60 @@ public class SimpleContextTest {
         }
 
         @Test
+        @DisplayName("setString(validator) throws IllegalArgumentException if value is not valid")
+        void setStringNonValidValid() {
+            SimpleContext context = new SimpleContext();
+
+            Validate.Validator<String> validator = (String s) -> {
+                if (s.isBlank())
+                    throw new IllegalArgumentException();
+            };
+
+            assertThrows(IllegalArgumentException.class, () -> context.setString("key", "", validator));
+            assertDoesNotThrow(() -> context.setString("key", "Valid", null));
+        }
+
+        @Test
         @DisplayName("getString() throws ClassCastException if key is not a String")
         void getString() {
             SimpleContext context = new SimpleContext();
 
             context.setLong("key", 1L);
             assertThrows(ClassCastException.class, () -> context.getString("key"));
+        }
+
+        @Test
+        @DisplayName("getString(default) returns default value if value is not present")
+        void getStringDefaultValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            String defaultValue = "DEFAULT";
+            String other = "Other";
+
+            assertThat(context.getString(key, defaultValue)).isEqualTo(defaultValue);
+            context.setString(key, other);
+            assertThat(context.getString(key, defaultValue)).isEqualTo(other);
+        }
+
+        @Test
+        @DisplayName("getString(validator) throws IllegalArgumentException if the value in the context is not valid")
+        void getStringWithNonValidValue() {
+            SimpleContext context = new SimpleContext();
+
+            String key = "key";
+            String nonValid = "";
+            String valid = "Valid";
+            String defaultValue = "DEFAULT";
+            Validate.Validator<String> validator = (String s) -> {
+                if (s.isBlank())
+                    throw new IllegalArgumentException();
+            };
+
+            context.setString(key, nonValid);
+            assertThrows(IllegalArgumentException.class, () -> context.getString(key, defaultValue, validator));
+            context.setString(key, valid);
+            assertThat(context.getString(key, defaultValue, validator)).isEqualTo(valid);
         }
     }
 

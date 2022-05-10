@@ -94,6 +94,10 @@ public class Block<T extends Transaction> implements Hashable {
         return encodeBase64String(sha256(txConcat));
     }
 
+    public boolean isEmpty() {
+        return transactions.isEmpty();
+    }
+
     // Getters.
 
     public Set<T> getTransactions() {

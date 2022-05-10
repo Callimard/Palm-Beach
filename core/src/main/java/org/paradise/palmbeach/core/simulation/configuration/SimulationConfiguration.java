@@ -319,6 +319,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
             ProtocolConfiguration protocolConfiguration = protocols.get(protocolIdentifier);
             Protocol protocol = protocolConfiguration.generateProtocol(agent);
             agentProtocolContext.put(protocolIdentifier, protocol);
+            log.info("Agent {} add protocol {}", agent.getIdentifier(), protocol.getClass().getSimpleName());
             agent.addProtocol(protocol);
         }
 
@@ -370,6 +371,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         for (String behaviorIdentifier : agentConfiguration.getBehaviors()) {
             BehaviorConfiguration behaviorConfiguration = behaviors.get(behaviorIdentifier);
             if (behaviorConfiguration != null) {
+                log.info("Agent {} add the behavior {}", agent.getIdentifier(), behaviorConfiguration.getBehaviorClass());
                 agent.addBehavior(behaviorConfiguration);
             } else {
                 log.error("No Behavior identified by {} find in the configuration", behaviorIdentifier);
@@ -381,6 +383,7 @@ public class SimulationConfiguration extends PalmBeachConfiguration<PalmBeachSim
         for (String environmentIdentifier : agentConfiguration.getEnvironments()) {
             Environment environment = allEnvironments.get(environmentIdentifier);
             if (environment != null) {
+                log.info("Environment {} add the agent {}", environment, agent.getIdentifier());
                 environment.addAgent(agent.getIdentifier());
             } else {
                 log.error("Cannot find Environment identified by {} in the Simulation configuration", environmentIdentifier);
