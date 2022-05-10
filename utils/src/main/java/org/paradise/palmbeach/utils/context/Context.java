@@ -1,6 +1,7 @@
 package org.paradise.palmbeach.utils.context;
 
 import lombok.NonNull;
+import org.paradise.palmbeach.utils.validation.Validate;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -38,6 +39,12 @@ public interface Context {
         map(key, value);
     }
 
+    default void setInt(String key, int value, Validate.Validator<Integer> validator) {
+        if (validator != null)
+            validator.validate(value);
+        setInt(key, value);
+    }
+
     default Integer getInt(String key) {
         if (hasValue(key)) {
             Object value = getValue(key);
@@ -52,8 +59,28 @@ public interface Context {
         return null;
     }
 
+    default int getInt(String key, int defaultValue) {
+        return getInt(key, defaultValue, null);
+    }
+
+    default int getInt(String key, int defaultValue, Validate.Validator<Integer> validator) {
+        if (hasValue(key)) {
+            int value = getInt(key);
+            if (validator != null)
+                validator.validate(value);
+            return value;
+        } else
+            return defaultValue;
+    }
+
     default void setLong(String key, long value) {
         map(key, value);
+    }
+
+    default void setLong(String key, long value, Validate.Validator<Long> validator) {
+        if (validator != null)
+            validator.validate(value);
+        setLong(key, value);
     }
 
     default Long getLong(String key) {
@@ -70,12 +97,46 @@ public interface Context {
         return null;
     }
 
+    default long getLong(String key, long defaultValue) {
+        return getLong(key, defaultValue, null);
+    }
+
+    default long getLong(String key, long defaultValue, Validate.Validator<Long> validator) {
+        if (hasValue(key)) {
+            long value = getLong(key);
+            if (validator != null)
+                validator.validate(value);
+            return value;
+        } else
+            return defaultValue;
+    }
+
     default void setString(String key, String value) {
         map(key, value);
     }
 
+    default void setString(String key, String value, Validate.Validator<String> validator) {
+        if (validator != null)
+            validator.validate(value);
+        setString(key, value);
+    }
+
     default String getString(String key) {
         return (String) getValue(key);
+    }
+
+    default String getString(String key, String defaultValue) {
+        return getString(key, defaultValue, null);
+    }
+
+    default String getString(String key, String defaultValue, Validate.Validator<String> validator) {
+        if (hasValue(key)) {
+            String value = getString(key);
+            if (validator != null)
+                validator.validate(value);
+            return value;
+        } else
+            return defaultValue;
     }
 
     /**

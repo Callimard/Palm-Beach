@@ -3,9 +3,9 @@ package org.paradise.palmbeach.utils.validation;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.paradise.palmbeach.utils.validation.Validate;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,6 +33,47 @@ public class ValidateTest {
         void greaterOrEqualValue(int value) {
             assertDoesNotThrow(() -> Validate.min(value, 1, ""));
         }
+
+
+        @Nested
+        @DisplayName("Validate MinIntValidator")
+        @Tag("MinIntValidator")
+        class MinIntValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.MinIntValidator validator = new Validate.MinIntValidator(1);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(0));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.MinIntValidator validator = new Validate.MinIntValidator(1);
+                assertDoesNotThrow(() -> validator.validate(5));
+            }
+        }
+
+        @Nested
+        @DisplayName("Validate MinIntValidator")
+        @Tag("MinIntValidator")
+        class MinLongValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.MinLongValidator validator = new Validate.MinLongValidator(1L);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(0L));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.MinLongValidator validator = new Validate.MinLongValidator(1L);
+                assertDoesNotThrow(() -> validator.validate(5L));
+            }
+        }
     }
 
     @Nested
@@ -53,6 +94,46 @@ public class ValidateTest {
         void lessOrEqualValue(int value) {
             assertDoesNotThrow(() -> Validate.max(value, 1, ""));
         }
+
+        @Nested
+        @DisplayName("Validate MaxIntValidator")
+        @Tag("MaxIntValidator")
+        class MaxIntValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.MaxIntValidator validator = new Validate.MaxIntValidator(1);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(2));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.MaxIntValidator validator = new Validate.MaxIntValidator(0);
+                assertDoesNotThrow(() -> validator.validate(0));
+            }
+        }
+
+        @Nested
+        @DisplayName("Validate MinIntValidator")
+        @Tag("MinIntValidator")
+        class MaxLongValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.MaxLongValidator validator = new Validate.MaxLongValidator(1L);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(2L));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.MaxLongValidator validator = new Validate.MaxLongValidator(1L);
+                assertDoesNotThrow(() -> validator.validate(0L));
+            }
+        }
     }
 
     @Nested
@@ -72,6 +153,46 @@ public class ValidateTest {
         @DisplayName("max() does not throw exception if toVerify is in the interval")
         void inIntervalValue(int value) {
             assertDoesNotThrow(() -> Validate.interval(value, 1, 10, ""));
+        }
+
+        @Nested
+        @DisplayName("Validate IntervalIntValidator")
+        @Tag("IntervalIntValidator")
+        class IntervalIntValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.IntervalIntValidator validator = new Validate.IntervalIntValidator(1, 4);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(0));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.IntervalIntValidator validator = new Validate.IntervalIntValidator(1, 4);
+                assertDoesNotThrow(() -> validator.validate(2));
+            }
+        }
+
+        @Nested
+        @DisplayName("Validate IntervalLongValidator")
+        @Tag("IntervalLongValidator")
+        class IntervalLongValidator {
+
+            @Test
+            @DisplayName("validate() throws IllegalArgumentException if value is not valid")
+            void notValid() {
+                Validate.IntervalLongValidator validator = new Validate.IntervalLongValidator(1L, 4L);
+                assertThrows(IllegalArgumentException.class, () -> validator.validate(0L));
+            }
+
+            @Test
+            @DisplayName("validate() does not throw Exception if value is valid")
+            void withValid() {
+                Validate.IntervalLongValidator validator = new Validate.IntervalLongValidator(1L, 4L);
+                assertDoesNotThrow(() -> validator.validate(2L));
+            }
         }
     }
 
