@@ -1,9 +1,6 @@
 package org.paradise.palmbeach.core.scheduler.executor;
 
-import org.paradise.palmbeach.core.scheduler.executor.exception.NotInExecutorContextException;
-import org.paradise.palmbeach.core.scheduler.executor.exception.RejectedExecutionException;
-import org.paradise.palmbeach.core.scheduler.executor.multithread.MultiThreadExecutor;
-import org.paradise.palmbeach.core.junit.PalmBeachTest;
+import com.google.common.collect.Lists;
 import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.DisplayName;
@@ -13,8 +10,13 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
+import org.paradise.palmbeach.core.junit.PalmBeachTest;
+import org.paradise.palmbeach.core.scheduler.executor.exception.NotInExecutorContextException;
+import org.paradise.palmbeach.core.scheduler.executor.exception.RejectedExecutionException;
+import org.paradise.palmbeach.core.scheduler.executor.multithread.MultiThreadExecutor;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,6 +36,7 @@ public class MultiThreadExecutorTest {
     private static final int RUNNING_THREAD = 4;
 
     private static final int NUMBER_CORRECT_EXECUTABLE = 50;
+    private static final int NUMBER_LOCK_MONITOR_EXECUTABLE = 50;
     private static final int NUMBER_FAILED_EXECUTABLE = 50;
     private static final int NUMBER_WAITING_EXECUTABLE = 10;
     private static final int NUMBER_NOTIFIER_EXECUTABLE = 5;
@@ -92,7 +95,7 @@ public class MultiThreadExecutorTest {
         }
 
         @Test
-        @DisplayName("execute() execute all Executables")
+        @DisplayName("execute() executes all Executables")
         void executeAllExecutables() throws InterruptedException {
             Executor executor = new MultiThreadExecutor(RUNNING_THREAD);
             List<BasicExecutable> executables = generateBasicExecutables();
@@ -104,7 +107,37 @@ public class MultiThreadExecutorTest {
         }
 
         @Test
-        @DisplayName("execute() execute all Executables even some of them fail")
+        @DisplayName("execute() executes all executable even with lock monitor")
+        void withLockMonitor() throws InterruptedException {
+            Executor executor = new MultiThreadExecutor(RUNNING_THREAD);
+            List<LockMonitorExecutable> executables = generateLockMonitorExecutable(8);
+
+            executables.forEach(executor::execute);
+
+            awaitExecutorQuiescence(executor);
+            checkAllExecutableHasBeenExecuted(executables);
+        }
+
+        @Test
+        @DisplayName("execute() executes mix of null lock monitor and non null lock monitor")
+        void mixLockMonitor() throws InterruptedException {
+            Executor executor = new MultiThreadExecutor(RUNNING_THREAD);
+
+            List<BasicExecutable> nullLockMonitorExecutables = generateBasicExecutables();
+            List<LockMonitorExecutable> lockMonitorExecutables = generateLockMonitorExecutable(8);
+
+            List<BasicExecutable> executables = Lists.newArrayList(nullLockMonitorExecutables);
+            executables.addAll(lockMonitorExecutables);
+            Collections.shuffle(executables);
+
+            executables.forEach(executor::execute);
+
+            awaitExecutorQuiescence(executor);
+            checkAllExecutableHasBeenExecuted(executables);
+        }
+
+        @Test
+        @DisplayName("execute() executes all Executables even some of them fail")
         void executeAllExecutablesEvenFailedExecutables() throws InterruptedException {
             Executor executor = new MultiThreadExecutor(RUNNING_THREAD);
             List<BasicExecutable> executables = generateBasicAndFailExecutables();
@@ -279,6 +312,7 @@ public class MultiThreadExecutorTest {
         List<BasicExecutable> executables = new ArrayList<>();
         int addedCorrect = 0;
         int addedFail = 0;
+
         for (int i = 0; i < NUMBER_CORRECT_EXECUTABLE + NUMBER_FAILED_EXECUTABLE; i++) {
             if (i % 2 == 0) {
                 if (addedCorrect < NUMBER_CORRECT_EXECUTABLE) {
@@ -298,65 +332,42 @@ public class MultiThreadExecutorTest {
                 }
             }
         }
+
+        Collections.shuffle(executables);
         return executables;
+    }
+
+    private List<LockMonitorExecutable> generateLockMonitorExecutable(int nbLockMonitor) {
+        List<LockMonitorExecutable> lockMonitorExecutables = Lists.newArrayList();
+        List<Object> lockMonitors = Lists.newArrayList();
+        for (int i = 0; i < nbLockMonitor; i++) {
+            lockMonitors.add(new Object());
+        }
+
+        for (int i = 0; i < NUMBER_LOCK_MONITOR_EXECUTABLE; i++) {
+            lockMonitorExecutables.add(new LockMonitorExecutable(lockMonitors.get(i % lockMonitors.size())));
+        }
+
+        return lockMonitorExecutables;
     }
 
     private List<BasicExecutable> generateBasicExecutables(List<BasicExecutable> basicExecutables, List<WaitingExecutable> waitingExecutables) {
         List<BasicExecutable> executables = new ArrayList<>();
-        int addedCorrect = 0;
-        int addedWaiting = 0;
-        for (int i = 0; i < basicExecutables.size() + waitingExecutables.size(); i++) {
-            if (i % 2 == 0) {
-                if (addedCorrect < basicExecutables.size()) {
-                    executables.add(basicExecutables.get(addedCorrect++));
-                } else {
-                    executables.add(waitingExecutables.get(addedWaiting++));
-                }
-            } else {
-                if (addedWaiting < waitingExecutables.size()) {
-                    executables.add(waitingExecutables.get(addedWaiting++));
-                } else {
-                    executables.add(basicExecutables.get(addedCorrect++));
-                }
-            }
-        }
+
+        executables.addAll(basicExecutables);
+        executables.addAll(waitingExecutables);
+        Collections.shuffle(executables);
         return executables;
     }
 
     private List<BasicExecutable> generateBasicExecutables(List<BasicExecutable> basicExecutables,
                                                            List<FailedExecutable> failedExecutables, List<WaitingExecutable> waitingExecutables) {
         List<BasicExecutable> executables = new ArrayList<>();
-        int addedCorrect = 0;
-        int addedFailed = 0;
-        int addedWaiting = 0;
 
-        for (int i = 0; i < basicExecutables.size() + failedExecutables.size() + waitingExecutables.size(); i++) {
-            if (i % 3 == 0) {
-                if (addedCorrect < basicExecutables.size()) {
-                    executables.add(basicExecutables.get(addedCorrect++));
-                } else if (addedFailed < failedExecutables.size()) {
-                    executables.add(failedExecutables.get(addedFailed++));
-                } else {
-                    executables.add(waitingExecutables.get(addedWaiting++));
-                }
-            } else if (i % 3 == 1) {
-                if (addedFailed < failedExecutables.size()) {
-                    executables.add(failedExecutables.get(addedFailed++));
-                } else if (addedCorrect < basicExecutables.size()) {
-                    executables.add(basicExecutables.get(addedCorrect++));
-                } else {
-                    executables.add(waitingExecutables.get(addedWaiting++));
-                }
-            } else {
-                if (addedWaiting < waitingExecutables.size()) {
-                    executables.add(waitingExecutables.get(addedWaiting++));
-                } else if (addedFailed < failedExecutables.size()) {
-                    executables.add(failedExecutables.get(addedFailed++));
-                } else {
-                    executables.add(basicExecutables.get(addedCorrect++));
-                }
-            }
-        }
+        executables.addAll(basicExecutables);
+        executables.addAll(failedExecutables);
+        executables.addAll(waitingExecutables);
+        Collections.shuffle(executables);
         return executables;
     }
 
@@ -410,6 +421,21 @@ public class MultiThreadExecutorTest {
         @Override
         public void execute() throws Exception {
             executed = true;
+        }
+    }
+
+    public static class LockMonitorExecutable extends BasicExecutable {
+
+        private final Object lockMonitor;
+
+        public LockMonitorExecutable(Object lockMonitor) {
+            super();
+            this.lockMonitor = lockMonitor;
+        }
+
+        @Override
+        public Object getLockMonitor() {
+            return lockMonitor;
         }
     }
 

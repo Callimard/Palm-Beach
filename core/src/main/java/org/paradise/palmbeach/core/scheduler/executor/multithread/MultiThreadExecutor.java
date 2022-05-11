@@ -1,31 +1,34 @@
 package org.paradise.palmbeach.core.scheduler.executor.multithread;
 
 import com.google.common.collect.Lists;
-import com.google.common.collect.Queues;
+import com.google.common.collect.Maps;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
 import org.paradise.palmbeach.core.scheduler.executor.Executable;
 import org.paradise.palmbeach.core.scheduler.executor.Executor;
+import org.paradise.palmbeach.core.scheduler.executor.exception.FailToPollExecutable;
 import org.paradise.palmbeach.core.scheduler.executor.exception.NotInExecutorContextException;
 import org.paradise.palmbeach.core.scheduler.executor.exception.RejectedExecutionException;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Queue;
-import java.util.Vector;
+import java.util.*;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 import static org.paradise.palmbeach.utils.validation.Validate.min;
 
 @ToString
 @Slf4j
 public class MultiThreadExecutor implements Executor {
+
+    // Constants.
+
+    private static final Object NULL_LOCK_MONITOR_KEY = new Object();
 
     // Variables.
 
@@ -44,7 +47,7 @@ public class MultiThreadExecutor implements Executor {
     @Getter
     private final int maxRunningThreads;
 
-    private final Queue<Executable> toExecute;
+    private final Map<Object, List<Executable>> toExecute;
 
     @ToString.Exclude
     private final List<Executor.ExecutorThread> executorThreads;
@@ -52,6 +55,8 @@ public class MultiThreadExecutor implements Executor {
     private int activeThreads = 0;
 
     private final AtomicBoolean shutdown = new AtomicBoolean(false);
+
+    private final Map<Object, Long> lockCounter = Maps.newConcurrentMap();
 
     // Constructors.
 
@@ -70,7 +75,7 @@ public class MultiThreadExecutor implements Executor {
         min(maxRunningThreads, 1, "MaxRunningThreads must be greater or equal to 1");
 
         this.maxRunningThreads = maxRunningThreads;
-        this.toExecute = Queues.newConcurrentLinkedQueue();
+        this.toExecute = Maps.newHashMap();
         this.executionZone = new Semaphore(this.maxRunningThreads, true);
         this.executorThreads = new Vector<>();
         createExecutorThreads();
@@ -93,13 +98,26 @@ public class MultiThreadExecutor implements Executor {
             if (isShutdown())
                 throw new RejectedExecutionException("Executor " + this + " shutdown, cannot execute Executable anymore");
 
-            if (!toExecute.offer(executable))
-                throw new IllegalArgumentException("Executable " + executable + " has not been added");
+            addExecutable(executable);
 
             if (toExecute.size() == 1)
                 waitExecutableCondition.signalAll();
         } finally {
             lock.unlock();
+        }
+    }
+
+    private void addExecutable(Executable executable) {
+        if (executable.getLockMonitor() == null) {
+            toExecute.merge(NULL_LOCK_MONITOR_KEY, Lists.newArrayList(executable), (old, v) -> {
+                old.addAll(v);
+                return old;
+            });
+        } else {
+            toExecute.merge(executable.getLockMonitor(), Lists.newArrayList(executable), (old, v) -> {
+                old.addAll(v);
+                return old;
+            });
         }
     }
 
@@ -109,7 +127,12 @@ public class MultiThreadExecutor implements Executor {
             executorThreads.forEach(Executor.ExecutorThread::kill);
             try {
                 lock.lock();
-                List<Executable> remainingExecutables = Lists.newArrayList(toExecute);
+
+                List<Executable> remainingExecutables = Lists.newArrayList();
+                for (List<Executable> executables : toExecute.values()) {
+                    remainingExecutables.addAll(executables);
+                }
+
                 toExecute.clear();
                 return remainingExecutables;
             } finally {
@@ -253,14 +276,59 @@ public class MultiThreadExecutor implements Executor {
                 }
 
                 increaseActiveThreads();
-                return executor.toExecute.poll();
+                return pollExecutor();
             } finally {
                 lock.unlock();
             }
         }
 
+        private Executable pollExecutor() {
+            final Set<Object> allLockUsed = lockCounter.entrySet().stream()
+                    .filter(entry -> entry.getValue() >= 1L)
+                    .sorted(Comparator.comparingLong(Map.Entry::getValue))
+                    .map(Map.Entry::getKey).collect(Collectors.toSet());
+
+            List<Object> possibleExecutables =
+                    executor.toExecute.keySet().stream()
+                            .filter(lockMonitorKey -> !allLockUsed.contains(lockMonitorKey) && lockMonitorKey != NULL_LOCK_MONITOR_KEY).toList();
+
+            if (!possibleExecutables.isEmpty()) {
+                Object lockMonitorKey = possibleExecutables.get(0);
+                return getExecutable(lockMonitorKey);
+            } else {
+                if (executor.toExecute.containsKey(NULL_LOCK_MONITOR_KEY)) {
+                    return getExecutable(NULL_LOCK_MONITOR_KEY);
+                } else {
+                    for (Object lockUsed : allLockUsed) {
+                        if (executor.toExecute.containsKey(lockUsed)) {
+                            return getExecutable(lockUsed);
+                        }
+                    }
+
+                    throw new FailToPollExecutable();
+                }
+            }
+        }
+
+        /**
+         * @param lockMonitorKey lockMonitor for which we want executables
+         *
+         * @return a {@link Executable} of the list mapped to the specified lockMonitorKey. <strong>DOES NOT VERIFY IF KEY IS PRESENT.</strong>
+         */
+        private Executable getExecutable(Object lockMonitorKey) {
+            List<Executable> executables = executor.toExecute.get(lockMonitorKey);
+            Executable chosen = executables.remove(0);
+            if (executables.isEmpty()) {
+                executor.toExecute.remove(lockMonitorKey);
+            }
+            return chosen;
+        }
+
         private void enterExecutionZone() throws InterruptedException {
             executor.executionZone.acquire();
+            if (currentExecutable.getLockMonitor() != null) {
+                lockCounter.merge(currentExecutable.getLockMonitor(), 1L, Long::sum);
+            }
         }
 
         private void execute() {
@@ -298,6 +366,9 @@ public class MultiThreadExecutor implements Executor {
         }
 
         private void leaveExecutionZone() {
+            if (currentExecutable.getLockMonitor() != null) {
+                lockCounter.computeIfPresent(currentExecutable.getLockMonitor(), (k, v) -> v - 1);
+            }
             executor.executionZone.release();
         }
 
