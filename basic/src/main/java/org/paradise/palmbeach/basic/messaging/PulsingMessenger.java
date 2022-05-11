@@ -1,21 +1,15 @@
 package org.paradise.palmbeach.basic.messaging;
 
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.util.Lists;
 import org.paradise.palmbeach.core.agent.SimpleAgent;
 import org.paradise.palmbeach.core.environment.network.Network;
 import org.paradise.palmbeach.core.event.Event;
 import org.paradise.palmbeach.utils.context.Context;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * This class is a {@link Messenger} which is able to send {@link Message} to agent even if the {@link Network} is not fully connected but garanties
@@ -31,18 +25,14 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
 
     // Variables.
 
-    private long currentClock;
+    private final ClockManager clockManager;
 
-    private final Map<SimpleAgent.AgentIdentifier, Long> agentClock;
-
-    private final Map<SimpleAgent.AgentIdentifier, TreeSet<Long>> agentClockReceived;
 
     // Constructors.
 
     public PulsingMessenger(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
-        this.agentClock = Maps.newHashMap();
-        this.agentClockReceived = Maps.newHashMap();
+        this.clockManager = new ClockManager();
     }
 
     // Methods.
@@ -50,37 +40,17 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
     @Override
     protected void receive(@NonNull PulseMessage pulseMsg) {
         SimpleAgent.AgentIdentifier sender = pulseMsg.getSender();
-        agentClock.putIfAbsent(sender, 0L);
-        agentClockReceived.putIfAbsent(sender, Sets.newTreeSet());
 
-        long agentCurrentClock = agentClock.get(sender);
         long msgClock = pulseMsg.getClock();
-        TreeSet<Long> clockReceived = agentClockReceived.get(sender);
 
-        if (msgClock > agentCurrentClock && !clockReceived.contains(msgClock)) {
-            clockReceived.add(msgClock);
+        if (clockManager.notReceivedClock(sender, msgClock)) {
+            clockManager.updateAgentClockFromClockReceived(sender, msgClock);
             if (pulseMsg.getReceiver().equals(getAgent().getIdentifier())) {
                 deliver(pulseMsg);
             } else {
                 pulse(pulseMsg);
             }
-
-            updateAgentClock(sender, agentCurrentClock, clockReceived);
         }
-    }
-
-    private void updateAgentClock(SimpleAgent.AgentIdentifier sender, final long agentCurrentClock, TreeSet<Long> clockReceived) {
-        List<Long> clockToRemove = Lists.newArrayList();
-        long aClock = agentCurrentClock;
-        for (long clock : clockReceived) {
-            if (clock == aClock + 1) {
-                aClock += 1;
-                clockToRemove.add(clock);
-            }
-        }
-
-        agentClock.put(sender, aClock);
-        clockToRemove.forEach(clockReceived::remove);
     }
 
     private void pulse(PulseMessage pulseMsg) {
@@ -102,9 +72,11 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
         Set<SimpleAgent.AgentIdentifier> directNeighbors = network.directNeighbors(getAgent().getIdentifier());
         directNeighbors.remove(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier neighbor : directNeighbors) {
-            network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(new PulseMessage(++currentClock,
-                                                                                                          getAgent().getIdentifier(), target, network,
-                                                                                                          message)));
+            network.send(getAgent().getIdentifier(),
+                         neighbor,
+                         new PulseMessageReception(new PulseMessage(clockManager.incrementAndGetClock(getAgent().getIdentifier()),
+                                                                    getAgent().getIdentifier(), target, network,
+                                                                    message)));
         }
     }
 
