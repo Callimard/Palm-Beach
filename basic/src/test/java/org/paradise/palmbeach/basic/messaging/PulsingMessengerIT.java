@@ -44,7 +44,6 @@ public class PulsingMessengerIT {
 
             SimpleAgent sender = null;
             SimpleAgent receiver = null;
-            Set<SimpleAgent> agents = Sets.newHashSet();
             int numberAgents = 75;
             for (int i = 0; i < numberAgents; i++) {
                 SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i), null);
@@ -84,7 +83,6 @@ public class PulsingMessengerIT {
 
             SimpleAgent sender = null;
             SimpleAgent receiver = null;
-            Set<SimpleAgent> agents = Sets.newHashSet();
             int numberAgents = 75;
             for (int i = 0; i < numberAgents; i++) {
                 SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i), null);

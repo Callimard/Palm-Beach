@@ -1,6 +1,5 @@
 package org.paradise.palmbeach.basic.messaging;
 
-import com.google.common.collect.Sets;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,7 +10,6 @@ import org.paradise.palmbeach.core.event.Event;
 import org.paradise.palmbeach.utils.context.Context;
 
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * This class is a {@link Messenger} which is able to send {@link Message} to agent even if the {@link Network} is not fully connected but garanties
@@ -27,22 +25,26 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
 
     // Variables.
 
-    @NonNull
-    private final Set<PulseMessage> alreadyReceived;
+    private final ClockManager clockManager;
+
 
     // Constructors.
 
     public PulsingMessenger(@NonNull SimpleAgent agent, Context context) {
         super(agent, context);
-        this.alreadyReceived = Sets.newHashSet();
+        this.clockManager = new ClockManager();
     }
 
     // Methods.
 
     @Override
     protected void receive(@NonNull PulseMessage pulseMsg) {
-        if (!alreadyReceived.contains(pulseMsg)) {
-            alreadyReceived.add(pulseMsg);
+        SimpleAgent.AgentIdentifier sender = pulseMsg.getSender();
+
+        long msgClock = pulseMsg.getClock();
+
+        if (clockManager.notReceivedClock(sender, msgClock)) {
+            clockManager.updateAgentClockFromClockReceived(sender, msgClock);
             if (pulseMsg.getReceiver().equals(getAgent().getIdentifier())) {
                 deliver(pulseMsg);
             } else {
@@ -57,7 +59,8 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
         directNeighbors.remove(getAgent().getIdentifier());
         if (!directNeighbors.contains(pulseMsg.getReceiver())) {
             for (SimpleAgent.AgentIdentifier neighbor : directNeighbors) {
-                network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(pulseMsg));
+                if (!neighbor.equals(pulseMsg.getSender()))
+                    network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(pulseMsg));
             }
         } else {
             network.send(getAgent().getIdentifier(), pulseMsg.getReceiver(), new PulseMessageReception(pulseMsg));
@@ -69,7 +72,11 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
         Set<SimpleAgent.AgentIdentifier> directNeighbors = network.directNeighbors(getAgent().getIdentifier());
         directNeighbors.remove(getAgent().getIdentifier());
         for (SimpleAgent.AgentIdentifier neighbor : directNeighbors) {
-            network.send(getAgent().getIdentifier(), neighbor, new PulseMessageReception(new PulseMessage(target, network, message)));
+            network.send(getAgent().getIdentifier(),
+                         neighbor,
+                         new PulseMessageReception(new PulseMessage(clockManager.incrementAndGetClock(getAgent().getIdentifier()),
+                                                                    getAgent().getIdentifier(), target, network,
+                                                                    message)));
         }
     }
 
@@ -93,10 +100,6 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
     @EqualsAndHashCode(callSuper = true)
     public static class PulseMessage extends MessageEncapsuler {
 
-        // Static.
-
-        private static final AtomicLong counter = new AtomicLong(0L);
-
         // Variables.
 
         @NonNull
@@ -105,18 +108,24 @@ public class PulsingMessenger extends MessageProtocol<PulsingMessenger.PulseMess
 
         @NonNull
         @Getter
+        private final SimpleAgent.AgentIdentifier sender;
+
+        @NonNull
+        @Getter
         private final SimpleAgent.AgentIdentifier receiver;
 
-        private final long id; // Indispensable to avoid problem if equal messages are sent
+        @Getter
+        private final long clock; // Indispensable to avoid problem if equal messages are sent
 
         // Constructors.
 
-        public PulseMessage(@NonNull SimpleAgent.AgentIdentifier receiver, @NonNull Network network,
-                            Message<?> msg) {
+        public PulseMessage(long clock, @NonNull SimpleAgent.AgentIdentifier sender, @NonNull SimpleAgent.AgentIdentifier receiver,
+                            @NonNull Network network, Message<?> msg) {
             super(msg);
+            this.sender = sender;
             this.receiver = receiver;
             this.network = network;
-            this.id = counter.getAndIncrement();
+            this.clock = clock;
         }
     }
 
