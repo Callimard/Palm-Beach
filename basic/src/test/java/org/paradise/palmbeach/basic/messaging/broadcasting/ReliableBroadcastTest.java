@@ -126,19 +126,19 @@ public class ReliableBroadcastTest {
             a1.start();
             a2.start();
 
-            Message<String> mString = new Message<>("msg");
-            rb0.broadcastMessage(mString, env.evolvingAgents(), network);
+            Message<String> msg0 = new Message<>("msg0");
+            rb0.broadcastMessage(msg0, env.evolvingAgents(), network);
 
             PalmBeachSimulation.start();
 
             waitSimulationEnd();
 
             assertThat(rb0.hasContent()).isTrue();
-            assertThat(rb0.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(rb0.nextContent()).isNotNull().isSameAs(msg0);
             assertThat(rb1.hasContent()).isTrue();
-            assertThat(rb1.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(rb1.nextContent()).isNotNull().isSameAs(msg0);
             assertThat(rb2.hasContent()).isTrue();
-            assertThat(rb2.nextContent()).isNotNull().isSameAs(mString);
+            assertThat(rb2.nextContent()).isNotNull().isSameAs(msg0);
         }
     }
 
