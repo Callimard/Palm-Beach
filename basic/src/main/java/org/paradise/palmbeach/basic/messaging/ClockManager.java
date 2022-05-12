@@ -58,9 +58,16 @@ public class ClockManager {
             long aClock = agentClock.get(agent);
             TreeSet<Long> clockReceived = agentClockReceived.get(agent);
             if (clockReceived != null) {
+                // clock Received is sorted is why we can break if the condition
+                // is not respect because all others will also not satisfy
+                // the condition
                 for (long clock : clockReceived) {
-                    aClock += 1;
-                    clockToRemove.add(clock);
+                    if (clock == aClock + 1) {
+                        aClock += 1;
+                        clockToRemove.add(clock);
+                    } else {
+                        break;
+                    }
                 }
                 agentClock.put(agent, aClock);
                 clockToRemove.forEach(clockReceived::remove);
