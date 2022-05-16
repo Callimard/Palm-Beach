@@ -483,7 +483,11 @@ public class SimpleAgent implements EventCatcher {
 
         // Variables.
 
-        private final @NonNull String agentName;
+        @Getter
+        @NonNull
+        private final String agentName;
+
+        @Getter
         private final long uniqueId;
 
         // Methods.
