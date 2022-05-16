@@ -30,9 +30,9 @@ import static org.mockito.Mockito.*;
 public class SimpleAgentTest {
 
     @Nested
-    @DisplayName("SimpleAgentIdentifier tests")
-    @Tag("SimpleAgentIdentifier")
-    class SimpleAgentIdentifierTest {
+    @DisplayName("AgentIdentifier tests")
+    @Tag("AgentIdentifier")
+    class AgentIdentifierTest {
 
         @Nested
         @DisplayName("Static nextId()")
@@ -44,7 +44,7 @@ public class SimpleAgentTest {
             void severalCallOfNextIdReturnsSeveralValue() {
                 Set<Long> set = new HashSet<>();
                 for (int i = 0; i < 500; i++) {
-                    boolean added = set.add(SimpleAgent.SimpleAgentIdentifier.nextId());
+                    boolean added = set.add(SimpleAgent.AgentIdentifier.nextId());
                     assertThat(added).isTrue();
                 }
             }
@@ -56,10 +56,10 @@ public class SimpleAgentTest {
         class Equals {
 
             @Test
-            @DisplayName("Equals returns false with not SimpleAgentIdentifier class")
+            @DisplayName("Equals returns false with not AgentIdentifier class")
             void differentTypeWithEquals() {
-                SimpleAgent.SimpleAgentIdentifier identifier =
-                        new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
+                SimpleAgent.AgentIdentifier identifier =
+                        new SimpleAgent.AgentIdentifier("TEST", SimpleAgent.AgentIdentifier.nextId());
                 Object other = new Object();
 
                 boolean res = identifier.equals(other);
@@ -70,8 +70,8 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Equals returns true with same instance")
             void sameInstance() {
-                SimpleAgent.SimpleAgentIdentifier identifier =
-                        new SimpleAgent.SimpleAgentIdentifier("TEST", SimpleAgent.SimpleAgentIdentifier.nextId());
+                SimpleAgent.AgentIdentifier identifier =
+                        new SimpleAgent.AgentIdentifier("TEST", SimpleAgent.AgentIdentifier.nextId());
 
                 boolean res = identifier.equals(identifier);
                 assertThat(res).isTrue();
@@ -80,8 +80,8 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Equals returns true with different instances and equal values")
             void equalValues() {
-                SimpleAgent.SimpleAgentIdentifier i0 = new SimpleAgent.SimpleAgentIdentifier("TEST", 0L);
-                SimpleAgent.SimpleAgentIdentifier i1 = new SimpleAgent.SimpleAgentIdentifier("TEST", 0L);
+                SimpleAgent.AgentIdentifier i0 = new SimpleAgent.AgentIdentifier("TEST", 0L);
+                SimpleAgent.AgentIdentifier i1 = new SimpleAgent.AgentIdentifier("TEST", 0L);
 
                 boolean res = i0.equals(i1);
                 assertThat(res).isTrue();
@@ -90,10 +90,10 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Equals returns false with different instances and different values")
             void differentValues() {
-                SimpleAgent.SimpleAgentIdentifier i0 = new SimpleAgent.SimpleAgentIdentifier("TEST", 0L);
-                SimpleAgent.SimpleAgentIdentifier i1 = new SimpleAgent.SimpleAgentIdentifier("TEST", 1L);
-                SimpleAgent.SimpleAgentIdentifier i2 = new SimpleAgent.SimpleAgentIdentifier("TEST1", 0L);
-                SimpleAgent.SimpleAgentIdentifier i3 = new SimpleAgent.SimpleAgentIdentifier("TEST2", 1L);
+                SimpleAgent.AgentIdentifier i0 = new SimpleAgent.AgentIdentifier("TEST", 0L);
+                SimpleAgent.AgentIdentifier i1 = new SimpleAgent.AgentIdentifier("TEST", 1L);
+                SimpleAgent.AgentIdentifier i2 = new SimpleAgent.AgentIdentifier("TEST1", 0L);
+                SimpleAgent.AgentIdentifier i3 = new SimpleAgent.AgentIdentifier("TEST2", 1L);
 
                 boolean res = i0.equals(i1);
                 assertThat(res).isFalse();
@@ -114,7 +114,7 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Returns a it without thrown exception")
             void returnsCorrectValue() {
-                SimpleAgent.SimpleAgentIdentifier i = new SimpleAgent.SimpleAgentIdentifier("TEST", 0L);
+                SimpleAgent.AgentIdentifier i = new SimpleAgent.AgentIdentifier("TEST", 0L);
 
                 assertDoesNotThrow(i::hashCode);
             }
@@ -129,7 +129,7 @@ public class SimpleAgentTest {
             @Test
             @DisplayName("Returns non null String")
             void returnsCorrectValue() {
-                SimpleAgent.SimpleAgentIdentifier i = new SimpleAgent.SimpleAgentIdentifier("TEST", 0L);
+                SimpleAgent.AgentIdentifier i = new SimpleAgent.AgentIdentifier("TEST", 0L);
 
                 assertThat(i.toString()).isNotNull();
             }

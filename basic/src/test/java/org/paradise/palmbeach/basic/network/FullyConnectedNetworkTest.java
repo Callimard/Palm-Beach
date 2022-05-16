@@ -150,7 +150,7 @@ public class FullyConnectedNetworkTest {
             Environment environment = new Environment("env", null);
             FullyConnectedNetwork network = new FullyConnectedNetwork("net", environment, null);
             for (int i = 0; i < n; i++) {
-                environment.addAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i));
+                environment.addAgent(new SimpleAgent.AgentIdentifier(String.valueOf(i), i));
             }
 
             long l1 = System.currentTimeMillis();

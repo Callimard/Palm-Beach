@@ -46,7 +46,7 @@ public class PulsingMessengerIT {
             SimpleAgent receiver = null;
             int numberAgents = 75;
             for (int i = 0; i < numberAgents; i++) {
-                SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i), null);
+                SimpleAgent agent = new SimpleAgent(new SimpleAgent.AgentIdentifier(String.valueOf(i), i), null);
                 agent.start();
                 PalmBeachSimulation.addAgent(agent);
                 env.addAgent(agent.getIdentifier());
@@ -85,7 +85,7 @@ public class PulsingMessengerIT {
             SimpleAgent receiver = null;
             int numberAgents = 75;
             for (int i = 0; i < numberAgents; i++) {
-                SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i), null);
+                SimpleAgent agent = new SimpleAgent(new SimpleAgent.AgentIdentifier(String.valueOf(i), i), null);
                 agent.start();
                 PalmBeachSimulation.addAgent(agent);
                 env.addAgent(agent.getIdentifier());

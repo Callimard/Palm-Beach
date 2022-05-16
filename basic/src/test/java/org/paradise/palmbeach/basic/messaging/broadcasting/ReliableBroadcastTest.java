@@ -58,7 +58,7 @@ public class ReliableBroadcastTest {
         @Test
         @DisplayName("broadcastMessage() throws AgentNotStartedException if the Agent is not in STARTED state")
         void withNotStartedAgent() {
-            SimpleAgent agent = new SimpleAgent(new SimpleAgent.SimpleAgentIdentifier("Agent", 0), null);
+            SimpleAgent agent = new SimpleAgent(new SimpleAgent.AgentIdentifier("Agent", 0), null);
             Message<String> message = new Message<>("Hello");
             Environment env = new Environment("env", null);
             Network network = new FullyConnectedNetwork("net", env, null);

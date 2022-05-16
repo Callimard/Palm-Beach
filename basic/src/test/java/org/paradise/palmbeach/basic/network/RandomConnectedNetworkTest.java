@@ -97,7 +97,7 @@ public class RandomConnectedNetworkTest {
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", env, context);
             Set<SimpleAgent.AgentIdentifier> agents = Sets.newHashSet();
             for (int i = 0; i < connectionNumber; i++) {
-                SimpleAgent.AgentIdentifier agent = new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i);
+                SimpleAgent.AgentIdentifier agent = new SimpleAgent.AgentIdentifier(String.valueOf(i), i);
                 agents.add(agent);
                 env.addAgent(agent);
             }
@@ -119,14 +119,14 @@ public class RandomConnectedNetworkTest {
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", env, context);
             Set<SimpleAgent.AgentIdentifier> agents = Sets.newHashSet();
             for (int i = 0; i < connectionNumber + 50; i++) {
-                SimpleAgent.AgentIdentifier agent = new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i);
+                SimpleAgent.AgentIdentifier agent = new SimpleAgent.AgentIdentifier(String.valueOf(i), i);
                 agents.add(agent);
                 env.addAgent(agent);
             }
 
             for (SimpleAgent.AgentIdentifier agent : agents) {
                 assertThat(network.directNeighbors(agent)).contains(agent);
-                assertThat(network.directNeighbors(agent).size()).isGreaterThanOrEqualTo(connectionNumber + 1);
+                assertThat(network.directNeighbors(agent)).hasSizeGreaterThanOrEqualTo(connectionNumber + 1);
             }
         }
     }
@@ -146,7 +146,7 @@ public class RandomConnectedNetworkTest {
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", env, context);
             List<SimpleAgent.AgentIdentifier> agents = Lists.newArrayList();
             for (int i = 0; i < connectionNumber + 50; i++) {
-                SimpleAgent.AgentIdentifier agent = new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i);
+                SimpleAgent.AgentIdentifier agent = new SimpleAgent.AgentIdentifier(String.valueOf(i), i);
                 agents.add(agent);
                 env.addAgent(agent);
             }
@@ -200,7 +200,7 @@ public class RandomConnectedNetworkTest {
             Environment environment = new Environment("env", null);
             RandomConnectedNetwork network = new RandomConnectedNetwork("net", environment, null);
             for (int i = 0; i < n; i++) {
-                environment.addAgent(new SimpleAgent.SimpleAgentIdentifier(String.valueOf(i), i));
+                environment.addAgent(new SimpleAgent.AgentIdentifier(String.valueOf(i), i));
             }
 
             int nbCon = network.connectionNumber();

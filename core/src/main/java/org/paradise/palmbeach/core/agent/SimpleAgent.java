@@ -467,27 +467,12 @@ public class SimpleAgent implements EventCatcher {
     /**
      * A class to uniquely identify a {@link SimpleAgent}. This is a sort of primary key of {@code SimpleAgent}.
      * <p>
-     * This class is abstract to force subclasses to implement {@link Object#hashCode()} and {@link Object#equals(Object)}.
-     * <p>
-     * A subclass which implements {@code AgentIdentifier} must verify this assertion: for all two agents <i>a0</i> and <i>a1</i> in the simulation,
-     * {@code a0.getIdentifier() != a1.getIdentifier()} is always true.
+     * An {@code AgentIdentifier} is just a couple of agentName and a uniqueId.
      */
-    public abstract static class AgentIdentifier implements Serializable {
-
-        @Override
-        public abstract int hashCode();
-
-        @Override
-        public abstract boolean equals(Object obj);
-    }
-
-    /**
-     * A simple implementation of {@link AgentIdentifier}. {@code SimpleIdentifier} identifies a {@code SimpleAgent} with its name and its unique id.
-     */
+    @SuppressWarnings("ClassCanBeRecord")
     @EqualsAndHashCode(callSuper = false)
-    @Getter
     @AllArgsConstructor
-    public static class SimpleAgentIdentifier extends AgentIdentifier {
+    public static class AgentIdentifier implements Serializable {
 
         // Static.
 

@@ -1,14 +1,14 @@
 package org.paradise.palmbeach.core.simulation.configuration;
 
-import org.paradise.palmbeach.core.agent.SimpleAgent;
 import com.typesafe.config.Config;
-import org.paradise.palmbeach.utils.context.Context;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.slf4j.Slf4j;
+import org.paradise.palmbeach.core.agent.SimpleAgent;
 import org.paradise.palmbeach.core.simulation.configuration.exception.GenerationFailedException;
 import org.paradise.palmbeach.core.simulation.configuration.exception.WrongAgentConfigurationException;
+import org.paradise.palmbeach.utils.context.Context;
 import org.paradise.palmbeach.utils.reflection.ReflectionTools;
 
 import java.util.Collections;
@@ -138,8 +138,8 @@ public class AgentConfiguration extends PalmBeachConfiguration<Set<SimpleAgent>>
             for (int i = 0; i < number; i++) {
                 Context context = contextConfiguration != null ? contextConfiguration.generate() : null;
                 SimpleAgent agent = SimpleAgent.initiateAgent(ReflectionTools.extractClass(agentClass),
-                                                              new SimpleAgent.SimpleAgentIdentifier(agentNamePattern.formatted(i),
-                                                                                                    SimpleAgent.SimpleAgentIdentifier.nextId()),
+                                                              new SimpleAgent.AgentIdentifier(agentNamePattern.formatted(i),
+                                                                                              SimpleAgent.AgentIdentifier.nextId()),
                                                               context);
                 agents.add(agent);
             }
