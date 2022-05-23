@@ -10,6 +10,7 @@ import org.paradise.palmbeach.blockchain.transaction.Transaction;
 
 import java.util.Collections;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.apache.commons.codec.binary.Base64.encodeBase64String;
 import static org.apache.commons.codec.digest.DigestUtils.sha256;
@@ -20,7 +21,6 @@ import static org.paradise.palmbeach.utils.validation.Validate.min;
  *
  * @param <T> the type of transaction
  */
-@SuppressWarnings("ClassCanBeRecord")
 @ToString
 public class Block<T extends Transaction> implements Hashable {
 
@@ -56,6 +56,14 @@ public class Block<T extends Transaction> implements Hashable {
 
         this.previous = previous;
         this.transactions = Sets.newHashSet(transactions);
+    }
+
+    @SuppressWarnings("unchecked")
+    public Block(Block<T> base) {
+        this.height = base.getHeight();
+        this.timestamp = base.getTimestamp();
+        this.previous = base.getPrevious();
+        this.transactions = base.getTransactions().stream().map(tx -> (T) tx.copy()).collect(Collectors.toSet());
     }
 
     // Methods.

@@ -51,6 +51,31 @@ public class NonForkBlockchainTest {
     }
 
     @Nested
+    @DisplayName("NonForkBlockchain copy()")
+    @Tag("copy")
+    class Copy {
+
+        @Test
+        @DisplayName("copy() create a new instance of BC which has equals blocks")
+        void correctCopy() {
+            NonForkBlockchain<Transaction> bc = generateBC();
+
+            NonForkBlockchain<Transaction> copy = bc.copy();
+
+            assertThat(copy).isNotSameAs(bc);
+            for (int i = 0; i <= bc.currentHeight(); i++) {
+                Block<Transaction> block = bc.getBlock(i);
+                Block<Transaction> bCopy = copy.getBlock(i);
+
+                assertThat(block.getHeight()).isEqualByComparingTo(bCopy.getHeight());
+                assertThat(block.getTimestamp()).isEqualByComparingTo(bCopy.getTimestamp());
+                assertThat(block.getPrevious()).isEqualTo(bCopy.getPrevious());
+                assertThat(block.getTransactions()).containsAll(bCopy.getTransactions());
+            }
+        }
+    }
+
+    @Nested
     @DisplayName("NonForkBlockchain addBlock()")
     @Tag("addBlock")
     class AddBlock {

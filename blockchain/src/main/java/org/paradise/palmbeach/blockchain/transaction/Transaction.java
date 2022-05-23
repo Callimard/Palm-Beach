@@ -28,4 +28,6 @@ public abstract class Transaction implements Hashable {
         this.timestamp = timestamp;
         this.sender = sender;
     }
+
+    public abstract Transaction copy();
 }
