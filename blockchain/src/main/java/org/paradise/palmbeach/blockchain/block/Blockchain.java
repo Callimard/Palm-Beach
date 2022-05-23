@@ -16,6 +16,8 @@ import java.util.NoSuchElementException;
  */
 public interface Blockchain<T extends Transaction> extends Iterable<Block<T>> {
 
+    Blockchain<T> copy();
+
     /**
      * @return the genesis block.
      */

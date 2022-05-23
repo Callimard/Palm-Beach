@@ -47,22 +47,22 @@ integration-test-job:
     - develop
     - master
 
-sonarqube-scan-job:
-  stage: scan
-  needs: [ "compile-job", "test-job" ]
-  script:
-    - mvn $MAVEN_CLI_OPTS clean install sonar:sonar
-  allow_failure: false
-  when: on_success
-  only:
-    - merge_requests
-    - tags
-    - develop
-    - master
+#sonarqube-scan-job:
+#  stage: scan
+#  needs: [ "compile-job", "test-job" ]
+#  script:
+#    - mvn $MAVEN_CLI_OPTS clean install sonar:sonar
+#  allow_failure: false
+#  when: on_success
+#  only:
+#    - merge_requests
+#    - tags
+#    - develop
+#    - master
 
 release-deploy:
   stage: deploy-artifact
-  needs: [ "compile-job", "test-job", "integration-test-job", "sonarqube-scan-job" ]
+  needs: [ "compile-job", "test-job", "integration-test-job" ]
   artifacts:
     paths:
       - "**/*.jar"
@@ -75,7 +75,7 @@ release-deploy:
 
 snapshot-deploy:
   stage: deploy-artifact
-  needs: [ "compile-job", "test-job", "integration-test-job", "sonarqube-scan-job" ]
+  needs: [ "compile-job", "test-job", "integration-test-job" ]
   artifacts:
     paths:
       - "**/*.jar"

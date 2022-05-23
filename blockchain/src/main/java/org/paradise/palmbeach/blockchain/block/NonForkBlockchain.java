@@ -40,6 +40,17 @@ public class NonForkBlockchain<T extends Transaction> implements Blockchain<T> {
     // Methods.
 
     @Override
+    public NonForkBlockchain<T> copy() {
+        NonForkBlockchain<T> bc = new NonForkBlockchain<>(new Block<>(genesisBlock()));
+
+        for (int i = 1; i <= currentHeight(); i++) {
+            bc.addBlock(new Block<>(getBlock(i)));
+        }
+
+        return bc;
+    }
+
+    @Override
     public Block<T> genesisBlock() {
         return getBlock(0L);
     }

@@ -45,4 +45,9 @@ public class MoneyTx extends Transaction {
 
         return encodeBase64String(sha256(txConcat));
     }
+
+    @Override
+    public MoneyTx copy() {
+        return new MoneyTx(getTimestamp(), getSender(), getReceiver(), getAmount());
+    }
 }
